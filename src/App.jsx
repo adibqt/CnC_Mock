@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Preloader from './components/Preloader';
 import Home from './pages/Home';
 import Contact from './pages/Contact';
+import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<Login />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />

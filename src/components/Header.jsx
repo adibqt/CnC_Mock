@@ -67,7 +67,7 @@ const Header = () => {
               </div>
               <div className="col-lg-2 col-12">
                 <div className="get-quote">
-                  <Link to="/appointment" className="btn">Book Appointment</Link>
+                  <Link to="/login" className="btn">Login</Link>
                 </div>
               </div>
             </div>

@@ -1,0 +1,389 @@
+/* =============================================
+   Login Page Styles
+============================================= */
+
+/* Login Section */
+.login-section {
+  padding: 80px 0;
+  background: #f9f9f9;
+}
+
+.login-form-container {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Login Header */
+.login-header {
+  text-align: center;
+  margin-bottom: 35px;
+  padding-bottom: 25px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.login-header h3 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #2c2d3f;
+  margin-bottom: 10px;
+}
+
+.login-header p {
+  color: #666;
+  font-size: 15px;
+  margin: 0;
+}
+
+/* Login Form */
+.login-form {
+  margin-top: 30px;
+}
+
+.login-form .form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.login-form label {
+  display: block;
+  font-weight: 500;
+  color: #2c2d3f;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.login-form label i {
+  margin-right: 8px;
+  color: #1a76d1;
+  font-size: 16px;
+}
+
+.login-form .form-control {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #2c2d3f;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.login-form .form-control:focus {
+  border-color: #1a76d1;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 118, 209, 0.1);
+}
+
+.login-form .form-control.error {
+  border-color: #ff4757;
+}
+
+.login-form .error-message {
+  display: block;
+  color: #ff4757;
+  font-size: 13px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* Forgot Password */
+.forgot-password {
+  text-align: right;
+  margin-top: -15px;
+  margin-bottom: 20px;
+}
+
+.forgot-password a {
+  color: #1a76d1;
+  font-size: 14px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.forgot-password a:hover {
+  color: #155a9f;
+  text-decoration: underline;
+}
+
+/* Buttons */
+.login-form .btn-block {
+  width: 100%;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login-form .btn-primary {
+  background: #1a76d1;
+  color: #fff;
+}
+
+.login-form .btn-primary:hover {
+  background: #155a9f;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(26, 118, 209, 0.3);
+}
+
+.login-form .btn-google {
+  background: #fff;
+  color: #333;
+  border: 2px solid #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.login-form .btn-google:hover {
+  background: #f8f9fa;
+  border-color: #d0d0d0;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-form .btn-google .google-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* Divider */
+.divider {
+  text-align: center;
+  margin: 25px 0;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 43%;
+  height: 1px;
+  background: #e8e8e8;
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+.divider span {
+  background: #fff;
+  padding: 0 15px;
+  color: #999;
+  font-size: 14px;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+/* Form Footer */
+.form-footer {
+  text-align: center;
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.form-footer p {
+  color: #666;
+  font-size: 15px;
+  margin: 0;
+}
+
+.form-footer a {
+  color: #1a76d1;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.form-footer a:hover {
+  color: #155a9f;
+  text-decoration: underline;
+}
+
+/* Login Features */
+.login-features {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+  color: #666;
+  font-size: 14px;
+}
+
+.feature-item:last-child {
+  margin-bottom: 0;
+}
+
+.feature-item i {
+  color: #1a76d1;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.feature-item span {
+  flex: 1;
+}
+
+/* Responsive Design */
+@media only screen and (max-width: 768px) {
+  .login-section {
+    padding: 50px 0;
+  }
+
+  .login-form-container {
+    padding: 30px 20px;
+  }
+
+  .login-header h3 {
+    font-size: 24px;
+  }
+
+  .login-header p {
+    font-size: 14px;
+  }
+
+  .login-form .form-control {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+
+  .login-form .btn-block {
+    padding: 13px;
+    font-size: 15px;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .login-form-container {
+    padding: 25px 15px;
+  }
+
+  .login-header h3 {
+    font-size: 22px;
+  }
+
+  .divider::before,
+  .divider::after {
+    width: 40%;
+  }
+}
+
+/* Breadcrumbs styling for login page */
+.breadcrumbs.overlay {
+  background-image: url('/img/bread-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  padding: 100px 0;
+  position: relative;
+}
+
+.breadcrumbs.overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(26, 118, 209, 0.85);
+}
+
+.breadcrumbs .bread-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.breadcrumbs h2 {
+  color: #fff;
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.breadcrumbs .bread-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.breadcrumbs .bread-list li {
+  color: #fff;
+  font-size: 16px;
+}
+
+.breadcrumbs .bread-list li a {
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.breadcrumbs .bread-list li a:hover {
+  color: #f0f0f0;
+}
+
+.breadcrumbs .bread-list li i {
+  font-size: 12px;
+}
+
+.breadcrumbs .bread-list li.active {
+  font-weight: 600;
+}
+
+/* Loading and transition effects */
+.login-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-form button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Focus states for accessibility */
+.login-form .form-control:focus,
+.login-form button:focus,
+.forgot-password a:focus,
+.form-footer a:focus {
+  outline: 2px solid #1a76d1;
+  outline-offset: 2px;
+}
