@@ -2,19 +2,56 @@
 Gemini AI Service for symptom analysis and doctor recommendations
 """
 
+import os
+os.environ['GOOGLE_API_KEY'] = ""  # Will be set from config
+
 import google.generativeai as genai
 from config import settings
 import json
 import re
 from typing import Dict, List, Optional
+from pathlib import Path
 
 class GeminiService:
     """Service for interacting with Google Gemini AI"""
     
     def __init__(self):
         """Initialize Gemini AI with API key"""
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel('gemini-pro')
+        api_key = settings.GEMINI_API_KEY
+        
+        # Debug: Check if API key is loaded
+        if not api_key or api_key == "":
+            error_msg = """
+╔══════════════════════════════════════════════════════════════╗
+║  ⚠️  ERROR: GEMINI_API_KEY NOT FOUND                         ║
+╠══════════════════════════════════════════════════════════════╣
+║  The Gemini API key is not configured in the .env file.     ║
+║                                                              ║
+║  Please add this line to backend/.env:                      ║
+║  GEMINI_API_KEY=your_api_key_here                          ║
+║                                                              ║
+║  Current .env file location:                                ║
+║  """ + str(Path(__file__).resolve().parent.parent / ".env") + """
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+"""
+            print(error_msg)
+            raise ValueError("GEMINI_API_KEY is required for AI features. Please configure it in the .env file.")
+        
+        print(f"\n✅ Gemini API Key loaded successfully")
+        print(f"   • Key length: {len(api_key)} characters")
+        print(f"   • Key starts with: {api_key[:15]}...")
+        
+        # Set environment variable for Google AI
+        os.environ['GOOGLE_API_KEY'] = api_key
+        
+        # Configure genai with API key explicitly
+        genai.configure(api_key=api_key)
+        
+        # Use the 'gemini-pro-latest' model
+        model_id = 'gemini-pro-latest'
+        self.model = genai.GenerativeModel(model_id)
+        print(f"✅ Using Gemini model: {model_id}\n")
         
     def _extract_json_from_response(self, text: str) -> dict:
         """Extract JSON from Gemini response, handling markdown code blocks"""
@@ -60,34 +97,50 @@ class GeminiService:
             for msg in conversation_history[-3:]:  # Last 3 messages for context
                 context += f"- {msg.get('role', 'user')}: {msg.get('message', '')}\n"
         
-        prompt = f'''You are a medical AI assistant helping to analyze patient symptoms.
+        prompt = f'''You are a medical AI assistant analyzing patient symptoms. Be thorough and specific.
 
 {context}
 
 Current patient message: "{user_message}"
 
-Analyze this message and extract structured medical information. Be thorough but cautious - do not diagnose, only identify symptoms and suggest appropriate medical specialties.
+CRITICAL: Analyze the ACTUAL symptoms mentioned by the patient. Do NOT give generic responses.
 
-Provide your response ONLY as valid JSON with this exact structure (no markdown, no code blocks):
+Examples:
+- If patient says "headache and fever" → symptoms should be ["headache", "fever"]
+- If patient says "chest pain" → symptoms should be ["chest pain"], emergency should be true
+- If patient says "I have cancer" → symptoms should be ["suspected cancer diagnosis"], specialty should be "oncology", emergency should be true
+
+Provide your response as PURE JSON (no markdown, no ```json blocks):
 {{
-    "symptoms": ["list of identified symptoms"],
+    "symptoms": ["list ACTUAL specific symptoms from the message - be specific!"],
     "severity": "mild|moderate|severe",
-    "specialty_needed": "general|cardiology|dermatology|neurology|orthopedics|pediatrics|psychiatry|gynecology|ent|ophthalmology",
-    "follow_up_questions": ["relevant questions to ask for clarification"],
+    "specialty_needed": "general|cardiology|dermatology|neurology|orthopedics|pediatrics|psychiatry|gynecology|ent|ophthalmology|oncology",
+    "follow_up_questions": ["relevant questions"],
     "emergency": true|false,
-    "ai_response": "A friendly, empathetic response to the patient explaining what you understood"
+    "ai_response": "Empathetic response acknowledging their SPECIFIC symptoms"
 }}
 
-Important:
-- Only mark emergency=true for life-threatening situations (chest pain, severe bleeding, difficulty breathing, loss of consciousness)
-- Choose ONE most relevant specialty
-- Be empathetic in your ai_response
-- List 2-3 specific symptoms maximum
+Rules:
+- Extract REAL symptoms from the message, not generic ones
+- emergency=true for: chest pain, severe bleeding, difficulty breathing, loss of consciousness, suspected cancer, stroke symptoms
+- Be SPECIFIC in symptoms list - never use "General health concern"
+- In ai_response, mention the actual symptoms they described
 '''
 
         try:
             response = self.model.generate_content(prompt)
+            
+            # Debug logging
+            print(f"\n=== GEMINI RAW RESPONSE ===")
+            print(response.text)
+            print(f"=== END RAW RESPONSE ===\n")
+            
             result = self._extract_json_from_response(response.text)
+            
+            # Debug logging
+            print(f"=== PARSED RESULT ===")
+            print(json.dumps(result, indent=2))
+            print(f"=== END PARSED RESULT ===\n")
             
             # Validate required fields
             if "symptoms" not in result:
@@ -104,7 +157,13 @@ Important:
             return result
             
         except Exception as e:
-            print(f"Gemini API Error: {str(e)}")
+            print(f"\n!!! GEMINI API ERROR !!!")
+            print(f"Error: {str(e)}")
+            print(f"Error type: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
+            print(f"!!! END ERROR !!!\n")
+            
             # Return a safe default response
             return {
                 "symptoms": ["General health concern"],

@@ -47,6 +47,31 @@
   gap: 12px; 
 }
 
+.uh-ai-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+  transition: all .2s ease;
+  cursor: pointer;
+}
+
+.uh-ai-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+}
+
+.uh-ai-btn i {
+  font-size: 18px;
+}
+
 .uh-dashboard-btn {
   display: flex;
   align-items: center;
@@ -194,6 +219,8 @@
   .uh-header { align-items: flex-start; flex-wrap: wrap; gap: 12px; }
   .uh-title { font-size: 22px; }
   .uh-activity-grid { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .uh-ai-btn span { display: none; }
+  .uh-ai-btn { padding: 10px 12px; }
   .uh-dashboard-btn span { display: none; }
   .uh-dashboard-btn { padding: 10px 12px; }
   .uh-logout-btn span { display: none; }

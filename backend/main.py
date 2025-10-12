@@ -37,6 +37,22 @@ app.include_router(users_router)
 app.include_router(doctors_router)
 app.include_router(ai_router)
 
+@app.on_event("startup")
+async def startup_event():
+    """Verify configuration on startup"""
+    print("\n" + "="*60)
+    print("🚀 Click & Care API - Startup Configuration")
+    print("="*60)
+    print(f"Database URL: {settings.DATABASE_URL[:30]}...")
+    print(f"Environment: {settings.ENVIRONMENT}")
+    print(f"GEMINI_API_KEY loaded: {'✓ Yes' if settings.GEMINI_API_KEY else '✗ No'}")
+    if settings.GEMINI_API_KEY:
+        print(f"GEMINI_API_KEY length: {len(settings.GEMINI_API_KEY)} characters")
+        print(f"GEMINI_API_KEY preview: {settings.GEMINI_API_KEY[:15]}...")
+    else:
+        print("⚠️  WARNING: GEMINI_API_KEY is not set!")
+    print("="*60 + "\n")
+
 @app.get("/")
 def root():
     """Root endpoint"""

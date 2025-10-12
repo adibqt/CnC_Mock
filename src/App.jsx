@@ -14,6 +14,7 @@ import UserHome from './pages/UserHome';
 import DoctorProfileUpdate from './pages/DoctorProfileUpdate';
 import DoctorHome from './pages/DoctorHome';
 import DoctorSchedule from './pages/DoctorSchedule';
+import AIConsultation from './pages/AIConsultation';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -48,6 +49,7 @@ function App() {
         <Route path="/profile-update" element={<ProfileUpdate />} />
         <Route path="/patient-dashboard" element={<PatientDashboard />} />
         <Route path="/user-home" element={<UserHome />} />
+        <Route path="/ai-consultation" element={<AIConsultation />} />
         <Route path="/doctor-profile-update" element={<DoctorProfileUpdate />} />
         <Route path="/doctor-home" element={<DoctorHome />} />
         <Route path="/doctor-schedule" element={<DoctorSchedule />} />
