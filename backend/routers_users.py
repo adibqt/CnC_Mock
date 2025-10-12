@@ -179,3 +179,59 @@ async def upload_profile_picture(
         "message": "Profile picture uploaded successfully",
         "profile_picture_url": profile_picture_url
     }
+
+# ---------------------- Home Page Data ----------------------
+@router.get("/home")
+def get_home_data(current_user: User = Depends(get_current_user)):
+    """Aggregate data for the User Home page. Placeholder data for now."""
+    # Build a friendly date label for an example appointment (or none)
+    appointment = None
+    if current_user.name:  # simple heuristic: show a demo appointment if name exists
+        appointment = {
+            "doctor_name": "Dr. Khalid Kashmiri",
+            "specialty": "Dental Specialist",
+            "date_label": "Mon, Feb 30 at 09:00 - 11:00 am",
+            "mode": "Video Call"
+        }
+
+    data = {
+        "user": {
+            "id": current_user.id,
+            "name": current_user.name or "",
+        },
+        "concerns": [
+            "Temperature", "Snuffle", "Weakness", "Viruses",
+            "Syncytial Virus", "Adenoviruses", "Rhinoviruses", "Factors", "Infection"
+        ],
+        "todaysAppointment": appointment,
+        "activities": [
+            {"key": "prescriptions", "label": "Prescription", "icon": "prescription"},
+            {"key": "doctors", "label": "Doctor", "icon": "stethoscope"},
+            {"key": "schedule", "label": "Schedule", "icon": "calendar"}
+        ]
+    }
+    return data
+
+
+@router.post("/suggest-doctor")
+def suggest_doctor(payload: dict, current_user: User = Depends(get_current_user)):
+    """Return a suggested doctor based on patient concerns. Placeholder rules."""
+    concerns = [c.lower() for c in payload.get("concerns", [])]
+    # Extremely naive matching for demo
+    if any(x in concerns for x in ["teeth", "dental", "gum", "tooth"]):
+        specialty = "Dental Specialist"
+        name = "Dr. Khalid Kashmiri"
+    elif any(x in concerns for x in ["virus", "infection", "fever", "rhinoviruses", "adenoviruses"]):
+        specialty = "General Physician"
+        name = "Dr. Sarah Ahmed"
+    else:
+        specialty = "Family Medicine"
+        name = "Dr. Adeel Khan"
+
+    return {
+        "name": name,
+        "specialty": specialty,
+        "experience_years": 8,
+        "rating": 4.6,
+        "photo_url": None
+    }

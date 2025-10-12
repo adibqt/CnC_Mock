@@ -41,7 +41,13 @@
   font-size: 36px;
 }
 
-.btn-logout {
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-home {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: 2px solid white;
@@ -55,9 +61,28 @@
   transition: all 0.3s;
 }
 
-.btn-logout:hover {
+.btn-home:hover {
   background: white;
   color: #2563EB;
+}
+
+.btn-logout {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 25px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-logout:hover {
+  background: #dc2626;
+  border-color: white;
 }
 
 /* Loading & Error States */
