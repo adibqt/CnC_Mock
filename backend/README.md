@@ -1,12 +1,13 @@
 # Click & Care Backend API
 
-
-cd C:\Users\USER\Desktop\CnC_Mock\backend; .\venv\Scripts\Activate.ps1; uvicorn main:app --reload
-
+**Quick Start Command (with FFmpeg support):**
+```powershell
+cd C:\Users\USER\Desktop\CnC_Mock\backend; $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User"); .\venv\Scripts\Activate.ps1; uvicorn main:app --reload
+```
 
 FastAPI backend for Click & Care medical platform with PostgreSQL database.
 
-## 🚀 Features
+##  Features
 
 - ✅ User (Patient) Authentication (Signup/Login)
 - ✅ Doctor Authentication (Signup/Login with verification)

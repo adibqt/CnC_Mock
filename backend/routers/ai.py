@@ -131,37 +131,146 @@ async def analyze_audio(
         # Read audio file
         audio_data = await audio.read()
         
-        # Save temporarily (speech recognition needs a file)
-        temp_audio_path = f"temp_audio_{current_user.id}_{datetime.now().timestamp()}.wav"
-        with open(temp_audio_path, "wb") as f:
-            f.write(audio_data)
+        # Generate unique temporary file names
+        timestamp = datetime.now().timestamp()
+        temp_input_path = f"temp_audio_input_{current_user.id}_{timestamp}.webm"
+        temp_wav_path = f"temp_audio_{current_user.id}_{timestamp}.wav"
         
         try:
+            # Save the uploaded audio file temporarily
+            with open(temp_input_path, "wb") as f:
+                f.write(audio_data)
+            
+            # Convert audio to WAV format using pydub
+            from pydub import AudioSegment
+            from pydub.utils import which
+            import time
+            import subprocess
+            
+            # Try to locate FFmpeg
+            ffmpeg_path = which("ffmpeg")
+            if not ffmpeg_path:
+                # Try common installation paths on Windows
+                possible_paths = [
+                    r"C:\ffmpeg\bin\ffmpeg.exe",
+                    r"C:\Program Files\ffmpeg\bin\ffmpeg.exe",
+                    r"C:\ProgramData\chocolatey\bin\ffmpeg.exe",
+                ]
+                for path in possible_paths:
+                    if os.path.exists(path):
+                        ffmpeg_path = path
+                        AudioSegment.converter = path
+                        break
+                
+                if not ffmpeg_path:
+                    # Try to find it using where command
+                    try:
+                        result = subprocess.run(['where', 'ffmpeg'], capture_output=True, text=True)
+                        if result.returncode == 0:
+                            ffmpeg_path = result.stdout.strip().split('\n')[0]
+                            AudioSegment.converter = ffmpeg_path
+                    except:
+                        pass
+            
+            if not ffmpeg_path:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="FFmpeg not found. Please install FFmpeg and restart the server. See install_ffmpeg.md for instructions."
+                )
+            
+            # Load the audio file (supports webm, mp3, ogg, etc.)
+            audio_segment = AudioSegment.from_file(temp_input_path)
+            
+            # Export as WAV with proper settings for speech recognition
+            audio_segment.export(
+                temp_wav_path,
+                format="wav",
+                parameters=["-ar", "16000", "-ac", "1"]  # 16kHz, mono
+            )
+            
+            # Force Python to release the file handles
+            audio_segment = None
+            
+            # Give Windows time to release file locks
+            time.sleep(0.1)
+            
+            # Clean up input file with retry logic
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    if os.path.exists(temp_input_path):
+                        os.remove(temp_input_path)
+                    break
+                except PermissionError:
+                    if attempt < max_retries - 1:
+                        time.sleep(0.2)
+                    else:
+                        # If still locked, just continue - it will be cleaned up later
+                        print(f"Warning: Could not delete {temp_input_path}, will be cleaned up later")
+            
             # Transcribe using speech recognition
             recognizer = sr.Recognizer()
             
-            with sr.AudioFile(temp_audio_path) as source:
+            with sr.AudioFile(temp_wav_path) as source:
                 audio_content = recognizer.record(source)
                 text = recognizer.recognize_google(audio_content)
             
-            # Clean up temp file
-            os.remove(temp_audio_path)
+            # Clean up WAV file with retry logic
+            for attempt in range(max_retries):
+                try:
+                    if os.path.exists(temp_wav_path):
+                        os.remove(temp_wav_path)
+                    break
+                except PermissionError:
+                    if attempt < max_retries - 1:
+                        time.sleep(0.2)
+                    else:
+                        print(f"Warning: Could not delete {temp_wav_path}, will be cleaned up later")
             
         except sr.UnknownValueError:
-            os.remove(temp_audio_path)
+            # Clean up temporary files with retry logic
+            import time
+            for temp_file in [temp_input_path, temp_wav_path]:
+                for attempt in range(3):
+                    try:
+                        if os.path.exists(temp_file):
+                            os.remove(temp_file)
+                        break
+                    except (PermissionError, OSError):
+                        if attempt < 2:
+                            time.sleep(0.2)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Could not understand audio. Please speak clearly and try again."
             )
         except sr.RequestError as e:
-            os.remove(temp_audio_path)
+            # Clean up temporary files with retry logic
+            import time
+            for temp_file in [temp_input_path, temp_wav_path]:
+                for attempt in range(3):
+                    try:
+                        if os.path.exists(temp_file):
+                            os.remove(temp_file)
+                        break
+                    except (PermissionError, OSError):
+                        if attempt < 2:
+                            time.sleep(0.2)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Speech recognition service error: {str(e)}"
             )
         except Exception as e:
-            if os.path.exists(temp_audio_path):
-                os.remove(temp_audio_path)
+            # Clean up temporary files with retry logic
+            import time
+            for temp_file in [temp_input_path, temp_wav_path]:
+                for attempt in range(3):
+                    try:
+                        if os.path.exists(temp_file):
+                            os.remove(temp_file)
+                        break
+                    except (PermissionError, OSError):
+                        if attempt < 2:
+                            time.sleep(0.2)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Audio processing error: {str(e)}"
@@ -180,7 +289,7 @@ async def analyze_audio(
         
         # Update consultation to mark as audio type
         consultation = db.query(AIConsultation).filter(
-            AIConsultation.id == result.consultation_id
+            AIConsultation.id == result_dict["consultation_id"]
         ).first()
         if consultation:
             consultation.message_type = "audio"
@@ -305,3 +414,31 @@ async def generate_followup(
     followup = await gemini_service.generate_followup(conversation_history)
     
     return {"followup": followup}
+
+# Helper function to clean up old temporary audio files
+def cleanup_temp_audio_files():
+    """
+    Clean up temporary audio files that are older than 1 hour
+    This function can be called periodically or on startup
+    """
+    import glob
+    import time
+    
+    current_time = time.time()
+    one_hour_ago = current_time - 3600  # 1 hour in seconds
+    
+    # Find all temp audio files
+    temp_patterns = ["temp_audio_*.webm", "temp_audio_*.wav"]
+    
+    for pattern in temp_patterns:
+        for filepath in glob.glob(pattern):
+            try:
+                # Get file modification time
+                file_mtime = os.path.getmtime(filepath)
+                
+                # If file is older than 1 hour, try to delete it
+                if file_mtime < one_hour_ago:
+                    os.remove(filepath)
+                    print(f"Cleaned up old temp file: {filepath}")
+            except Exception as e:
+                print(f"Could not clean up {filepath}: {e}")
