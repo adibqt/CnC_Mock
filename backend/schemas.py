@@ -78,9 +78,30 @@ class DoctorResponse(DoctorBase):
     is_verified: bool
     is_active: bool
     created_at: datetime
+    name: Optional[str] = None
+    bmdc_number: Optional[str] = None
+    mbbs_certificate_url: Optional[str] = None
+    fcps_certificate_url: Optional[str] = None
+    degrees: Optional[list] = None
+    profile_picture_url: Optional[str] = None
     
     class Config:
         from_attributes = True
+
+class DoctorProfileUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=100)
+    bmdc_number: Optional[str] = Field(None, min_length=4, max_length=20)
+    degrees: Optional[list] = None  # List of {degree, institution, year}
+    
+    @validator('degrees')
+    def validate_degrees(cls, v):
+        if v:
+            for degree in v:
+                if not isinstance(degree, dict):
+                    raise ValueError('Each degree must be a dictionary')
+                if 'degree' not in degree or 'institution' not in degree:
+                    raise ValueError('Each degree must have "degree" and "institution" fields')
+        return v
 
 # Token Schemas
 class Token(BaseModel):

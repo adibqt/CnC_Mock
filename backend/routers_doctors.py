@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from database import get_db
 from models import Doctor
-from schemas import DoctorCreate, DoctorLogin, DoctorResponse, Token
+from schemas import DoctorCreate, DoctorLogin, DoctorResponse, Token, DoctorProfileUpdate
 from auth import get_password_hash, verify_password, create_access_token
 from config import settings
+import os
+import uuid
+from pathlib import Path
 
 router = APIRouter(prefix="/api/doctors", tags=["doctors"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -122,3 +125,178 @@ def login(credentials: DoctorLogin, db: Session = Depends(get_db)):
 def get_profile(current_doctor: Doctor = Depends(get_current_doctor)):
     """Get current doctor profile"""
     return current_doctor
+
+@router.put("/profile", response_model=DoctorResponse)
+def update_profile(
+    profile_data: DoctorProfileUpdate,
+    current_doctor: Doctor = Depends(get_current_doctor),
+    db: Session = Depends(get_db)
+):
+    """Update doctor profile information"""
+    
+    # Update only provided fields
+    update_data = profile_data.dict(exclude_unset=True)
+    
+    for field, value in update_data.items():
+        setattr(current_doctor, field, value)
+    
+    db.commit()
+    db.refresh(current_doctor)
+    
+    return current_doctor
+
+@router.post("/upload-certificate")
+async def upload_certificate(
+    certificate_type: str,  # "mbbs" or "fcps"
+    file: UploadFile = File(...),
+    current_doctor: Doctor = Depends(get_current_doctor),
+    db: Session = Depends(get_db)
+):
+    """Upload and update doctor certificates (MBBS or FCPS)"""
+    
+    # Validate certificate type
+    if certificate_type not in ["mbbs", "fcps"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid certificate type. Must be 'mbbs' or 'fcps'."
+        )
+    
+    # Validate file type (PDFs and images)
+    allowed_types = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Only PDF, JPEG, and PNG files are allowed."
+        )
+    
+    # Validate file size (max 10MB)
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:  # 10MB in bytes
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size too large. Maximum size is 10MB."
+        )
+    
+    # Create uploads directory if it doesn't exist
+    upload_dir = Path(f"uploads/certificates/{certificate_type}")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    file_extension = file.filename.split(".")[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        f.write(contents)
+    
+    # Update doctor certificate URL
+    certificate_url = f"/uploads/certificates/{certificate_type}/{unique_filename}"
+    
+    if certificate_type == "mbbs":
+        current_doctor.mbbs_certificate_url = certificate_url
+    else:  # fcps
+        current_doctor.fcps_certificate_url = certificate_url
+    
+    db.commit()
+    db.refresh(current_doctor)
+    
+    return {
+        "message": f"{certificate_type.upper()} certificate uploaded successfully",
+        "certificate_url": certificate_url
+    }
+
+@router.get("/home")
+def get_home_data(current_doctor: Doctor = Depends(get_current_doctor)):
+    """Get doctor home page data with appointments and schedule"""
+    
+    # Placeholder data - will be replaced with actual appointments later
+    today_appointments = [
+        {
+            "id": 1,
+            "patient_name": "John Doe",
+            "time": "09:00 AM",
+            "type": "Consultation",
+            "status": "confirmed"
+        },
+        {
+            "id": 2,
+            "patient_name": "Jane Smith",
+            "time": "10:30 AM",
+            "type": "Follow-up",
+            "status": "confirmed"
+        },
+    ] if current_doctor.name else []
+    
+    return {
+        "doctor": {
+            "id": current_doctor.id,
+            "name": current_doctor.name or current_doctor.full_name,
+            "specialization": current_doctor.specialization,
+            "is_verified": current_doctor.is_verified,
+            "bmdc_number": current_doctor.bmdc_number,
+            "mbbs_certificate_url": current_doctor.mbbs_certificate_url,
+            "fcps_certificate_url": current_doctor.fcps_certificate_url,
+            "degrees": current_doctor.degrees or []
+        },
+        "todayAppointments": today_appointments,
+        "stats": {
+            "total_patients": 45,
+            "today_appointments": len(today_appointments),
+            "pending_reports": 3,
+            "rating": 4.8
+        },
+        "schedule": current_doctor.schedule or {
+            "monday": [],
+            "tuesday": [],
+            "wednesday": [],
+            "thursday": [],
+            "friday": [],
+            "saturday": [],
+            "sunday": []
+        }
+    }
+
+@router.get("/schedule")
+async def get_schedule(current_doctor: Doctor = Depends(get_current_doctor)):
+    """Get doctor's weekly schedule"""
+    return {
+        "success": True,
+        "schedule": current_doctor.schedule or {
+            "monday": [],
+            "tuesday": [],
+            "wednesday": [],
+            "thursday": [],
+            "friday": [],
+            "saturday": [],
+            "sunday": []
+        }
+    }
+
+@router.put("/schedule")
+async def update_schedule(
+    schedule_data: dict,
+    current_doctor: Doctor = Depends(get_current_doctor),
+    db: Session = Depends(get_db)
+):
+    """Update doctor's weekly schedule"""
+    
+    # Validate schedule data structure
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    for day in days:
+        if day not in schedule_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Missing schedule for {day}"
+            )
+    
+    # Update schedule
+    current_doctor.schedule = schedule_data
+    db.commit()
+    db.refresh(current_doctor)
+    
+    return {
+        "success": True,
+        "message": "Schedule updated successfully",
+        "schedule": current_doctor.schedule
+    }

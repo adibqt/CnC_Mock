@@ -170,7 +170,7 @@ export default function UserHome() {
           <button 
             className="uh-logout-btn" 
             onClick={() => {
-              authUtils.logout();
+              authUtils.logout('patient');
               navigate('/');
             }}
             aria-label="Logout"

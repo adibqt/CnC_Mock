@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, JSON
 from sqlalchemy.sql import func
 from database import Base
 import enum
@@ -39,6 +39,16 @@ class Doctor(Base):
     full_name = Column(String, nullable=False)
     specialization = Column(String, nullable=False)
     license_number = Column(String, unique=True, nullable=False)
+    
+    # Profile Information - New fields
+    name = Column(String, nullable=True)  # Doctor's preferred name
+    bmdc_number = Column(String, nullable=True)  # Bangladesh Medical & Dental Council number
+    mbbs_certificate_url = Column(String, nullable=True)  # MBBS certificate file path
+    fcps_certificate_url = Column(String, nullable=True)  # FCPS certificate file path
+    degrees = Column(JSON, nullable=True)  # List of degrees: [{"degree": "MBBS", "institution": "DMC", "year": "2015"}, ...]
+    profile_picture_url = Column(String, nullable=True)
+    schedule = Column(JSON, nullable=True)  # Weekly schedule: {"monday": [{"start": "09:00", "end": "17:00"}], ...}
+    
     is_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

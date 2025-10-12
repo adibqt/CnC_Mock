@@ -103,9 +103,22 @@ const DoctorLogin = () => {
             alert('Registration successful! Your account will be verified by our team. You can now login.');
             toggleMode();
           } else {
-            alert('Login successful!');
-            // Redirect to doctor dashboard
-            window.location.href = '/';
+            // Check if profile is complete
+            const profileResult = await doctorAPI.getHomeData();
+            if (profileResult.success) {
+              const doctor = profileResult.data.doctor;
+              // Check if name and BMDC number are filled
+              if (doctor.name && doctor.bmdc_number) {
+                // Profile complete, go to doctor home
+                window.location.href = '/doctor-home';
+              } else {
+                // Profile incomplete, go to profile update
+                window.location.href = '/doctor-profile-update';
+              }
+            } else {
+              // If can't fetch profile, assume incomplete
+              window.location.href = '/doctor-profile-update';
+            }
           }
         } else {
           alert(result.error);
