@@ -49,6 +49,14 @@ async def startup_event():
     if settings.GEMINI_API_KEY:
         print(f"GEMINI_API_KEY length: {len(settings.GEMINI_API_KEY)} characters")
         print(f"GEMINI_API_KEY preview: {settings.GEMINI_API_KEY[:15]}...")
+    
+    # Check for FFmpeg
+    import subprocess
+    import shutil
+    ffmpeg_found = shutil.which("ffmpeg") is not None
+    print(f"FFmpeg available: {'✓ Yes' if ffmpeg_found else '✗ No (Audio features disabled)'}")
+    if not ffmpeg_found:
+        print("  ⚠️  Install FFmpeg for audio recording features: choco install ffmpeg -y")
     else:
         print("⚠️  WARNING: GEMINI_API_KEY is not set!")
     print("="*60 + "\n")
