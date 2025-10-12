@@ -432,7 +432,19 @@ export default function AIConsultation() {
                   <div key={index} className="doctor-card">
                     <div className="doctor-header">
                       <div className="doctor-avatar">
-                        <i className="icofont-doctor-alt"></i>
+                        {doctor.profile_picture_url ? (
+                          <img 
+                            src={`http://localhost:8000${doctor.profile_picture_url}`} 
+                            alt={doctor.name}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div className="avatar-placeholder" style={{ display: doctor.profile_picture_url ? 'none' : 'flex' }}>
+                          <i className="icofont-doctor-alt"></i>
+                        </div>
                       </div>
                       <div className="doctor-info">
                         <h4>Dr. {doctor.name || 'Not Available'}</h4>
@@ -440,10 +452,17 @@ export default function AIConsultation() {
                           <i className="icofont-stethoscope"></i>
                           {doctor.specialization}
                         </p>
-                      </div>
-                      <div className="relevance-badge">
-                        <span className="score">{doctor.relevance_score}</span>
-                        <span className="label">/10</span>
+                        <div className="relevance-badge-inline">
+                          <i className="icofont-star"></i>
+                          <span className="score">{doctor.relevance_score}</span>
+                          <span className="label">/10 Match</span>
+                        </div>
+                        {doctor.license_number && (
+                          <p className="license">
+                            <i className="icofont-id-card"></i>
+                            License: {doctor.license_number}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
