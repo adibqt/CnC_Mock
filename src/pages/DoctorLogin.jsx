@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../components/Login.css';
 
-const Login = () => {
+const DoctorLogin = () => {
   const [isSignup, setIsSignup] = useState(false);
   const [formData, setFormData] = useState({
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    fullName: '',
+    specialization: '',
+    licenseNumber: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -29,7 +32,7 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    // Phone validation (basic)
+    // Phone validation
     if (!formData.phone) {
       newErrors.phone = 'Phone number is required';
     } else if (!/^\+?[\d\s-]{10,}$/.test(formData.phone)) {
@@ -43,8 +46,24 @@ const Login = () => {
       newErrors.password = 'Password must be at least 6 characters';
     }
 
-    // Confirm password validation (only for signup)
+    // Signup-specific validations
     if (isSignup) {
+      // Full Name validation
+      if (!formData.fullName) {
+        newErrors.fullName = 'Full name is required';
+      }
+
+      // Specialization validation
+      if (!formData.specialization) {
+        newErrors.specialization = 'Specialization is required';
+      }
+
+      // License Number validation
+      if (!formData.licenseNumber) {
+        newErrors.licenseNumber = 'Medical license number is required';
+      }
+
+      // Confirm password validation
       if (!formData.confirmPassword) {
         newErrors.confirmPassword = 'Please confirm your password';
       } else if (formData.password !== formData.confirmPassword) {
@@ -60,15 +79,15 @@ const Login = () => {
     e.preventDefault();
     if (validateForm()) {
       // TODO: Connect to API
-      console.log('Form submitted:', formData);
-      alert(isSignup ? 'Signup successful! (API integration pending)' : 'Login successful! (API integration pending)');
+      console.log('Doctor form submitted:', formData);
+      alert(isSignup ? 'Doctor registration successful! (API integration pending)' : 'Doctor login successful! (API integration pending)');
     }
   };
 
   const handleGoogleSignup = () => {
     // TODO: Connect to Google OAuth API
-    console.log('Google signup clicked');
-    alert('Google signup will be integrated with API');
+    console.log('Google signup clicked for doctor');
+    alert('Google signup for doctors will be integrated with API');
   };
 
   const toggleMode = () => {
@@ -76,7 +95,10 @@ const Login = () => {
     setFormData({
       phone: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      fullName: '',
+      specialization: '',
+      licenseNumber: ''
     });
     setErrors({});
   };
@@ -84,16 +106,16 @@ const Login = () => {
   return (
     <>
       {/* Breadcrumbs */}
-      <div className="breadcrumbs overlay">
+      <div className="breadcrumbs overlay" style={{ background: 'linear-gradient(135deg, #2C2D3F 0%, #1A76D1 100%)' }}>
         <div className="container">
           <div className="bread-inner">
             <div className="row">
               <div className="col-12">
-                <h2>{isSignup ? 'Sign Up' : 'Login'}</h2>
+                <h2>Doctor {isSignup ? 'Registration' : 'Login'}</h2>
                 <ul className="bread-list">
                   <li><Link to="/">Home</Link></li>
                   <li><i className="icofont-simple-right"></i></li>
-                  <li className="active">{isSignup ? 'Sign Up' : 'Login'}</li>
+                  <li className="active">Doctor {isSignup ? 'Sign Up' : 'Login'}</li>
                 </ul>
               </div>
             </div>
@@ -107,17 +129,87 @@ const Login = () => {
         <div className="container">
           <div className="row">
             <div className="col-lg-6 offset-lg-3 col-md-8 offset-md-2 col-12">
-              <div className="login-form-container">
+              <div className="login-form-container" style={{ borderTop: '4px solid #2C2D3F' }}>
                 <div className="login-header">
-                  <h3>{isSignup ? 'Create Account' : 'Welcome Back'}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>
+                    <i className="icofont-doctor" style={{ fontSize: '48px', color: '#2C2D3F' }}></i>
+                  </div>
+                  <h3>{isSignup ? 'Doctor Registration' : 'Doctor Portal'}</h3>
                   <p>
                     {isSignup 
-                      ? 'Join us to access all our medical services' 
-                      : 'Sign in to book appointments and manage your health'}
+                      ? 'Join our network of healthcare professionals' 
+                      : 'Access your doctor dashboard and patient appointments'}
                   </p>
                 </div>
 
                 <form className="login-form" onSubmit={handleSubmit}>
+                  {/* Full Name (Signup only) */}
+                  {isSignup && (
+                    <div className="form-group">
+                      <label htmlFor="fullName">
+                        <i className="icofont-user-alt-4"></i> Full Name
+                      </label>
+                      <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        className={`form-control ${errors.fullName ? 'error' : ''}`}
+                        placeholder="Dr. John Doe"
+                        value={formData.fullName}
+                        onChange={handleChange}
+                      />
+                      {errors.fullName && <span className="error-message">{errors.fullName}</span>}
+                    </div>
+                  )}
+
+                  {/* Specialization (Signup only) */}
+                  {isSignup && (
+                    <div className="form-group">
+                      <label htmlFor="specialization">
+                        <i className="icofont-stethoscope-alt"></i> Specialization
+                      </label>
+                      <select
+                        id="specialization"
+                        name="specialization"
+                        className={`form-control ${errors.specialization ? 'error' : ''}`}
+                        value={formData.specialization}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select your specialization</option>
+                        <option value="general">General Physician</option>
+                        <option value="cardiologist">Cardiologist</option>
+                        <option value="dermatologist">Dermatologist</option>
+                        <option value="pediatrician">Pediatrician</option>
+                        <option value="orthopedic">Orthopedic Surgeon</option>
+                        <option value="neurologist">Neurologist</option>
+                        <option value="gynecologist">Gynecologist</option>
+                        <option value="psychiatrist">Psychiatrist</option>
+                        <option value="dentist">Dentist</option>
+                        <option value="other">Other</option>
+                      </select>
+                      {errors.specialization && <span className="error-message">{errors.specialization}</span>}
+                    </div>
+                  )}
+
+                  {/* License Number (Signup only) */}
+                  {isSignup && (
+                    <div className="form-group">
+                      <label htmlFor="licenseNumber">
+                        <i className="icofont-certificate"></i> Medical License Number
+                      </label>
+                      <input
+                        type="text"
+                        id="licenseNumber"
+                        name="licenseNumber"
+                        className={`form-control ${errors.licenseNumber ? 'error' : ''}`}
+                        placeholder="Enter your medical license number"
+                        value={formData.licenseNumber}
+                        onChange={handleChange}
+                      />
+                      {errors.licenseNumber && <span className="error-message">{errors.licenseNumber}</span>}
+                    </div>
+                  )}
+
                   {/* Phone Number Input */}
                   <div className="form-group">
                     <label htmlFor="phone">
@@ -182,8 +274,8 @@ const Login = () => {
 
                   {/* Submit Button */}
                   <div className="form-group">
-                    <button type="submit" className="btn btn-primary btn-block">
-                      {isSignup ? 'Create Account' : 'Login'}
+                    <button type="submit" className="btn btn-primary btn-block" style={{ background: '#2C2D3F' }}>
+                      {isSignup ? 'Register as Doctor' : 'Login to Dashboard'}
                     </button>
                   </div>
 
@@ -210,9 +302,9 @@ const Login = () => {
                   {/* Toggle between Login/Signup */}
                   <div className="form-footer">
                     <p>
-                      {isSignup ? 'Already have an account? ' : "Don't have an account? "}
+                      {isSignup ? 'Already registered as a doctor? ' : "Don't have a doctor account? "}
                       <a href="#" onClick={(e) => { e.preventDefault(); toggleMode(); }}>
-                        {isSignup ? 'Login here' : 'Sign up here'}
+                        {isSignup ? 'Login here' : 'Register here'}
                       </a>
                     </p>
                   </div>
@@ -223,23 +315,23 @@ const Login = () => {
                   <div className="login-features">
                     <div className="feature-item">
                       <i className="icofont-check-circled"></i>
-                      <span>Book appointments easily</span>
+                      <span>Manage your appointments</span>
                     </div>
                     <div className="feature-item">
                       <i className="icofont-check-circled"></i>
-                      <span>Access medical records</span>
+                      <span>Access patient records securely</span>
                     </div>
                     <div className="feature-item">
                       <i className="icofont-check-circled"></i>
-                      <span>Get health tips & updates</span>
+                      <span>Set your availability & schedule</span>
                     </div>
                   </div>
                 )}
 
-                {/* Doctor Login Link */}
+                {/* Patient Login Link */}
                 <div style={{ marginTop: '20px', textAlign: 'center', paddingTop: '20px', borderTop: '1px solid #f0f0f0' }}>
                   <p style={{ color: '#666', fontSize: '14px' }}>
-                    Are you a doctor? <Link to="/doctor-login" style={{ color: '#2C2D3F', fontWeight: '600' }}>Login here</Link>
+                    Are you a patient? <Link to="/login" style={{ color: '#1A76D1', fontWeight: '600' }}>Login here</Link>
                   </p>
                 </div>
               </div>
@@ -252,4 +344,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default DoctorLogin;

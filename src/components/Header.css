@@ -1,0 +1,64 @@
+/* Header Login Buttons Styling */
+.get-quote .login-buttons {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.get-quote .login-buttons .btn {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  border-radius: 5px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.get-quote .login-buttons .btn-user {
+  background: #1A76D1;
+  color: #fff;
+}
+
+.get-quote .login-buttons .btn-user:hover {
+  background: #155a9f;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(26, 118, 209, 0.3);
+}
+
+.get-quote .login-buttons .btn-doctor {
+  background: #2C2D3F;
+  color: #fff;
+}
+
+.get-quote .login-buttons .btn-doctor:hover {
+  background: #1f1f2e;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(44, 45, 63, 0.3);
+}
+
+/* Responsive adjustments */
+@media only screen and (min-width: 992px) {
+  .get-quote .login-buttons {
+    flex-direction: row;
+    gap: 8px;
+  }
+  
+  .get-quote .login-buttons .btn {
+    padding: 12px 15px;
+    font-size: 13px;
+  }
+}
+
+@media only screen and (max-width: 991px) {
+  .get-quote .login-buttons {
+    gap: 8px;
+  }
+  
+  .get-quote .login-buttons .btn {
+    padding: 10px 15px;
+    font-size: 13px;
+  }
+}

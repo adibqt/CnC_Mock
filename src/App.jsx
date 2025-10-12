@@ -6,6 +6,7 @@ import Preloader from './components/Preloader';
 import Home from './pages/Home';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
+import DoctorLogin from './pages/DoctorLogin';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/doctor-login" element={<DoctorLogin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
