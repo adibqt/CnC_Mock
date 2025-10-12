@@ -1,6 +1,16 @@
 import React from 'react';
+import GoogleMapComponent from '../components/GoogleMap';
 
 const Contact = () => {
+  // Coordinates for Navana Shefali, Gulshan, Dhaka 1212, Bangladesh
+  // Precise coordinates for Road 14, Gulshan
+  const location = {
+    lat: 23.77964833159946,
+    lng: 90.4134814542451
+  };
+  
+  console.log('Contact page rendering...');
+  
   return (
     <div>
       {/* Breadcrumbs */}
@@ -29,7 +39,7 @@ const Contact = () => {
             <div className="row">
               <div className="col-lg-6">
                 <div className="contact-us-left">
-                  <div id="myMap"></div>
+                  <GoogleMapComponent center={location} zoom={15} />
                 </div>
               </div>
               <div className="col-lg-6">
@@ -68,6 +78,12 @@ const Contact = () => {
                         <div className="form-group login-btn">
                           <button className="btn" type="submit">Send</button>
                         </div>
+                        <div className="checkbox">
+                          <label className="checkbox-inline" htmlFor="newsletter">
+                            <input name="news" id="newsletter" type="checkbox" />
+                            Do you want to subscribe our Newsletter ?
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </form>
@@ -94,8 +110,8 @@ const Contact = () => {
                 <div className="single-info">
                   <i className="icofont-google-map"></i>
                   <div className="content">
-                    <h3>2 Fiona Way</h3>
-                    <p>San Diego, CA 92103</p>
+                    <h3>3rd Floor, Navana Shefali</h3>
+                    <p>11 Rd No.14, Gulshan, Dhaka 1212</p>
                   </div>
                 </div>
               </div>
