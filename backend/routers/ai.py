@@ -47,17 +47,15 @@ async def analyze_symptoms(
         specialty = symptoms_data.get("specialty_needed", "general")
         
         # Query available doctors based on specialty
+        # Note: is_verified check removed temporarily to show all active doctors
         doctors = db.query(Doctor).filter(
             Doctor.specialization == specialty,
-            Doctor.is_verified == True,
             Doctor.is_active == True
         ).all()
         
-        # If no doctors found for specialty, get general practitioners
+        # If no doctors found for specialty, get all available doctors as a fallback
         if not doctors:
             doctors = db.query(Doctor).filter(
-                Doctor.specialization == "general",
-                Doctor.is_verified == True,
                 Doctor.is_active == True
             ).all()
         
@@ -66,10 +64,11 @@ async def analyze_symptoms(
         for d in doctors:
             doctor_list.append({
                 "id": d.id,
-                "name": d.name or d.full_name,
+                "name": d.full_name,
                 "specialization": d.specialization,
-                "degrees": d.degrees or [],
-                "license_number": d.license_number
+                "license_number": d.license_number,
+                "profile_picture_url": d.profile_picture_url,
+                "phone": d.phone
             })
         
         # Get AI recommendations for doctors
