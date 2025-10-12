@@ -47,6 +47,55 @@ export default function AIConsultation() {
     }
   };
 
+  const loadConsultationDetails = async (consultationId) => {
+    try {
+      const result = await aiAPI.getConsultation(consultationId);
+      if (result.success) {
+        const consultation = result.data;
+        
+        // Clear current messages and start fresh
+        const loadedMessages = [];
+        
+        // Add user message
+        loadedMessages.push({
+          type: 'user',
+          text: consultation.message,
+          timestamp: new Date(consultation.created_at)
+        });
+        
+        // Add AI response with symptoms
+        if (consultation.symptoms_extracted) {
+          loadedMessages.push({
+            type: 'ai',
+            text: consultation.symptoms_extracted.ai_response || "Here's what I found from your previous consultation:",
+            symptoms: consultation.symptoms_extracted,
+            emergency: consultation.symptoms_extracted.emergency || false,
+            timestamp: new Date(consultation.created_at)
+          });
+        }
+        
+        setMessages(loadedMessages);
+        
+        // Set recommendations if available
+        if (consultation.recommended_doctors && consultation.recommended_doctors.recommendations) {
+          setRecommendations(consultation.recommended_doctors);
+        } else {
+          setRecommendations(null);
+        }
+        
+        // Close history sidebar on mobile
+        if (window.innerWidth < 1200) {
+          setShowHistory(false);
+        }
+        
+        scrollToBottom();
+      }
+    } catch (err) {
+      console.error('Error loading consultation:', err);
+      setError('Failed to load consultation details');
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
@@ -302,11 +351,27 @@ export default function AIConsultation() {
             <div className="history-list">
               {history.length > 0 ? (
                 history.map((item, index) => (
-                  <div key={index} className="history-item">
+                  <div 
+                    key={index} 
+                    className="history-item"
+                    onClick={() => loadConsultationDetails(item.id)}
+                  >
                     <div className="history-date">
+                      <i className="icofont-calendar"></i>
                       {new Date(item.created_at).toLocaleDateString()}
                     </div>
                     <div className="history-message">{item.message.substring(0, 50)}...</div>
+                    {item.symptoms_extracted && item.symptoms_extracted.symptoms && (
+                      <div className="history-symptoms">
+                        <i className="icofont-stethoscope"></i>
+                        {item.symptoms_extracted.symptoms.slice(0, 2).join(', ')}
+                        {item.symptoms_extracted.symptoms.length > 2 && '...'}
+                      </div>
+                    )}
+                    <div className="history-view-more">
+                      <i className="icofont-eye"></i>
+                      View Details
+                    </div>
                   </div>
                 ))
               ) : (

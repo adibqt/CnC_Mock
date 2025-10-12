@@ -178,24 +178,75 @@
   cursor: pointer;
   transition: all 0.3s;
   border-left: 3px solid #667eea;
+  position: relative;
 }
 
 .history-item:hover {
-  background: #e9ecef;
+  background: #667eea;
   transform: translateX(5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+}
+
+.history-item:hover .history-date,
+.history-item:hover .history-message,
+.history-item:hover .history-symptoms {
+  color: white;
+}
+
+.history-item:hover .history-view-more {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .history-date {
-  font-size: 12px;
+  font-size: 11px;
   color: #667eea;
   font-weight: 600;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.3s;
+}
+
+.history-date i {
+  font-size: 13px;
 }
 
 .history-message {
   font-size: 13px;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  transition: color 0.3s;
+}
+
+.history-symptoms {
+  font-size: 11px;
   color: #666;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+  font-style: italic;
+  transition: color 0.3s;
+}
+
+.history-symptoms i {
+  font-size: 12px;
+}
+
+.history-view-more {
+  font-size: 11px;
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.3s;
 }
 
 .no-history {
