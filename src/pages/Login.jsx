@@ -77,13 +77,29 @@ const Login = () => {
         }
 
         if (result.success) {
-          alert(isSignup ? 'Signup successful! You can now login.' : 'Login successful!');
           if (isSignup) {
+            alert('Signup successful! You can now login.');
             // Switch to login mode after successful signup
             toggleMode();
           } else {
-            // Redirect to home or dashboard after login
-            window.location.href = '/';
+            // After login, check if profile is complete
+            const profileResult = await userAPI.getProfile();
+            if (profileResult.success) {
+              const profile = profileResult.data;
+              // Check if essential profile fields are filled
+              const isProfileComplete = profile.name && profile.date_of_birth && profile.blood_group;
+              
+              if (isProfileComplete) {
+                // Redirect to dashboard if profile is complete
+                window.location.href = '/patient-dashboard';
+              } else {
+                // Redirect to profile update if profile is incomplete
+                window.location.href = '/profile-update';
+              }
+            } else {
+              // If can't fetch profile, redirect to profile update as safe default
+              window.location.href = '/profile-update';
+            }
           }
         } else {
           alert(result.error);

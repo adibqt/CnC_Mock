@@ -17,10 +17,35 @@ class UserResponse(UserBase):
     id: int
     role: str
     is_active: bool
+    name: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    blood_group: Optional[str] = None
+    height: Optional[int] = None
+    weight: Optional[int] = None
+    country: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+    profile_picture_url: Optional[str] = None
     created_at: datetime
     
     class Config:
         from_attributes = True
+
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=100)
+    date_of_birth: Optional[str] = Field(None, pattern=r'^\d{4}-\d{2}-\d{2}$')
+    blood_group: Optional[str] = Field(None, pattern=r'^(A|B|AB|O)[+-]$')
+    height: Optional[int] = Field(None, ge=0, le=300, description="Height in inches")
+    weight: Optional[int] = Field(None, ge=0, le=500, description="Weight in kg")
+    country: Optional[str] = Field(None, max_length=100)
+    state: Optional[str] = Field(None, max_length=100)
+    city: Optional[str] = Field(None, max_length=100)
+    
+    @validator('blood_group')
+    def validate_blood_group(cls, v):
+        if v and v not in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']:
+            raise ValueError('Invalid blood group. Must be A+, A-, B+, B-, AB+, AB-, O+, or O-')
+        return v
 
 # Doctor Schemas
 class DoctorBase(BaseModel):
