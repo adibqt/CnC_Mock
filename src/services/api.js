@@ -13,9 +13,25 @@ const api = axios.create({
 // Add token to requests if available
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Check for both patient and doctor tokens
+    const patientToken = localStorage.getItem('patient_accessToken');
+    const doctorToken = localStorage.getItem('doctor_accessToken');
+    
+    // Use the appropriate token based on the endpoint
+    if (config.url.includes('/api/doctors/')) {
+      if (doctorToken) {
+        config.headers.Authorization = `Bearer ${doctorToken}`;
+      }
+    } else if (config.url.includes('/api/users/')) {
+      if (patientToken) {
+        config.headers.Authorization = `Bearer ${patientToken}`;
+      }
+    } else {
+      // For other endpoints, try doctor first, then patient
+      const token = doctorToken || patientToken;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -45,10 +61,10 @@ export const userAPI = {
       const response = await api.post('/api/users/login', credentials);
       const { access_token, user_data, user_type } = response.data;
       
-      // Store token and user data
-      localStorage.setItem('accessToken', access_token);
-      localStorage.setItem('userType', user_type);
-      localStorage.setItem('userData', JSON.stringify(user_data));
+      // Store token and user data with patient prefix
+      localStorage.setItem('patient_accessToken', access_token);
+      localStorage.setItem('patient_userType', user_type);
+      localStorage.setItem('patient_userData', JSON.stringify(user_data));
       
       return { success: true, data: response.data };
     } catch (error) {
@@ -139,10 +155,10 @@ export const doctorAPI = {
       const response = await api.post('/api/doctors/login', credentials);
       const { access_token, user_data, user_type } = response.data;
       
-      // Store token and user data
-      localStorage.setItem('accessToken', access_token);
-      localStorage.setItem('userType', user_type);
-      localStorage.setItem('userData', JSON.stringify(user_data));
+      // Store token and user data with doctor prefix
+      localStorage.setItem('doctor_accessToken', access_token);
+      localStorage.setItem('doctor_userType', user_type);
+      localStorage.setItem('doctor_userData', JSON.stringify(user_data));
       
       return { success: true, data: response.data };
     } catch (error) {
@@ -165,37 +181,144 @@ export const doctorAPI = {
       };
     }
   },
+
+  // Update doctor profile
+  updateProfile: async (profileData) => {
+    try {
+      const response = await api.put('/api/doctors/profile', profileData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to update profile.',
+      };
+    }
+  },
+
+  // Upload certificate (MBBS or FCPS)
+  uploadCertificate: async (certificateType, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('certificate_type', certificateType);
+      
+      const response = await api.post(`/api/doctors/upload-certificate?certificate_type=${certificateType}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to upload certificate.',
+      };
+    }
+  },
+
+  // Get doctor home data
+  getHomeData: async () => {
+    try {
+      const response = await api.get('/api/doctors/home');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch home data.',
+      };
+    }
+  },
+
+  // Get doctor schedule
+  getSchedule: async () => {
+    try {
+      const response = await api.get('/api/doctors/schedule');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch schedule.',
+      };
+    }
+  },
+
+  // Update doctor schedule
+  updateSchedule: async (scheduleData) => {
+    try {
+      const response = await api.put('/api/doctors/schedule', scheduleData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to update schedule.',
+      };
+    }
+  },
 };
 
 // Auth utilities
 export const authUtils = {
-  // Logout
-  logout: () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userType');
-    localStorage.removeItem('userData');
+  // Logout (specify user type)
+  logout: (userType = null) => {
+    if (userType === 'patient' || !userType) {
+      localStorage.removeItem('patient_accessToken');
+      localStorage.removeItem('patient_userType');
+      localStorage.removeItem('patient_userData');
+    }
+    if (userType === 'doctor' || !userType) {
+      localStorage.removeItem('doctor_accessToken');
+      localStorage.removeItem('doctor_userType');
+      localStorage.removeItem('doctor_userData');
+    }
     window.location.href = '/';
   },
 
   // Check if user is authenticated
-  isAuthenticated: () => {
-    return !!localStorage.getItem('accessToken');
+  isAuthenticated: (userType = null) => {
+    if (userType === 'patient') {
+      return !!localStorage.getItem('patient_accessToken');
+    } else if (userType === 'doctor') {
+      return !!localStorage.getItem('doctor_accessToken');
+    } else {
+      // Check if any user is authenticated
+      return !!localStorage.getItem('patient_accessToken') || !!localStorage.getItem('doctor_accessToken');
+    }
   },
 
-  // Get current user type
+  // Get current user type (returns 'patient', 'doctor', or null)
   getUserType: () => {
-    return localStorage.getItem('userType');
+    if (localStorage.getItem('patient_accessToken')) {
+      return localStorage.getItem('patient_userType') || 'patient';
+    } else if (localStorage.getItem('doctor_accessToken')) {
+      return localStorage.getItem('doctor_userType') || 'doctor';
+    }
+    return null;
   },
 
   // Get current user data
-  getUserData: () => {
-    const userData = localStorage.getItem('userData');
+  getUserData: (userType = null) => {
+    let userData = null;
+    if (userType === 'patient') {
+      userData = localStorage.getItem('patient_userData');
+    } else if (userType === 'doctor') {
+      userData = localStorage.getItem('doctor_userData');
+    } else {
+      // Try to get whichever is available
+      userData = localStorage.getItem('patient_userData') || localStorage.getItem('doctor_userData');
+    }
     return userData ? JSON.parse(userData) : null;
   },
 
   // Get token
-  getToken: () => {
-    return localStorage.getItem('accessToken');
+  getToken: (userType = null) => {
+    if (userType === 'patient') {
+      return localStorage.getItem('patient_accessToken');
+    } else if (userType === 'doctor') {
+      return localStorage.getItem('doctor_accessToken');
+    } else {
+      // Try to get whichever is available
+      return localStorage.getItem('patient_accessToken') || localStorage.getItem('doctor_accessToken');
+    }
   },
 };
 

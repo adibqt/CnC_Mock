@@ -11,6 +11,9 @@ import ProfileUpdate from './pages/ProfileUpdate';
 import PatientDashboard from './pages/PatientDashboard';
 import NotFound from './pages/NotFound';
 import UserHome from './pages/UserHome';
+import DoctorProfileUpdate from './pages/DoctorProfileUpdate';
+import DoctorHome from './pages/DoctorHome';
+import DoctorSchedule from './pages/DoctorSchedule';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -43,8 +46,11 @@ function App() {
       <Routes>
         {/* Routes without Header/Footer */}
         <Route path="/profile-update" element={<ProfileUpdate />} />
-  <Route path="/patient-dashboard" element={<PatientDashboard />} />
-  <Route path="/user-home" element={<UserHome />} />
+        <Route path="/patient-dashboard" element={<PatientDashboard />} />
+        <Route path="/user-home" element={<UserHome />} />
+        <Route path="/doctor-profile-update" element={<DoctorProfileUpdate />} />
+        <Route path="/doctor-home" element={<DoctorHome />} />
+        <Route path="/doctor-schedule" element={<DoctorSchedule />} />
         
         {/* Routes with Header/Footer */}
         <Route path="/*" element={

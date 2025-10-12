@@ -24,7 +24,7 @@ const PatientDashboard = () => {
   };
 
   const handleLogout = () => {
-    authUtils.logout();
+    authUtils.logout('patient');
     navigate('/');
   };
 
