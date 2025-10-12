@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../components/Login.css';
+import { doctorAPI } from '../services/api';
 
 const DoctorLogin = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -44,6 +45,8 @@ const DoctorLogin = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length > 72) {
+      newErrors.password = 'Password cannot be longer than 72 characters';
     }
 
     // Signup-specific validations
@@ -75,12 +78,42 @@ const DoctorLogin = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // TODO: Connect to API
-      console.log('Doctor form submitted:', formData);
-      alert(isSignup ? 'Doctor registration successful! (API integration pending)' : 'Doctor login successful! (API integration pending)');
+      try {
+        let result;
+        if (isSignup) {
+          result = await doctorAPI.signup({
+            phone: formData.phone,
+            password: formData.password,
+            full_name: formData.fullName,
+            specialization: formData.specialization,
+            license_number: formData.licenseNumber
+          });
+        } else {
+          result = await doctorAPI.login({
+            phone: formData.phone,
+            password: formData.password
+          });
+        }
+
+        if (result.success) {
+          if (isSignup) {
+            alert('Registration successful! Your account will be verified by our team. You can now login.');
+            toggleMode();
+          } else {
+            alert('Login successful!');
+            // Redirect to doctor dashboard
+            window.location.href = '/';
+          }
+        } else {
+          alert(result.error);
+        }
+      } catch (error) {
+        alert('An unexpected error occurred. Please try again.');
+        console.error('Error:', error);
+      }
     }
   };
 
@@ -240,6 +273,7 @@ const DoctorLogin = () => {
                       placeholder="Enter your password"
                       value={formData.password}
                       onChange={handleChange}
+                      maxLength={72}
                     />
                     {errors.password && <span className="error-message">{errors.password}</span>}
                   </div>
@@ -258,6 +292,7 @@ const DoctorLogin = () => {
                         placeholder="Confirm your password"
                         value={formData.confirmPassword}
                         onChange={handleChange}
+                        maxLength={72}
                       />
                       {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
                     </div>
