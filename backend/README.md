@@ -1,5 +1,9 @@
 # Click & Care Backend API
 
+
+cd C:\Users\USER\Desktop\CnC_Mock\backend; .\venv\Scripts\Activate.ps1; uvicorn main:app --reload
+
+
 FastAPI backend for Click & Care medical platform with PostgreSQL database.
 
 ## 🚀 Features
@@ -103,7 +107,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 
 ```bash
 # Run database initialization
-python init_db.py
+python scripts\init_db.py
 ```
 
 ### 6. Run the Server
@@ -283,18 +287,27 @@ curl -X POST http://localhost:8000/api/doctors/signup \
 
 ```
 backend/
-├── main.py                 # FastAPI application entry point
-├── config.py              # Configuration settings
-├── database.py            # Database connection
-├── models.py              # SQLAlchemy models
-├── schemas.py             # Pydantic schemas
-├── auth.py                # Authentication utilities
-├── routers_users.py       # User endpoints
-├── routers_doctors.py     # Doctor endpoints
-├── init_db.py             # Database initialization script
-├── init_db.sql            # SQL schema
-├── requirements.txt       # Python dependencies
-└── .env                   # Environment variables
+├── main.py                    # FastAPI application entry point
+├── config.py                  # Configuration settings
+├── database.py                # Database connection
+├── models.py                  # SQLAlchemy models
+├── schemas.py                 # Pydantic schemas
+├── auth.py                    # Authentication utilities
+├── init_db.py                 # Database initialization script
+├── init_db.sql                # SQL schema
+├── requirements.txt           # Python dependencies
+├── .env                       # Environment variables
+├── routers/                   # API route handlers
+│   ├── __init__.py           # Router package initialization
+│   ├── users.py              # User/patient endpoints
+│   └── doctors.py            # Doctor endpoints
+├── migrations/                # Database migration scripts
+│   ├── README.md             # Migration documentation
+│   ├── migrate_profile.py    # User profile migration
+│   ├── migrate_doctor_profile.py  # Doctor profile migration
+│   └── migrate_schedule.py   # Doctor schedule migration
+├── uploads/                   # Uploaded files (certificates, images)
+└── venv/                      # Python virtual environment
 ```
 
 ## 🔧 Development
