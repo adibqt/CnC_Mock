@@ -19,20 +19,36 @@ api.interceptors.request.use(
     
     // Use the appropriate token based on the endpoint
     if (config.url.includes('/api/doctors/')) {
+      // Doctor endpoints - use doctor token
       if (doctorToken) {
         config.headers.Authorization = `Bearer ${doctorToken}`;
       }
     } else if (config.url.includes('/api/users/')) {
+      // User endpoints - use patient token
+      if (patientToken) {
+        config.headers.Authorization = `Bearer ${patientToken}`;
+      }
+    } else if (config.url.includes('/api/ai/')) {
+      // AI endpoints - patient token (patients use AI consultation)
       if (patientToken) {
         config.headers.Authorization = `Bearer ${patientToken}`;
       }
     } else {
-      // For other endpoints, try doctor first, then patient
-      const token = doctorToken || patientToken;
+      // For other endpoints, try patient first (most common), then doctor
+      const token = patientToken || doctorToken;
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
+    
+    // Debug logging
+    console.log('🔑 API Request:', {
+      url: config.url,
+      hasPatientToken: !!patientToken,
+      hasDoctorToken: !!doctorToken,
+      hasAuthHeader: !!config.headers.Authorization
+    });
+    
     return config;
   },
   (error) => {
@@ -320,6 +336,99 @@ export const authUtils = {
       return localStorage.getItem('patient_accessToken') || localStorage.getItem('doctor_accessToken');
     }
   },
+};
+
+// AI Consultation API endpoints
+export const aiAPI = {
+  // Analyze text symptoms
+  analyzeSymptoms: async (message, conversationHistory = null) => {
+    try {
+      const response = await api.post('/api/ai/analyze-symptoms', {
+        message,
+        conversation_history: conversationHistory
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to analyze symptoms. Please try again.'
+      };
+    }
+  },
+
+  // Analyze audio
+  analyzeAudio: async (audioBlob) => {
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.wav');
+      
+      const response = await api.post('/api/ai/analyze-audio', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to analyze audio. Please try again.'
+      };
+    }
+  },
+
+  // Get consultation history
+  getConsultationHistory: async (limit = 10) => {
+    try {
+      const response = await api.get(`/api/ai/consultation-history?limit=${limit}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to load consultation history.'
+      };
+    }
+  },
+
+  // Get specific consultation
+  getConsultation: async (consultationId) => {
+    try {
+      const response = await api.get(`/api/ai/consultation/${consultationId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to load consultation details.'
+      };
+    }
+  },
+
+  // Delete consultation
+  deleteConsultation: async (consultationId) => {
+    try {
+      const response = await api.delete(`/api/ai/consultation/${consultationId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to delete consultation.'
+      };
+    }
+  },
+
+  // Generate AI followup
+  generateFollowup: async (consultationId) => {
+    try {
+      const response = await api.post('/api/ai/followup', null, {
+        params: { consultation_id: consultationId }
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to generate follow-up.'
+      };
+    }
+  }
 };
 
 export default api;

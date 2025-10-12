@@ -150,6 +150,14 @@ export default function UserHome() {
         </div>
         <div className="uh-header-actions">
           <button 
+            className="uh-ai-btn" 
+            onClick={() => navigate('/ai-consultation')}
+            aria-label="AI Health Assistant"
+          >
+            <Icon name="robot" />
+            <span>AI Doctor</span>
+          </button>
+          <button 
             className="uh-dashboard-btn" 
             onClick={() => navigate('/patient-dashboard')}
             aria-label="Go to Dashboard"
