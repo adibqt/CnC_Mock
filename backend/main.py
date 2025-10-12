@@ -3,8 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from config import settings
 from database import engine, Base
-import routers_users
-import routers_doctors
+from routers import users_router, doctors_router, ai_router
 from pathlib import Path
 
 # Create database tables
@@ -34,8 +33,9 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(routers_users.router)
-app.include_router(routers_doctors.router)
+app.include_router(users_router)
+app.include_router(doctors_router)
+app.include_router(ai_router)
 
 @app.get("/")
 def root():

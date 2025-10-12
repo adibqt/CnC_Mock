@@ -2,6 +2,10 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 import bcrypt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer
+from fastapi.security.http import HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
 from config import settings
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -37,3 +41,67 @@ def decode_access_token(token: str):
         return payload
     except JWTError:
         return None
+
+# Security scheme
+security = HTTPBearer()
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(lambda: None)
+):
+    """
+    Dependency to get current authenticated user from JWT token
+    """
+    from database import get_db
+    from models import User, Doctor
+    
+    # Get actual DB session
+    if db is None:
+        db = next(get_db())
+    
+    # Extract token
+    token = credentials.credentials
+    
+    # Decode token
+    payload = decode_access_token(token)
+    
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Get user info from token
+    phone: str = payload.get("sub")
+    user_type: str = payload.get("user_type")
+    
+    if phone is None or user_type is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Query user based on type
+    if user_type == "user":
+        user = db.query(User).filter(User.phone == phone).first()
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found"
+            )
+        return user
+    elif user_type == "doctor":
+        doctor = db.query(Doctor).filter(Doctor.phone == phone).first()
+        if doctor is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Doctor not found"
+            )
+        return doctor
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user type"
+        )

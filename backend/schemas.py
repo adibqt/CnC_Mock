@@ -113,3 +113,29 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     phone: Optional[str] = None
     user_type: Optional[str] = None
+
+# AI Consultation Schemas
+class AIConsultationRequest(BaseModel):
+    message: str = Field(..., min_length=1, max_length=5000)
+    conversation_history: Optional[list] = None
+
+class AIConsultationResponse(BaseModel):
+    symptoms: dict
+    recommendations: dict
+    emergency: bool
+    ai_response: str
+    consultation_id: int
+    
+    class Config:
+        from_attributes = True
+
+class ConsultationHistoryResponse(BaseModel):
+    id: int
+    message: str
+    message_type: str
+    symptoms_extracted: Optional[dict]
+    recommended_doctors: Optional[dict]
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
