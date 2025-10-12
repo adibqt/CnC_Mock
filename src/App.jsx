@@ -7,6 +7,8 @@ import Home from './pages/Home';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
 import DoctorLogin from './pages/DoctorLogin';
+import ProfileUpdate from './pages/ProfileUpdate';
+import PatientDashboard from './pages/PatientDashboard';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -37,15 +39,26 @@ function App() {
 
   return (
     <Router>
-      <Header />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/doctor-login" element={<DoctorLogin />} />
-        <Route path="*" element={<NotFound />} />
+        {/* Routes without Header/Footer */}
+        <Route path="/profile-update" element={<ProfileUpdate />} />
+        <Route path="/patient-dashboard" element={<PatientDashboard />} />
+        
+        {/* Routes with Header/Footer */}
+        <Route path="/*" element={
+          <>
+            <Header />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/doctor-login" element={<DoctorLogin />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Footer />
+          </>
+        } />
       </Routes>
-      <Footer />
     </Router>
   );
 }

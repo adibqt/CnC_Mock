@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from config import settings
 from database import engine, Base
 import routers_users
 import routers_doctors
+from pathlib import Path
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -14,6 +16,13 @@ app = FastAPI(
     description="Backend API for Click & Care Medical Platform",
     version="1.0.0"
 )
+
+# Create uploads directory if it doesn't exist
+uploads_dir = Path("uploads")
+uploads_dir.mkdir(exist_ok=True)
+
+# Mount static files for uploaded images
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Configure CORS
 app.add_middleware(

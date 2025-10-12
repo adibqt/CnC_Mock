@@ -71,6 +71,39 @@ export const userAPI = {
       };
     }
   },
+
+  // Update user profile
+  updateProfile: async (profileData) => {
+    try {
+      const response = await api.put('/api/users/profile', profileData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to update profile.',
+      };
+    }
+  },
+
+  // Upload profile picture
+  uploadProfilePicture: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await api.post('/api/users/profile-picture', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to upload profile picture.',
+      };
+    }
+  },
 };
 
 // Doctor API endpoints
