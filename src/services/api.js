@@ -59,6 +59,18 @@ export const userAPI = {
     }
   },
 
+  // Home page aggregate data
+  getHomeData: async () => {
+    const response = await api.get('/api/users/home');
+    return response.data;
+  },
+
+  // Suggest a doctor based on concerns
+  suggestDoctor: async (payload) => {
+    const response = await api.post('/api/users/suggest-doctor', payload);
+    return response.data;
+  },
+
   // Get user profile
   getProfile: async () => {
     try {

@@ -64,6 +64,9 @@ const PatientDashboard = () => {
             <img src="/img/logo.png" alt="Click & Care" className="logo-img" />
           </div>
           <div className="header-actions">
+            <button onClick={() => navigate('/user-home')} className="btn btn-home">
+              <i className="icofont-home"></i> Home
+            </button>
             <button onClick={handleLogout} className="btn btn-logout">
               <i className="icofont-logout"></i> Logout
             </button>

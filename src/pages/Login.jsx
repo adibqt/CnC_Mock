@@ -90,8 +90,8 @@ const Login = () => {
               const isProfileComplete = profile.name && profile.date_of_birth && profile.blood_group;
               
               if (isProfileComplete) {
-                // Redirect to dashboard if profile is complete
-                window.location.href = '/patient-dashboard';
+                // Redirect to new user home page if profile is complete
+                window.location.href = '/user-home';
               } else {
                 // Redirect to profile update if profile is incomplete
                 window.location.href = '/profile-update';
