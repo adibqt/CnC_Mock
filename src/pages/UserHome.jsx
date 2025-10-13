@@ -31,6 +31,8 @@ export default function UserHome() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [doctors, setDoctors] = useState([]);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [appointments, setAppointments] = useState([]);
+  const [showAppointments, setShowAppointments] = useState(false);
 
   // Sample notifications data
   const notifications = [
@@ -97,6 +99,12 @@ export default function UserHome() {
         }
         setLoadingDoctors(false);
         
+        // Load user appointments
+        const appointmentsResult = await appointmentAPI.getPatientAppointments();
+        if (appointmentsResult.success) {
+          setAppointments(appointmentsResult.data || []);
+        }
+        
         setError('');
       } catch (e) {
         console.error(e);
@@ -131,7 +139,7 @@ export default function UserHome() {
         'Adenoviruses': 'general',
         'Rhinoviruses': 'ent',
         'Factors': 'general',
-        'Infection': 'general'
+        'Infection': 'dermatologist'
       };
       
       // Get preferred specialization based on concerns
@@ -343,9 +351,9 @@ export default function UserHome() {
         )}
       </section>
 
-      {/* Today appointment */}
+      {/* Today's appointment */}
       <section className="uh-today">
-        <h2 className="section-title">Today appointment</h2>
+        <h2 className="section-title">Today's appointment</h2>
         {todaysAppointment ? (
           <div className="uh-appointment-card">
             <div className="uh-appointment-doc">
@@ -441,7 +449,15 @@ export default function UserHome() {
             { key: 'doctors', label: 'Doctor', icon: 'stethoscope' },
             { key: 'schedule', label: 'Schedule', icon: 'calendar' },
           ]).map((a) => (
-            <button key={a.key} className="uh-activity">
+            <button 
+              key={a.key} 
+              className="uh-activity"
+              onClick={() => {
+                if (a.key === 'schedule') {
+                  setShowAppointments(!showAppointments);
+                }
+              }}
+            >
               <div className="uh-activity-icon">
                 <Icon name={a.icon || 'ui-rate-blank'} />
               </div>
@@ -458,6 +474,95 @@ export default function UserHome() {
           </div>
         </div>
       </section>
+
+      {/* Appointments Modal */}
+      {showAppointments && (
+        <>
+          <div className="appointments-modal-overlay" onClick={() => setShowAppointments(false)}></div>
+          <div className="appointments-modal">
+            <div className="appointments-header">
+              <h3>
+                <Icon name="calendar" /> My Appointments
+              </h3>
+              <button 
+                className="close-btn" 
+                onClick={() => setShowAppointments(false)}
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+            
+            {appointments.length > 0 ? (
+              <div className="appointments-list">
+                {appointments.map((appointment) => {
+                  const appointmentDate = new Date(appointment.appointment_date);
+                  
+                  return (
+                    <div key={appointment.id} className={`appointment-item ${appointment.status}`}>
+                      <div className="appointment-date">
+                        <div className="date-day">{appointmentDate.getDate()}</div>
+                        <div className="date-month">
+                          {appointmentDate.toLocaleDateString('en-US', { month: 'short' })}
+                        </div>
+                      </div>
+                      <div className="appointment-details">
+                        <div className="doctor-info">
+                          <div className="doctor-avatar-small">
+                            {appointment.doctor?.profile_picture_url ? (
+                              <img 
+                                src={`http://localhost:8000${appointment.doctor.profile_picture_url}`}
+                                alt={appointment.doctor.name}
+                              />
+                            ) : (
+                              <Icon name="doctor" />
+                            )}
+                          </div>
+                          <div>
+                            <h4>{appointment.doctor?.name}</h4>
+                            <p className="specialization">{appointment.doctor?.specialization}</p>
+                          </div>
+                        </div>
+                        <div className="appointment-meta">
+                          <span className="time">
+                            <Icon name="clock-time" /> {appointment.time_slot}
+                          </span>
+                          <span className={`status-badge ${appointment.status}`}>
+                            {appointment.status}
+                          </span>
+                        </div>
+                        {appointment.symptoms && (
+                          <p className="symptoms">
+                            <Icon name="prescription" /> 
+                            {appointment.symptoms.length > 80 
+                              ? `${appointment.symptoms.substring(0, 80)}...` 
+                              : appointment.symptoms
+                            }
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="no-appointments">
+                <Icon name="calendar" />
+                <p>No appointments scheduled</p>
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setShowAppointments(false);
+                    // Scroll to doctors section
+                    document.querySelector('.uh-doctors')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  Book an Appointment
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
