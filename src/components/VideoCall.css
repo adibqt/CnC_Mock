@@ -1,0 +1,231 @@
+/* VideoCall Component Styles */
+.video-call-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: #000;
+}
+
+.video-call-loading,
+.video-call-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading-spinner i {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.video-call-loading h3,
+.video-call-error h3 {
+  font-size: 2rem;
+  margin: 1rem 0;
+}
+
+.video-call-loading p,
+.video-call-error p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+}
+
+.error-icon i {
+  font-size: 4rem;
+  color: #ff6b6b;
+  margin-bottom: 1rem;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-retry,
+.btn-leave {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-retry {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-retry:hover {
+  background: #45a049;
+}
+
+.btn-leave {
+  background: #f44336;
+  color: white;
+}
+
+.btn-leave:hover {
+  background: #da190b;
+}
+
+/* Custom header for video call */
+.video-call-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  z-index: 10;
+}
+
+.room-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.room-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.participant-name {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.leave-call-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.leave-call-btn:hover {
+  background: #da190b;
+  transform: translateY(-2px);
+}
+
+/* Override LiveKit default styles */
+.lk-video-conference {
+  height: 100vh !important;
+}
+
+.lk-grid-layout {
+  background: #1a1a1a !important;
+}
+
+.lk-participant-tile {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.lk-control-bar {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border-radius: 12px !important;
+  margin: 1rem !important;
+}
+
+.lk-button {
+  border-radius: 8px !important;
+}
+
+/* Chat message styling */
+.chat-message {
+  display: block;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.chat-message strong {
+  color: #4CAF50;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .video-call-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn-retry,
+  .btn-leave {
+    width: 100%;
+    max-width: 200px;
+    justify-content: center;
+  }
+}
+
+/* Connection quality indicator */
+.connection-quality {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.quality-excellent { color: #4CAF50; }
+.quality-good { color: #FF9800; }
+.quality-poor { color: #f44336; }
+
+/* Accessibility improvements */
+.video-call-container [role="button"] {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.video-call-container [role="button"]:focus {
+  outline-color: #4CAF50;
+}
+
+/* Animation for loading spinner */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.icofont-spin {
+  animation: spin 1s linear infinite;
+}

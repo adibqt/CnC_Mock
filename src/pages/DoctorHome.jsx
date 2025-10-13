@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doctorAPI, authUtils, appointmentAPI } from '../services/api';
+import { doctorAPI, authUtils, appointmentAPI, liveKitAPI } from '../services/api';
+import VideoCall, { useVideoCall } from '../components/VideoCall';
+import CallNotification from '../components/CallNotification';
+import { useCallNotification } from '../hooks/useCallNotification';
 import './DoctorHome.css';
 
 export default function DoctorHome() {
@@ -9,6 +12,22 @@ export default function DoctorHome() {
   const [error, setError] = useState('');
   const [homeData, setHomeData] = useState(null);
   const [weekAppointments, setWeekAppointments] = useState([]);
+  
+  // Video call state
+  const { 
+    isInCall, 
+    joinRoom, 
+    leaveRoom, 
+    error: videoError 
+  } = useVideoCall();
+  const [videoCallAppointment, setVideoCallAppointment] = useState(null);
+  
+  // Call notification state
+  const {
+    notification,
+    dismissNotification,
+    resetCheckedRooms
+  } = useCallNotification('doctor', weekAppointments);
 
   useEffect(() => {
     loadHomeData();
@@ -34,6 +53,55 @@ export default function DoctorHome() {
 
   const handleLogout = () => {
     authUtils.logout('doctor');
+  };
+
+  // Video call functions
+  const handleJoinVideoCall = async (appointment) => {
+    try {
+      setVideoCallAppointment(appointment);
+      await joinRoom(appointment.id.toString(), 'doctor');
+    } catch (error) {
+      console.error('Failed to join video call:', error);
+      alert('Failed to join video call. Please try again.');
+    }
+  };
+
+  const handleLeaveVideoCall = async () => {
+    try {
+      await leaveRoom();
+      setVideoCallAppointment(null);
+    } catch (error) {
+      console.error('Failed to leave video call:', error);
+    }
+  };
+
+  const canJoinVideoCall = (appointment) => {
+    if (!appointment) return false;
+    
+    // For testing: Allow video calls for any confirmed appointment
+    const isConfirmed = appointment.status?.toLowerCase() === 'confirmed';
+    
+    return isConfirmed;
+  };
+
+  // Status management
+  const handleStatusChange = async (appointmentId, newStatus) => {
+    try {
+      const result = await appointmentAPI.updateAppointmentStatus(appointmentId, newStatus);
+      
+      if (result.success) {
+        // Reload appointments to show updated status
+        await loadWeeklyAppointments();
+        
+        // Show success message (you can add a toast notification here)
+        console.log(`Appointment ${appointmentId} status updated to ${newStatus}`);
+      } else {
+        alert(`Failed to update status: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      alert('Failed to update appointment status. Please try again.');
+    }
   };
 
   if (loading) {
@@ -214,10 +282,61 @@ export default function DoctorHome() {
                           </div>
                         </div>
                         <div className="appointment-right">
-                          <span className={`status-badge ${appointment.status}`}>{appointment.status}</span>
-                          <button className="call-btn" onClick={() => window.location.href = `tel:${appointment.patient?.phone}`}>
-                            <i className="icofont-ui-call"></i>
-                          </button>
+                          <div className="status-management">
+                            <span className={`status-badge ${appointment.status}`}>{appointment.status}</span>
+                            
+                            {/* Status Action Buttons */}
+                            <div className="status-actions">
+                              {appointment.status?.toLowerCase() === 'pending' && (
+                                <>
+                                  <button
+                                    className="status-action-btn confirm"
+                                    onClick={() => handleStatusChange(appointment.id, 'confirmed')}
+                                    title="Confirm Appointment"
+                                  >
+                                    <i className="icofont-check-circled"></i>
+                                    Confirm
+                                  </button>
+                                  <button
+                                    className="status-action-btn reject"
+                                    onClick={() => handleStatusChange(appointment.id, 'cancelled')}
+                                    title="Reject Appointment"
+                                  >
+                                    <i className="icofont-close-circled"></i>
+                                    Reject
+                                  </button>
+                                </>
+                              )}
+                              
+                              {appointment.status?.toLowerCase() === 'confirmed' && (
+                                <button
+                                  className="status-action-btn complete"
+                                  onClick={() => handleStatusChange(appointment.id, 'completed')}
+                                  title="Mark as Completed"
+                                >
+                                  <i className="icofont-check-circled"></i>
+                                  Complete
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="appointment-actions">
+                            {canJoinVideoCall(appointment) && (
+                              <button
+                                className="video-call-btn"
+                                onClick={() => handleJoinVideoCall(appointment)}
+                                disabled={isInCall}
+                                title="Join Video Call"
+                              >
+                                <i className="icofont-video-cam"></i>
+                                {isInCall && videoCallAppointment?.id === appointment.id ? 'In Call' : 'Video Call'}
+                              </button>
+                            )}
+                            <button className="call-btn" onClick={() => window.location.href = `tel:${appointment.patient?.phone}`} title="Phone Call">
+                              <i className="icofont-ui-call"></i>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -273,6 +392,27 @@ export default function DoctorHome() {
           </div>
         </div>
       </main>
+
+      {/* Video Call Component */}
+      {isInCall && videoCallAppointment && (
+        <VideoCall
+          appointmentId={videoCallAppointment.id.toString()}
+          participantType="doctor"
+          patientName={videoCallAppointment.patient?.name}
+          onLeave={handleLeaveVideoCall}
+        />
+      )}
+
+      {/* Call Notification */}
+      {notification && !isInCall && (
+        <CallNotification
+          callerName={notification.callerName}
+          callerType={notification.callerType}
+          appointmentId={notification.appointmentId}
+          onJoin={() => handleJoinVideoCall(notification.appointment)}
+          onDismiss={dismissNotification}
+        />
+      )}
     </div>
   );
 }

@@ -1202,3 +1202,56 @@
     font-size: 20px;
   }
 }
+
+/* Video call button styles */
+.appointment-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.video-call-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.video-call-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.video-call-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.video-call-btn .icofont-video-cam {
+  font-size: 16px;
+}
+
+/* Mobile responsive for video call button */
+@media (max-width: 768px) {
+  .appointment-actions {
+    justify-content: center;
+  }
+  
+  .video-call-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -4,7 +4,10 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import './UserHome.css';
-import { userAPI, authUtils, appointmentAPI } from '../services/api';
+import { userAPI, authUtils, appointmentAPI, liveKitAPI } from '../services/api';
+import VideoCall, { useVideoCall } from '../components/VideoCall';
+import CallNotification from '../components/CallNotification';
+import { useCallNotification } from '../hooks/useCallNotification';
 
 // Lightweight icon components using Icofont classes already included globally
 const Icon = ({ name, className = '' }) => (
@@ -36,6 +39,22 @@ export default function UserHome() {
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [showAppointments, setShowAppointments] = useState(false);
+  
+  // Video call state
+  const { 
+    isInCall, 
+    joinRoom, 
+    leaveRoom, 
+    error: videoError 
+  } = useVideoCall();
+  const [videoCallAppointment, setVideoCallAppointment] = useState(null);
+  
+  // Call notification state
+  const {
+    notification,
+    dismissNotification,
+    resetCheckedRooms
+  } = useCallNotification('patient', appointments);
 
   // Sample notifications data
   const notifications = [
@@ -125,6 +144,35 @@ export default function UserHome() {
     setSelected((prev) =>
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
     );
+  };
+
+  // Video call functions
+  const handleJoinVideoCall = async (appointment) => {
+    try {
+      setVideoCallAppointment(appointment);
+      await joinRoom(appointment.id.toString(), 'patient');
+    } catch (error) {
+      console.error('Failed to join video call:', error);
+      alert('Failed to join video call. Please try again.');
+    }
+  };
+
+  const handleLeaveVideoCall = async () => {
+    try {
+      await leaveRoom();
+      setVideoCallAppointment(null);
+    } catch (error) {
+      console.error('Failed to leave video call:', error);
+    }
+  };
+
+  const canJoinVideoCall = (appointment) => {
+    if (!appointment) return false;
+    
+    // For testing: Allow video calls for any confirmed appointment
+    const isConfirmed = appointment.status?.toLowerCase() === 'confirmed';
+    
+    return isConfirmed;
   };
 
   const onSuggestDoctor = async () => {
@@ -620,6 +668,21 @@ export default function UserHome() {
                             }
                           </p>
                         )}
+                        <div className="appointment-actions">
+                          {canJoinVideoCall(appointment) && (
+                            <button
+                              className="video-call-btn"
+                              onClick={() => handleJoinVideoCall(appointment)}
+                              disabled={isInCall}
+                            >
+                              <Icon name="video-cam" /> 
+                              {isInCall && videoCallAppointment?.id === appointment.id 
+                                ? 'In Call...' 
+                                : 'Join Video Call'
+                              }
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -643,6 +706,27 @@ export default function UserHome() {
             )}
           </div>
         </>
+      )}
+
+      {/* Video Call Component */}
+      {isInCall && videoCallAppointment && (
+        <VideoCall
+          appointmentId={videoCallAppointment.id.toString()}
+          participantType="patient"
+          doctorName={videoCallAppointment.doctor?.name}
+          onLeave={handleLeaveVideoCall}
+        />
+      )}
+
+      {/* Call Notification */}
+      {notification && !isInCall && (
+        <CallNotification
+          callerName={notification.callerName}
+          callerType={notification.callerType}
+          appointmentId={notification.appointmentId}
+          onJoin={() => handleJoinVideoCall(notification.appointment)}
+          onDismiss={dismissNotification}
+        />
       )}
     </div>
   );
