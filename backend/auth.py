@@ -105,3 +105,59 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid user type"
         )
+
+def get_current_doctor(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(lambda: None)
+):
+    """
+    Dependency to get current authenticated doctor from JWT token
+    Specifically ensures the user is a doctor
+    """
+    from database import get_db
+    from models import Doctor
+    
+    # Get actual DB session
+    if db is None:
+        db = next(get_db())
+    
+    # Extract token
+    token = credentials.credentials
+    
+    # Decode token
+    payload = decode_access_token(token)
+    
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Get user info from token
+    phone: str = payload.get("sub")
+    user_type: str = payload.get("user_type")
+    
+    if phone is None or user_type is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Ensure user type is doctor
+    if user_type != "doctor":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only doctors can access this endpoint"
+        )
+    
+    # Query doctor
+    doctor = db.query(Doctor).filter(Doctor.phone == phone).first()
+    if doctor is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Doctor not found"
+        )
+    
+    return doctor

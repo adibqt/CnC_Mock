@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { userAPI, authUtils } from '../services/api';
+import { userAPI, authUtils, appointmentAPI } from '../services/api';
 import './PatientDashboard.css';
 
 const PatientDashboard = () => {
@@ -8,9 +8,12 @@ const PatientDashboard = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [appointments, setAppointments] = useState([]);
+  const [showAppointments, setShowAppointments] = useState(false);
 
   useEffect(() => {
     loadProfile();
+    loadAppointments();
   }, []);
 
   const loadProfile = async () => {
@@ -21,6 +24,13 @@ const PatientDashboard = () => {
       setError(result.error);
     }
     setLoading(false);
+  };
+
+  const loadAppointments = async () => {
+    const result = await appointmentAPI.getPatientAppointments();
+    if (result.success) {
+      setAppointments(result.data || []);
+    }
   };
 
   const handleLogout = () => {
@@ -226,9 +236,9 @@ const PatientDashboard = () => {
 
           {/* Quick Actions */}
           <div className="quick-actions">
-            <h3>Quick Actions</h3>
+            <h3>My Activities</h3>
             <div className="actions-grid">
-              <button className="action-card">
+              <button className="action-card" onClick={() => navigate('/user-home')}>
                 <i className="icofont-doctor-alt"></i>
                 <span>Book Appointment</span>
               </button>
@@ -236,9 +246,12 @@ const PatientDashboard = () => {
                 <i className="icofont-prescription"></i>
                 <span>View Prescriptions</span>
               </button>
-              <button className="action-card">
-                <i className="icofont-test-tube-alt"></i>
-                <span>Lab Reports</span>
+              <button 
+                className="action-card" 
+                onClick={() => setShowAppointments(!showAppointments)}
+              >
+                <i className="icofont-calendar"></i>
+                <span>Schedule</span>
               </button>
               <button className="action-card">
                 <i className="icofont-history"></i>
@@ -246,6 +259,89 @@ const PatientDashboard = () => {
               </button>
             </div>
           </div>
+
+          {/* Appointments Section */}
+          {showAppointments && (
+            <div className="appointments-section">
+              <div className="appointments-header">
+                <h3>
+                  <i className="icofont-calendar"></i> My Appointments
+                </h3>
+                <button 
+                  className="close-btn" 
+                  onClick={() => setShowAppointments(false)}
+                >
+                  <i className="icofont-close"></i>
+                </button>
+              </div>
+              
+              {appointments.length > 0 ? (
+                <div className="appointments-list">
+                  {appointments.map((appointment) => {
+                    const appointmentDate = new Date(appointment.appointment_date);
+                    const isUpcoming = appointmentDate >= new Date();
+                    
+                    return (
+                      <div key={appointment.id} className={`appointment-item ${appointment.status}`}>
+                        <div className="appointment-date">
+                          <div className="date-day">{appointmentDate.getDate()}</div>
+                          <div className="date-month">
+                            {appointmentDate.toLocaleDateString('en-US', { month: 'short' })}
+                          </div>
+                        </div>
+                        <div className="appointment-details">
+                          <div className="doctor-info">
+                            <div className="doctor-avatar-small">
+                              {appointment.doctor?.profile_picture_url ? (
+                                <img 
+                                  src={`http://localhost:8000${appointment.doctor.profile_picture_url}`}
+                                  alt={appointment.doctor.name}
+                                />
+                              ) : (
+                                <i className="icofont-doctor"></i>
+                              )}
+                            </div>
+                            <div>
+                              <h4>{appointment.doctor?.name}</h4>
+                              <p className="specialization">{appointment.doctor?.specialization}</p>
+                            </div>
+                          </div>
+                          <div className="appointment-meta">
+                            <span className="time">
+                              <i className="icofont-clock-time"></i> {appointment.time_slot}
+                            </span>
+                            <span className={`status-badge ${appointment.status}`}>
+                              {appointment.status}
+                            </span>
+                          </div>
+                          {appointment.symptoms && (
+                            <p className="symptoms">
+                              <i className="icofont-prescription"></i> 
+                              {appointment.symptoms.length > 80 
+                                ? `${appointment.symptoms.substring(0, 80)}...` 
+                                : appointment.symptoms
+                              }
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="no-appointments">
+                  <i className="icofont-calendar"></i>
+                  <p>No appointments scheduled</p>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => navigate('/user-home')}
+                  >
+                    Book an Appointment
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
