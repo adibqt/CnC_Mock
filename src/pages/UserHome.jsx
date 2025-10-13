@@ -24,6 +24,7 @@ const defaultConcerns = [
 ];
 
 export default function UserHome() {
+  console.log('UserHome component rendering');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -182,7 +183,35 @@ export default function UserHome() {
     }
   };
 
+  // Filter today's appointments from the loaded appointments
+  const todayAppointments = useMemo(() => {
+    if (!appointments || appointments.length === 0) return [];
+    
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    
+    return appointments.filter(apt => {
+      if (!apt.appointment_date) return false;
+      
+      // Handle both string dates and date objects
+      let aptDateStr;
+      if (typeof apt.appointment_date === 'string') {
+        aptDateStr = apt.appointment_date.split('T')[0];
+      } else {
+        aptDateStr = apt.appointment_date;
+      }
+      
+      return aptDateStr === todayStr;
+    });
+  }, [appointments]);
+
+  // Get the first appointment for today (use this instead of todaysAppointment from home)
+  const todayAppointment = todayAppointments.length > 0 ? todayAppointments[0] : null;
+
+  console.log('Loading:', loading, 'Error:', error, 'Home:', home);
+
   if (loading) {
+    console.log('Showing loading state');
     return (
       <div className="userhome-loading">
         <Icon name="spinner-alt-6" className="spin" /> Loading Home...
@@ -191,6 +220,7 @@ export default function UserHome() {
   }
 
   if (error) {
+    console.log('Showing error state:', error);
     return (
       <div className="userhome-error">
         <Icon name="warning" /> {error}
@@ -198,7 +228,8 @@ export default function UserHome() {
     );
   }
 
-  const { user, todaysAppointment, activities } = home || {};
+  const { user, activities } = home || {};
+  console.log('Rendering main content, user:', user);
 
   return (
     <div className="userhome-container">
@@ -356,23 +387,55 @@ export default function UserHome() {
 
       {/* Today's appointment */}
       <section className="uh-today">
-        <h2 className="section-title">Today's appointment</h2>
-        {todaysAppointment ? (
+        <h2 className="section-title">Today's Appointment</h2>
+        {todayAppointment ? (
           <div className="uh-appointment-card">
             <div className="uh-appointment-doc">
-              <img src="/img/team1.jpg" alt="Doctor" />
+              {todayAppointment.doctor_profile_picture ? (
+                <img 
+                  src={`http://localhost:8000${todayAppointment.doctor_profile_picture}`}
+                  alt={todayAppointment.doctor_name} 
+                />
+              ) : (
+                <div className="uh-doctor-placeholder" style={{ width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', color: 'white' }}>
+                  <Icon name="doctor-alt" />
+                </div>
+              )}
               <div>
-                <div className="uh-appointment-docname">{todaysAppointment.doctor_name}</div>
-                <div className="uh-appointment-spec">{todaysAppointment.specialty}</div>
+                <div className="uh-appointment-docname">Dr. {todayAppointment.doctor_name}</div>
+                <div className="uh-appointment-spec">
+                  <Icon name="stethoscope-alt" /> {todayAppointment.doctor_specialization || 'General Physician'}
+                </div>
               </div>
             </div>
-            <button className="uh-doc-arrow" onClick={() => navigate('/contact')}>
+            <button className="uh-doc-arrow" onClick={() => navigate(`/doctor/${todayAppointment.doctor_id}`)}>
               <Icon name="rounded-right" />
             </button>
             <div className="uh-appointment-meta">
-              <div><Icon name="calendar" /> {todaysAppointment.date_label}</div>
-              <div><Icon name="video" /> {todaysAppointment.mode}</div>
+              <div>
+                <Icon name="calendar" /> 
+                {new Date(todayAppointment.appointment_date).toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
+              <div>
+                <Icon name="clock-time" /> {todayAppointment.appointment_time || 'Time TBD'}
+              </div>
+              <div>
+                <Icon name="info-circle" /> 
+                <span className={`status-badge status-${todayAppointment.status?.toLowerCase()}`}>
+                  {todayAppointment.status || 'Pending'}
+                </span>
+              </div>
             </div>
+            {todayAppointment.reason && (
+              <div className="uh-appointment-reason">
+                <Icon name="medical-sign" /> <strong>Reason:</strong> {todayAppointment.reason}
+              </div>
+            )}
           </div>
         ) : (
           <div className="uh-empty">
