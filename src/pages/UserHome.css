@@ -190,7 +190,15 @@
 .uh-appointment-doc img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; }
 .uh-appointment-docname { font-weight: 700; color: #2563EB; }
 .uh-appointment-spec { color: var(--muted); font-size: 14px; }
-.uh-appointment-meta { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; color: #334155; }
+.uh-appointment-meta { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; margin-top: 14px; color: #334155; font-size: 14px; }
+.uh-appointment-meta > div { display: flex; align-items: center; gap: 8px; }
+.uh-appointment-reason { margin-top: 12px; padding: 10px 12px; background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; font-size: 13px; color: #92400e; }
+.uh-appointment-reason strong { color: #78350f; }
+.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: capitalize; }
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-confirmed { background: #d1fae5; color: #065f46; }
+.status-completed { background: #e0e7ff; color: #3730a3; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
 .uh-empty { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 20px; border-radius: 12px; color: #475569; }
 
 .uh-activities { margin-top: 28px; }
