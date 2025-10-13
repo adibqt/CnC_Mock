@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     # Gemini AI
     GEMINI_API_KEY: str = ""  # Will be required for AI features
     
+    # LiveKit Configuration
+    LIVEKIT_API_KEY: str = "your-api-key"
+    LIVEKIT_API_SECRET: str = "your-api-secret"
+    LIVEKIT_URL: str = "wss://your-livekit-server.livekit.io"
+    
     # CORS
     CORS_ORIGINS: str = '["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"]'
     

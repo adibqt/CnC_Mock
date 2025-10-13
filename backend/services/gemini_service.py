@@ -38,7 +38,7 @@ class GeminiService:
             print(error_msg)
             raise ValueError("GEMINI_API_KEY is required for AI features. Please configure it in the .env file.")
         
-        print(f"\n✅ Gemini API Key loaded successfully")
+        print(f"\nGemini API Key loaded successfully")
         print(f"   • Key length: {len(api_key)} characters")
         print(f"   • Key starts with: {api_key[:15]}...")
         

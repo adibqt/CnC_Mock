@@ -42,7 +42,7 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${patientToken}`;
       }
     } else if (config.url.includes('/api/appointments/')) {
-      // Appointment endpoints - use appropriate token based on sub-path
+      // Appointment endpoints - use appropriate token based on sub-path and method
       if (config.url.includes('/doctor/')) {
         // Doctor-specific appointments
         if (doctorToken) {
@@ -53,12 +53,25 @@ api.interceptors.request.use(
         if (patientToken) {
           config.headers.Authorization = `Bearer ${patientToken}`;
         }
-      } else {
-        // General appointment operations (create, get details, etc.) - use patient token
-        const token = patientToken || doctorToken;
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+      } else if (config.method === 'patch' || config.method === 'put') {
+        // PATCH/PUT requests (status updates) - doctor operations only
+        if (doctorToken) {
+          config.headers.Authorization = `Bearer ${doctorToken}`;
         }
+      } else {
+        // General appointment operations (create, get details, etc.) - patient operations
+        if (patientToken) {
+          config.headers.Authorization = `Bearer ${patientToken}`;
+        } else if (doctorToken) {
+          // Fallback to doctor token if no patient token
+          config.headers.Authorization = `Bearer ${doctorToken}`;
+        }
+      }
+    } else if (config.url.includes('/livekit/')) {
+      // LiveKit endpoints - use whichever token is available (doctor first for room management)
+      const token = doctorToken || patientToken;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
     } else {
       // For other endpoints, try patient first (most common), then doctor
@@ -70,10 +83,13 @@ api.interceptors.request.use(
     
     // Debug logging
     console.log('🔑 API Request:', {
+      method: config.method?.toUpperCase(),
       url: config.url,
       hasPatientToken: !!patientToken,
       hasDoctorToken: !!doctorToken,
-      hasAuthHeader: !!config.headers.Authorization
+      hasAuthHeader: !!config.headers.Authorization,
+      usingToken: config.headers.Authorization ? 
+        (config.headers.Authorization.includes(doctorToken) ? 'DOCTOR' : 'PATIENT') : 'NONE'
     });
     
     return config;
@@ -103,6 +119,11 @@ export const userAPI = {
     try {
       const response = await api.post('/api/users/login', credentials);
       const { access_token, user_data, user_type } = response.data;
+      
+      // Clear doctor tokens to avoid conflicts
+      localStorage.removeItem('doctor_accessToken');
+      localStorage.removeItem('doctor_userType');
+      localStorage.removeItem('doctor_userData');
       
       // Store token and user data with patient prefix
       localStorage.setItem('patient_accessToken', access_token);
@@ -197,6 +218,11 @@ export const doctorAPI = {
     try {
       const response = await api.post('/api/doctors/login', credentials);
       const { access_token, user_data, user_type } = response.data;
+      
+      // Clear patient tokens to avoid conflicts
+      localStorage.removeItem('patient_accessToken');
+      localStorage.removeItem('patient_userType');
+      localStorage.removeItem('patient_userData');
       
       // Store token and user data with doctor prefix
       localStorage.setItem('doctor_accessToken', access_token);
@@ -301,6 +327,16 @@ export const doctorAPI = {
 
 // Auth utilities
 export const authUtils = {
+  // Clear all tokens (useful when switching between user types)
+  clearAllTokens: () => {
+    localStorage.removeItem('patient_accessToken');
+    localStorage.removeItem('patient_userType');
+    localStorage.removeItem('patient_userData');
+    localStorage.removeItem('doctor_accessToken');
+    localStorage.removeItem('doctor_userType');
+    localStorage.removeItem('doctor_userData');
+  },
+
   // Logout (specify user type)
   logout: (userType = null) => {
     if (userType === 'patient' || !userType) {
@@ -541,6 +577,19 @@ export const appointmentAPI = {
     }
   },
 
+  // Update appointment status (doctor only)
+  updateAppointmentStatus: async (appointmentId, status) => {
+    try {
+      const response = await api.patch(`/api/appointments/${appointmentId}`, { status });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to update appointment status.'
+      };
+    }
+  },
+
   // Get doctor's available slots
   getAvailableSlots: async (doctorId, date) => {
     try {
@@ -563,6 +612,70 @@ export const appointmentAPI = {
       return {
         success: false,
         error: error.response?.data?.detail || 'Failed to fetch doctors.'
+      };
+    }
+  }
+};
+
+// LiveKit API
+export const liveKitAPI = {
+  // Join appointment video call
+  joinAppointmentCall: async (appointmentId, roomType = 'consultation') => {
+    try {
+      const response = await api.post('/livekit/join-appointment', {
+        appointment_id: appointmentId,
+        room_type: roomType
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error joining appointment call:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to join video call'
+      };
+    }
+  },
+
+  // Create new video room (for doctors)
+  createRoom: async (roomName, maxParticipants = 10) => {
+    try {
+      const response = await api.post(`/livekit/create-room/${roomName}`, null, {
+        params: { max_participants: maxParticipants }
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error creating video room:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to create video room'
+      };
+    }
+  },
+
+  // End video room (for doctors)
+  endRoom: async (roomName) => {
+    try {
+      const response = await api.delete(`/livekit/end-room/${roomName}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error ending video room:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to end video room'
+      };
+    }
+  },
+
+  // Check room status (for notifications)
+  checkRoomStatus: async (appointmentId) => {
+    try {
+      const response = await api.get(`/livekit/room-status/${appointmentId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      // Silently fail for room status checks
+      return { 
+        success: false, 
+        data: { is_active: false, participant_count: 0 }
       };
     }
   }
