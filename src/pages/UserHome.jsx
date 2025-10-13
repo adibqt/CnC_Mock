@@ -24,7 +24,6 @@ const defaultConcerns = [
 ];
 
 export default function UserHome() {
-  console.log('UserHome component rendering');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -208,10 +207,7 @@ export default function UserHome() {
   // Get the first appointment for today (use this instead of todaysAppointment from home)
   const todayAppointment = todayAppointments.length > 0 ? todayAppointments[0] : null;
 
-  console.log('Loading:', loading, 'Error:', error, 'Home:', home);
-
   if (loading) {
-    console.log('Showing loading state');
     return (
       <div className="userhome-loading">
         <Icon name="spinner-alt-6" className="spin" /> Loading Home...
@@ -220,7 +216,6 @@ export default function UserHome() {
   }
 
   if (error) {
-    console.log('Showing error state:', error);
     return (
       <div className="userhome-error">
         <Icon name="warning" /> {error}
@@ -229,7 +224,6 @@ export default function UserHome() {
   }
 
   const { user, activities } = home || {};
-  console.log('Rendering main content, user:', user);
 
   return (
     <div className="userhome-container">
