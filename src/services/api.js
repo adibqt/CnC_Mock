@@ -18,10 +18,18 @@ api.interceptors.request.use(
     const doctorToken = localStorage.getItem('doctor_accessToken');
     
     // Use the appropriate token based on the endpoint
-    if (config.url.includes('/api/doctors/')) {
-      // Doctor endpoints - use doctor token
+    if (config.url.includes('/api/doctors/') && config.url.includes('/my-appointments')) {
+      // Doctor's own appointments - use doctor token
       if (doctorToken) {
         config.headers.Authorization = `Bearer ${doctorToken}`;
+      }
+    } else if (config.url.includes('/api/doctors/')) {
+      // Other doctor endpoints - use doctor token if available, otherwise patient token for browsing
+      if (doctorToken) {
+        config.headers.Authorization = `Bearer ${doctorToken}`;
+      } else if (patientToken && (config.url.includes('/all') || config.url.includes('/available-slots'))) {
+        // Allow patients to view doctor list and availability
+        config.headers.Authorization = `Bearer ${patientToken}`;
       }
     } else if (config.url.includes('/api/users/')) {
       // User endpoints - use patient token
@@ -32,6 +40,25 @@ api.interceptors.request.use(
       // AI endpoints - patient token (patients use AI consultation)
       if (patientToken) {
         config.headers.Authorization = `Bearer ${patientToken}`;
+      }
+    } else if (config.url.includes('/api/appointments/')) {
+      // Appointment endpoints - use appropriate token based on sub-path
+      if (config.url.includes('/doctor/')) {
+        // Doctor-specific appointments
+        if (doctorToken) {
+          config.headers.Authorization = `Bearer ${doctorToken}`;
+        }
+      } else if (config.url.includes('/patient/')) {
+        // Patient-specific appointments
+        if (patientToken) {
+          config.headers.Authorization = `Bearer ${patientToken}`;
+        }
+      } else {
+        // General appointment operations (create, get details, etc.) - use patient token
+        const token = patientToken || doctorToken;
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
       }
     } else {
       // For other endpoints, try patient first (most common), then doctor
@@ -426,6 +453,116 @@ export const aiAPI = {
       return {
         success: false,
         error: error.response?.data?.detail || 'Failed to generate follow-up.'
+      };
+    }
+  }
+};
+
+// Appointment API endpoints
+export const appointmentAPI = {
+  // Create new appointment
+  createAppointment: async (appointmentData) => {
+    try {
+      const response = await api.post('/api/appointments/', appointmentData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to create appointment. Please try again.'
+      };
+    }
+  },
+
+  // Get patient's appointments
+  getPatientAppointments: async (statusFilter = null) => {
+    try {
+      const url = statusFilter 
+        ? `/api/appointments/patient/my-appointments?status_filter=${statusFilter}`
+        : '/api/appointments/patient/my-appointments';
+      const response = await api.get(url);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch appointments.'
+      };
+    }
+  },
+
+  // Get doctor's appointments
+  getDoctorAppointments: async (week = 'current') => {
+    try {
+      const response = await api.get(`/api/appointments/doctor/my-appointments?week=${week}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch appointments.'
+      };
+    }
+  },
+
+  // Get appointment details
+  getAppointmentDetails: async (appointmentId) => {
+    try {
+      const response = await api.get(`/api/appointments/${appointmentId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch appointment details.'
+      };
+    }
+  },
+
+  // Update appointment (doctor only)
+  updateAppointment: async (appointmentId, updateData) => {
+    try {
+      const response = await api.patch(`/api/appointments/${appointmentId}`, updateData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to update appointment.'
+      };
+    }
+  },
+
+  // Cancel appointment (patient)
+  cancelAppointment: async (appointmentId) => {
+    try {
+      const response = await api.delete(`/api/appointments/${appointmentId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to cancel appointment.'
+      };
+    }
+  },
+
+  // Get doctor's available slots
+  getAvailableSlots: async (doctorId, date) => {
+    try {
+      const response = await api.get(`/api/appointments/doctor/${doctorId}/available-slots?date=${date}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch available slots.'
+      };
+    }
+  },
+
+  // Get all doctors (for patient to browse)
+  getAllDoctors: async () => {
+    try {
+      const response = await api.get('/api/doctors/all');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch doctors.'
       };
     }
   }

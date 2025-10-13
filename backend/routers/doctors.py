@@ -300,3 +300,36 @@ async def update_schedule(
         "message": "Schedule updated successfully",
         "schedule": current_doctor.schedule
     }
+
+@router.get("/all")
+async def get_all_doctors(db: Session = Depends(get_db)):
+    """
+    Get all active doctors
+    Public endpoint for patients to browse available doctors
+    """
+    try:
+        doctors = db.query(Doctor).filter(
+            Doctor.is_active == True
+        ).all()
+        
+        doctors_list = []
+        for doctor in doctors:
+            doctors_list.append({
+                "id": doctor.id,
+                "full_name": doctor.full_name,
+                "name": doctor.name or doctor.full_name,
+                "specialization": doctor.specialization,
+                "phone": doctor.phone,
+                "profile_picture_url": doctor.profile_picture_url,
+                "schedule": doctor.schedule,
+                "is_verified": doctor.is_verified
+            })
+        
+        return doctors_list
+        
+    except Exception as e:
+        print(f"Error fetching doctors: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch doctors"
+        )

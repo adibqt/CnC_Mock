@@ -69,3 +69,35 @@ class AIConsultation(Base):
     
     # Relationships
     user = relationship("User", backref="consultations")
+
+class AppointmentStatus(str, enum.Enum):
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    NO_SHOW = "no_show"
+
+class Appointment(Base):
+    __tablename__ = "appointments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    
+    # Appointment details
+    appointment_date = Column(String, nullable=False)  # Format: YYYY-MM-DD
+    time_slot = Column(String, nullable=False)  # Format: "09:00 AM - 10:00 AM"
+    status = Column(Enum(AppointmentStatus, values_callable=lambda x: [e.value for e in x]), default=AppointmentStatus.PENDING, nullable=False)
+    
+    # Notes and symptoms
+    symptoms = Column(Text, nullable=True)
+    patient_notes = Column(Text, nullable=True)
+    doctor_notes = Column(Text, nullable=True)
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    patient = relationship("User", backref="appointments")
+    doctor = relationship("Doctor", backref="appointments")

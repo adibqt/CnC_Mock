@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from config import settings
 from database import engine, Base
 from routers import users_router, doctors_router, ai_router
+from routers.appointments import router as appointments_router
 from pathlib import Path
 
 # Create database tables
@@ -36,6 +37,7 @@ app.add_middleware(
 app.include_router(users_router)
 app.include_router(doctors_router)
 app.include_router(ai_router)
+app.include_router(appointments_router)
 
 @app.on_event("startup")
 async def startup_event():

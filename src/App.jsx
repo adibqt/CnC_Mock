@@ -15,6 +15,7 @@ import DoctorProfileUpdate from './pages/DoctorProfileUpdate';
 import DoctorHome from './pages/DoctorHome';
 import DoctorSchedule from './pages/DoctorSchedule';
 import AIConsultation from './pages/AIConsultation';
+import DoctorDetails from './pages/DoctorDetails';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -53,6 +54,7 @@ function App() {
         <Route path="/doctor-profile-update" element={<DoctorProfileUpdate />} />
         <Route path="/doctor-home" element={<DoctorHome />} />
         <Route path="/doctor-schedule" element={<DoctorSchedule />} />
+        <Route path="/doctor/:doctorId" element={<DoctorDetails />} />
         
         {/* Routes with Header/Footer */}
         <Route path="/*" element={

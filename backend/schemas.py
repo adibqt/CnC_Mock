@@ -139,3 +139,56 @@ class ConsultationHistoryResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+# Appointment Schemas
+class AppointmentCreate(BaseModel):
+    doctor_id: int = Field(..., gt=0)
+    appointment_date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
+    time_slot: str = Field(..., min_length=1, max_length=50)
+    symptoms: Optional[str] = Field(None, max_length=2000)
+    patient_notes: Optional[str] = Field(None, max_length=1000)
+    
+    @validator('appointment_date')
+    def validate_future_date(cls, v):
+        from datetime import datetime, timedelta
+        try:
+            appointment_date = datetime.strptime(v, '%Y-%m-%d').date()
+            today = datetime.now().date()
+            # Allow appointments from tomorrow onwards
+            if appointment_date <= today:
+                raise ValueError('Appointment date must be at least one day in the future')
+        except ValueError as e:
+            if "does not match format" in str(e):
+                raise ValueError('Date must be in YYYY-MM-DD format')
+            raise
+        return v
+
+class AppointmentUpdate(BaseModel):
+    status: Optional[str] = None
+    doctor_notes: Optional[str] = Field(None, max_length=1000)
+    
+    @validator('status')
+    def validate_status(cls, v):
+        if v and v not in ['pending', 'confirmed', 'completed', 'cancelled', 'no_show']:
+            raise ValueError('Invalid status')
+        return v
+
+class AppointmentResponse(BaseModel):
+    id: int
+    patient_id: int
+    doctor_id: int
+    appointment_date: str
+    time_slot: str
+    status: str
+    symptoms: Optional[str]
+    patient_notes: Optional[str]
+    doctor_notes: Optional[str]
+    created_at: datetime
+    updated_at: Optional[datetime]
+    
+    # Nested data
+    patient: Optional[dict] = None
+    doctor: Optional[dict] = None
+    
+    class Config:
+        from_attributes = True

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doctorAPI, authUtils } from '../services/api';
+import { doctorAPI, authUtils, appointmentAPI } from '../services/api';
 import './DoctorHome.css';
 
 export default function DoctorHome() {
@@ -8,9 +8,11 @@ export default function DoctorHome() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [homeData, setHomeData] = useState(null);
+  const [weekAppointments, setWeekAppointments] = useState([]);
 
   useEffect(() => {
     loadHomeData();
+    loadWeeklyAppointments();
   }, []);
 
   const loadHomeData = async () => {
@@ -21,6 +23,13 @@ export default function DoctorHome() {
       setError(result.error);
     }
     setLoading(false);
+  };
+
+  const loadWeeklyAppointments = async () => {
+    const result = await appointmentAPI.getDoctorAppointments('current');
+    if (result.success) {
+      setWeekAppointments(result.data || []);
+    }
   };
 
   const handleLogout = () => {
@@ -150,46 +159,63 @@ export default function DoctorHome() {
 
         {/* Main Grid */}
         <div className="content-grid">
-          {/* Today's Appointments */}
+          {/* This Week's Appointments */}
           <div>
             <div className="appointments-card">
               <div className="card-header">
                 <h2 className="card-title">
-                  <i className="icofont-clock-time"></i>
-                  Today's Appointments
+                  <i className="icofont-calendar"></i>
+                  This Week's Appointments
                 </h2>
-                <button className="new-appointment-btn">
-                  <i className="icofont-plus-circle"></i>
-                  New Appointment
+                <button onClick={() => navigate('/doctor-schedule')} className="new-appointment-btn">
+                  <i className="icofont-clock-time"></i>
+                  Manage Schedule
                 </button>
               </div>
 
-              {todayAppointments && todayAppointments.length > 0 ? (
+              {weekAppointments && weekAppointments.length > 0 ? (
                 <div className="appointments-list">
-                  {todayAppointments.map((appointment) => (
+                  {weekAppointments.map((appointment) => (
                     <div key={appointment.id} className="appointment-item">
                       <div className="appointment-content">
                         <div className="appointment-left">
                           <div className="patient-avatar">
-                            <i className="icofont-user"></i>
+                            {appointment.patient?.profile_picture_url ? (
+                              <img 
+                                src={`http://localhost:8000${appointment.patient.profile_picture_url}`}
+                                alt={appointment.patient.name}
+                              />
+                            ) : (
+                              <i className="icofont-user"></i>
+                            )}
                           </div>
                           <div className="appointment-info">
-                            <h3>{appointment.patient_name}</h3>
+                            <h3>{appointment.patient?.name || 'Patient'}</h3>
                             <div className="appointment-details">
                               <span>
-                                <i className="icofont-clock-time"></i>
-                                {appointment.time}
+                                <i className="icofont-calendar"></i>
+                                {new Date(appointment.appointment_date).toLocaleDateString('en-US', {
+                                  weekday: 'short',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
                               </span>
                               <span>
-                                <i className="icofont-stethoscope"></i>
-                                {appointment.type}
+                                <i className="icofont-clock-time"></i>
+                                {appointment.time_slot}
                               </span>
                             </div>
+                            {appointment.symptoms && (
+                              <div className="appointment-symptoms">
+                                <i className="icofont-prescription"></i>
+                                <span>{appointment.symptoms.substring(0, 60)}{appointment.symptoms.length > 60 ? '...' : ''}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="appointment-right">
-                          <span className="status-badge">{appointment.status}</span>
-                          <button className="call-btn">
+                          <span className={`status-badge ${appointment.status}`}>{appointment.status}</span>
+                          <button className="call-btn" onClick={() => window.location.href = `tel:${appointment.patient?.phone}`}>
                             <i className="icofont-ui-call"></i>
                           </button>
                         </div>
@@ -200,8 +226,8 @@ export default function DoctorHome() {
               ) : (
                 <div className="empty-state">
                   <i className="icofont-calendar"></i>
-                  <p>No appointments scheduled for today</p>
-                  <button className="schedule-btn">Schedule Appointment</button>
+                  <p>No appointments scheduled for this week</p>
+                  <button onClick={() => navigate('/doctor-schedule')} className="schedule-btn">Manage Schedule</button>
                 </div>
               )}
             </div>

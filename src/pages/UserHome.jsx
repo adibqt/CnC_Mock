@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UserHome.css';
-import { userAPI, authUtils } from '../services/api';
+import { userAPI, authUtils, appointmentAPI } from '../services/api';
 
 // Lightweight icon components using Icofont classes already included globally
 const Icon = ({ name, className = '' }) => (
@@ -29,6 +29,8 @@ export default function UserHome() {
   const [suggesting, setSuggesting] = useState(false);
   const [suggestion, setSuggestion] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [doctors, setDoctors] = useState([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
 
   // Sample notifications data
   const notifications = [
@@ -82,9 +84,19 @@ export default function UserHome() {
     (async () => {
       try {
         setLoading(true);
+        // Load home data
         const data = await userAPI.getHomeData();
         if (!mounted) return;
         setHome(data);
+        
+        // Load available doctors
+        setLoadingDoctors(true);
+        const doctorsResult = await appointmentAPI.getAllDoctors();
+        if (doctorsResult.success) {
+          setDoctors(doctorsResult.data);
+        }
+        setLoadingDoctors(false);
+        
         setError('');
       } catch (e) {
         console.error(e);
@@ -108,10 +120,52 @@ export default function UserHome() {
     if (!selected.length) return;
     try {
       setSuggesting(true);
-      const res = await userAPI.suggestDoctor({ concerns: selected });
-      setSuggestion(res);
+      
+      // Map concerns to medical specializations
+      const concernMapping = {
+        'Temperature': 'general',
+        'Snuffle': 'ent',
+        'Weakness': 'general',
+        'Viruses': 'general',
+        'Syncytial Virus': 'pulmonologist',
+        'Adenoviruses': 'general',
+        'Rhinoviruses': 'ent',
+        'Factors': 'general',
+        'Infection': 'general'
+      };
+      
+      // Get preferred specialization based on concerns
+      const specializations = selected.map(concern => concernMapping[concern] || 'general');
+      const preferredSpec = specializations.find(spec => spec !== 'general') || 'general';
+      
+      // Find doctors matching the specialization
+      const matchingDoctors = doctors.filter(doctor => 
+        doctor.specialization.toLowerCase().includes(preferredSpec) ||
+        (preferredSpec === 'general' && doctor.specialization.toLowerCase().includes('general'))
+      );
+      
+      // If no matching doctors, get any available doctor
+      const availableDoctors = matchingDoctors.length > 0 ? matchingDoctors : doctors;
+      
+      if (availableDoctors.length > 0) {
+        // Pick the first available doctor (or use more complex logic)
+        const suggestedDoctor = availableDoctors[0];
+        setSuggestion({
+          id: suggestedDoctor.id,
+          name: suggestedDoctor.full_name || suggestedDoctor.name,
+          specialty: suggestedDoctor.specialization,
+          photo_url: suggestedDoctor.profile_picture_url,
+          experience_years: 8, // Default value, can be added to doctor model
+          rating: 4.6, // Default value, can be added to doctor model
+          concerns: selected
+        });
+      } else {
+        setSuggestion(null);
+        alert('No doctors available at the moment. Please try again later.');
+      }
     } catch (e) {
       console.error(e);
+      alert('Failed to suggest doctor. Please try again.');
     } finally {
       setSuggesting(false);
     }
@@ -265,15 +319,25 @@ export default function UserHome() {
         {suggestion && (
           <div className="uh-suggestion">
             <div className="uh-doc-avatar">
-              <img src={suggestion.photo_url || '/img/doctor-detail.jpg'} alt="Doctor" />
+              <img 
+                src={suggestion.photo_url ? `http://localhost:8000${suggestion.photo_url}` : '/img/doctor-detail.jpg'} 
+                alt="Doctor" 
+              />
             </div>
             <div className="uh-doc-info">
               <div className="uh-doc-name">{suggestion.name}</div>
               <div className="uh-doc-spec">{suggestion.specialty}</div>
               <div className="uh-doc-meta">Experience: {suggestion.experience_years} yrs · Rating {suggestion.rating.toFixed(1)}</div>
+              <div className="uh-doc-concerns">
+                <span>For: {suggestion.concerns.join(', ')}</span>
+              </div>
             </div>
-            <button className="uh-doc-arrow" onClick={() => navigate('/contact')}>
-              <Icon name="rounded-right" />
+            <button 
+              className="uh-book-appointment" 
+              onClick={() => navigate(`/doctor/${suggestion.id}`)}
+            >
+              <Icon name="calendar" />
+              Book Appointment
             </button>
           </div>
         )}
@@ -302,6 +366,68 @@ export default function UserHome() {
         ) : (
           <div className="uh-empty">
             <Icon name="calendar" /> No appointment for today.
+          </div>
+        )}
+      </section>
+
+      {/* Available Doctors */}
+      <section className="uh-doctors">
+        <h2 className="section-title">Available Doctors</h2>
+        {loadingDoctors ? (
+          <div className="uh-loading">
+            <Icon name="spinner-alt-6" className="spin" /> Loading doctors...
+          </div>
+        ) : doctors.length > 0 ? (
+          <div className="uh-doctors-grid">
+            {doctors.slice(0, 6).map((doctor) => (
+              <div key={doctor.id} className="uh-doctor-card">
+                <div className="uh-doctor-header">
+                  <div className="uh-doctor-avatar">
+                    {doctor.profile_picture_url ? (
+                      <img 
+                        src={`http://localhost:8000${doctor.profile_picture_url}`}
+                        alt={doctor.full_name}
+                      />
+                    ) : (
+                      <div className="uh-doctor-placeholder">
+                        <Icon name="doctor-alt" />
+                      </div>
+                    )}
+                  </div>
+                  {doctor.is_verified && (
+                    <span className="uh-verified-badge">
+                      <Icon name="check-circled" /> Verified
+                    </span>
+                  )}
+                </div>
+                <div className="uh-doctor-body">
+                  <h3 className="uh-doctor-name">{doctor.full_name}</h3>
+                  <p className="uh-doctor-spec">
+                    <Icon name="stethoscope-alt" />
+                    {doctor.specialization}
+                  </p>
+                  <button 
+                    className="uh-doctor-book-btn"
+                    onClick={() => navigate(`/doctor/${doctor.id}`)}
+                  >
+                    <Icon name="calendar" />
+                    Book Appointment
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="uh-empty">
+            <Icon name="stethoscope" /> No doctors available at the moment.
+          </div>
+        )}
+        {doctors.length > 6 && (
+          <div className="uh-view-all">
+            <button className="uh-view-all-btn" onClick={() => navigate('/ai-consultation')}>
+              View All Doctors
+              <Icon name="rounded-right" />
+            </button>
           </div>
         )}
       </section>
