@@ -183,7 +183,29 @@
 .uh-doc-meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
 .uh-doc-arrow { background: #eef2ff; color: var(--primary); border: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; cursor: pointer; }
 
-.section-title { margin: 26px 0 12px; color: var(--text); font-size: 20px; font-weight: 700; }
+.section-title { 
+  margin: 26px auto 12px auto; 
+  color: var(--text); 
+  font-size: 20px; 
+  font-weight: 700; 
+  text-align: center !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+/* Ensure section titles are centered on all screen sizes */
+.uh-today .section-title,
+.uh-doctors .section-title,
+.uh-activities .section-title {
+  text-align: center !important;
+  justify-content: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
 .uh-today { margin-top: 22px; }
 .uh-appointment-card { background: var(--card); border: 1px solid #dbeafe; border-radius: 16px; padding: 16px; box-shadow: 0 12px 28px rgba(37,99,235,.08); position: relative; }
 .uh-appointment-doc { display: flex; align-items: center; gap: 12px; }
@@ -216,6 +238,27 @@
 .userhome-loading, .userhome-error { max-width: 1100px; margin: 80px auto; display: flex; align-items: center; gap: 8px; color: var(--muted); padding: 0 20px; }
 .spin { animation: spin 1.2s linear infinite; }
 @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+/* Desktop styles for section titles */
+@media (min-width: 769px) {
+  .section-title {
+    text-align: center !important;
+    font-size: 22px;
+    margin: 30px auto 16px auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  
+  .uh-today .section-title,
+  .uh-doctors .section-title,
+  .uh-activities .section-title {
+    text-align: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    display: flex !important;
+  }
+}
 
 @media (max-width: 900px) {
   .uh-chip-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
@@ -669,7 +712,7 @@
 
 .uh-doctor-body {
   padding: 20px;
-  text-align: center;
+  text-align: left;
 }
 
 .uh-doctor-name {
@@ -677,6 +720,7 @@
   font-size: 18px;
   font-weight: 600;
   color: var(--text);
+  text-align: left;
 }
 
 .uh-doctor-spec {
@@ -685,8 +729,9 @@
   font-size: 14px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
+  text-align: left;
 }
 
 .uh-doctor-book-btn {
@@ -996,6 +1041,18 @@
 .doctor-avatar-small i {
   font-size: 24px;
   color: #ba25eb;
+}
+
+.appointments-modal .doctor-info h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #2C2D3F !important;
+}
+
+.appointments-modal .doctor-info .specialization {
+  margin: 0;
+  font-size: 14px;
+  color: #666 !important;
 }
 
 .doctor-info h4 {
