@@ -260,20 +260,22 @@ const PatientDashboard = () => {
             </div>
           </div>
 
-          {/* Appointments Section */}
+          {/* Appointments Modal */}
           {showAppointments && (
-            <div className="appointments-section">
-              <div className="appointments-header">
-                <h3>
-                  <i className="icofont-calendar"></i> My Appointments
-                </h3>
-                <button 
-                  className="close-btn" 
-                  onClick={() => setShowAppointments(false)}
-                >
-                  <i className="icofont-close"></i>
-                </button>
-              </div>
+            <>
+              <div className="appointments-modal-overlay" onClick={() => setShowAppointments(false)}></div>
+              <div className="appointments-modal">
+                <div className="appointments-header">
+                  <h3>
+                    <i className="icofont-calendar"></i> My Appointments
+                  </h3>
+                  <button 
+                    className="close-btn" 
+                    onClick={() => setShowAppointments(false)}
+                  >
+                    <i className="icofont-close"></i>
+                  </button>
+                </div>
               
               {appointments.length > 0 ? (
                 <div className="appointments-list">
@@ -340,7 +342,8 @@ const PatientDashboard = () => {
                   </button>
                 </div>
               )}
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>

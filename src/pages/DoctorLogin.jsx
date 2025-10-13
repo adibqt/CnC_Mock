@@ -217,21 +217,39 @@ const DoctorLogin = () => {
                       <select
                         id="specialization"
                         name="specialization"
-                        className={`form-control ${errors.specialization ? 'error' : ''}`}
+                        className={`form-control ignore ${errors.specialization ? 'error' : ''}`}
                         value={formData.specialization}
                         onChange={handleChange}
+                        autoComplete="off"
+                        data-native="true"
+                        style={{
+                          color: '#2c2d3f',
+                          WebkitTextSecurity: 'none',
+                          fontFamily: 'Arial, sans-serif',
+                          fontSize: '14px',
+                          letterSpacing: 'normal',
+                          textTransform: 'none',
+                          fontStyle: 'normal',
+                          fontWeight: 'normal',
+                          lineHeight: 'normal',
+                          paddingTop: '14px',
+                          paddingBottom: '14px',
+                          height: '50px',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
                       >
-                        <option value="">Select your specialization</option>
-                        <option value="general">General Physician</option>
-                        <option value="cardiologist">Cardiologist</option>
-                        <option value="dermatologist">Dermatologist</option>
-                        <option value="pediatrician">Pediatrician</option>
-                        <option value="orthopedic">Orthopedic Surgeon</option>
-                        <option value="neurologist">Neurologist</option>
-                        <option value="gynecologist">Gynecologist</option>
-                        <option value="psychiatrist">Psychiatrist</option>
-                        <option value="dentist">Dentist</option>
-                        <option value="other">Other</option>
+                        <option value="" disabled style={{ color: '#999', fontSize: '14px' }}>Select your specialization</option>
+                        <option value="general" style={{ color: '#2c2d3f', fontSize: '14px' }}>General Physician</option>
+                        <option value="cardiologist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Cardiologist</option>
+                        <option value="dermatologist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Dermatologist</option>
+                        <option value="pediatrician" style={{ color: '#2c2d3f', fontSize: '14px' }}>Pediatrician</option>
+                        <option value="orthopedic" style={{ color: '#2c2d3f', fontSize: '14px' }}>Orthopedic Surgeon</option>
+                        <option value="neurologist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Neurologist</option>
+                        <option value="gynecologist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Gynecologist</option>
+                        <option value="psychiatrist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Psychiatrist</option>
+                        <option value="dentist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Dentist</option>
+                        <option value="other" style={{ color: '#2c2d3f', fontSize: '14px' }}>Other</option>
                       </select>
                       {errors.specialization && <span className="error-message">{errors.specialization}</span>}
                     </div>

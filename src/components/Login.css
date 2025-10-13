@@ -56,6 +56,7 @@
 .login-form .form-group {
   margin-bottom: 25px;
   position: relative;
+  z-index: auto;
 }
 
 .login-form label {
@@ -81,6 +82,39 @@
   color: #2c2d3f;
   transition: all 0.3s ease;
   background: #fff;
+}
+
+.login-form select.form-control {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232c2d3f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 45px;
+  cursor: pointer;
+  color: #2c2d3f !important;
+  font-family: 'Poppins', 'Arial', sans-serif !important;
+  line-height: 1.5;
+  font-size: 15px !important;
+  letter-spacing: normal !important;
+  text-security: none !important;
+  -webkit-text-security: none !important;
+  -moz-text-security: none !important;
+}
+
+.login-form select.form-control option {
+  padding: 10px;
+  background: #fff;
+  color: #2c2d3f !important;
+  font-size: 15px !important;
+  font-family: 'Poppins', 'Arial', sans-serif !important;
+  letter-spacing: normal !important;
+}
+
+.login-form select.form-control option:first-child {
+  color: #999 !important;
 }
 
 .login-form .form-control:focus {
