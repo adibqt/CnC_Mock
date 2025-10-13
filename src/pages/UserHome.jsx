@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 import './UserHome.css';
 import { userAPI, authUtils, appointmentAPI } from '../services/api';
 
@@ -386,56 +389,77 @@ export default function UserHome() {
             <Icon name="spinner-alt-6" className="spin" /> Loading doctors...
           </div>
         ) : doctors.length > 0 ? (
-          <div className="uh-doctors-grid">
-            {doctors.slice(0, 6).map((doctor) => (
-              <div key={doctor.id} className="uh-doctor-card">
-                <div className="uh-doctor-header">
-                  <div className="uh-doctor-avatar">
-                    {doctor.profile_picture_url ? (
-                      <img 
-                        src={`http://localhost:8000${doctor.profile_picture_url}`}
-                        alt={doctor.full_name}
-                      />
-                    ) : (
-                      <div className="uh-doctor-placeholder">
-                        <Icon name="doctor-alt" />
+          <div className="uh-doctors-carousel">
+            <Slider
+              dots={true}
+              infinite={true}
+              slidesToShow={3}
+              slidesToScroll={1}
+              autoplay={true}
+              speed={2000}
+              autoplaySpeed={3000}
+              cssEase="linear"
+              responsive={[
+                {
+                  breakpoint: 1024,
+                  settings: {
+                    slidesToShow: 2,
+                    slidesToScroll: 1,
+                  }
+                },
+                {
+                  breakpoint: 768,
+                  settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
+                  }
+                }
+              ]}
+            >
+              {doctors.map((doctor) => (
+                <div key={doctor.id} className="uh-carousel-slide">
+                  <div className="uh-doctor-card">
+                    <div className="uh-doctor-header">
+                      <div className="uh-doctor-avatar">
+                        {doctor.profile_picture_url ? (
+                          <img 
+                            src={`http://localhost:8000${doctor.profile_picture_url}`}
+                            alt={doctor.full_name}
+                          />
+                        ) : (
+                          <div className="uh-doctor-placeholder">
+                            <Icon name="doctor-alt" />
+                          </div>
+                        )}
                       </div>
-                    )}
+                      {doctor.is_verified && (
+                        <span className="uh-verified-badge">
+                          <Icon name="check-circled" /> Verified
+                        </span>
+                      )}
+                    </div>
+                    <div className="uh-doctor-body">
+                      <h3 className="uh-doctor-name">{doctor.full_name}</h3>
+                      <p className="uh-doctor-spec">
+                        <Icon name="stethoscope-alt" />
+                        {doctor.specialization}
+                      </p>
+                      <button 
+                        className="uh-doctor-book-btn"
+                        onClick={() => navigate(`/doctor/${doctor.id}`)}
+                      >
+                        <Icon name="calendar" />
+                        Book Appointment
+                      </button>
+                    </div>
                   </div>
-                  {doctor.is_verified && (
-                    <span className="uh-verified-badge">
-                      <Icon name="check-circled" /> Verified
-                    </span>
-                  )}
                 </div>
-                <div className="uh-doctor-body">
-                  <h3 className="uh-doctor-name">{doctor.full_name}</h3>
-                  <p className="uh-doctor-spec">
-                    <Icon name="stethoscope-alt" />
-                    {doctor.specialization}
-                  </p>
-                  <button 
-                    className="uh-doctor-book-btn"
-                    onClick={() => navigate(`/doctor/${doctor.id}`)}
-                  >
-                    <Icon name="calendar" />
-                    Book Appointment
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </Slider>
           </div>
         ) : (
           <div className="uh-empty">
             <Icon name="stethoscope" /> No doctors available at the moment.
-          </div>
-        )}
-        {doctors.length > 6 && (
-          <div className="uh-view-all">
-            <button className="uh-view-all-btn" onClick={() => navigate('/ai-consultation')}>
-              View All Doctors
-              <Icon name="rounded-right" />
-            </button>
           </div>
         )}
       </section>
