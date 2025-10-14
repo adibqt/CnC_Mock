@@ -444,9 +444,9 @@ export default function UserHome() {
                 </div>
               )}
               <div>
-                <div className="uh-appointment-docname">Dr. {todayAppointment.doctor_name}</div>
+                <div className="uh-appointment-docname">Dr. {todayAppointment.doctor?.name}</div>
                 <div className="uh-appointment-spec">
-                  <Icon name="stethoscope-alt" /> {todayAppointment.doctor_specialization || 'General Physician'}
+                  <Icon name="stethoscope-alt" /> {todayAppointment.doctor?.specialization || 'General Physician'}
                 </div>
               </div>
             </div>
