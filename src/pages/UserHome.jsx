@@ -433,10 +433,11 @@ export default function UserHome() {
         {todayAppointment ? (
           <div className="uh-appointment-card">
             <div className="uh-appointment-doc">
-              {todayAppointment.doctor_profile_picture ? (
+              {todayAppointment.doctor?.profile_picture_url ? (
                 <img 
-                  src={`http://localhost:8000${todayAppointment.doctor_profile_picture}`}
-                  alt={todayAppointment.doctor_name} 
+                  src={`http://localhost:8000${todayAppointment.doctor.profile_picture_url}`}
+                  alt={todayAppointment.doctor.name}
+                  style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
                 />
               ) : (
                 <div className="uh-doctor-placeholder" style={{ width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', color: 'white' }}>

@@ -10,12 +10,33 @@ const api = axios.create({
   },
 });
 
+// Helper function to check if token is expired or about to expire
+const isTokenExpiringSoon = (tokenKey) => {
+  const tokenTimestamp = localStorage.getItem(`${tokenKey}_timestamp`);
+  if (!tokenTimestamp) return false;
+  
+  const now = Date.now();
+  const tokenAge = now - parseInt(tokenTimestamp);
+  const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+  
+  // Return true if token is older than 6.5 days (warn before expiry)
+  return tokenAge > (sevenDaysInMs - (12 * 60 * 60 * 1000));
+};
+
 // Add token to requests if available
 api.interceptors.request.use(
   (config) => {
     // Check for both patient and doctor tokens
     const patientToken = localStorage.getItem('patient_accessToken');
     const doctorToken = localStorage.getItem('doctor_accessToken');
+    
+    // Warn user if token is expiring soon
+    if (patientToken && isTokenExpiringSoon('patient_accessToken')) {
+      console.warn('⚠️ Patient token expiring soon. Please re-login.');
+    }
+    if (doctorToken && isTokenExpiringSoon('doctor_accessToken')) {
+      console.warn('⚠️ Doctor token expiring soon. Please re-login.');
+    }
     
     // Use the appropriate token based on the endpoint
     if (config.url.includes('/api/doctors/') && config.url.includes('/my-appointments')) {
@@ -99,6 +120,27 @@ api.interceptors.request.use(
   }
 );
 
+// Add response interceptor to handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      const patientToken = localStorage.getItem('patient_accessToken');
+      const doctorToken = localStorage.getItem('doctor_accessToken');
+      
+      // Only show alert and redirect if user was actually logged in
+      if (patientToken || doctorToken) {
+        console.error('🔒 Session expired. Please login again.');
+        
+        // Don't auto-logout - let the component handle it
+        // This prevents disrupting the user experience
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // User API endpoints
 export const userAPI = {
   // User signup
@@ -122,6 +164,7 @@ export const userAPI = {
       
       // Store token and user data with patient prefix
       localStorage.setItem('patient_accessToken', access_token);
+      localStorage.setItem('patient_accessToken_timestamp', Date.now().toString());
       localStorage.setItem('patient_userType', user_type);
       localStorage.setItem('patient_userData', JSON.stringify(user_data));
       
@@ -216,6 +259,7 @@ export const doctorAPI = {
       
       // Store token and user data with doctor prefix
       localStorage.setItem('doctor_accessToken', access_token);
+      localStorage.setItem('doctor_accessToken_timestamp', Date.now().toString());
       localStorage.setItem('doctor_userType', user_type);
       localStorage.setItem('doctor_userData', JSON.stringify(user_data));
       
