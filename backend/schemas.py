@@ -227,3 +227,73 @@ class PrescriptionResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+# Admin Schemas
+class AdminLogin(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    password: str = Field(..., min_length=6, max_length=72)
+
+class AdminResponse(BaseModel):
+    id: int
+    username: str
+    full_name: str
+    email: Optional[str]
+    role: str
+    is_active: bool
+    created_at: datetime
+    last_login: Optional[datetime]
+    
+    class Config:
+        from_attributes = True
+
+# Specialization Schemas
+class SpecializationCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=200)
+    description: Optional[str] = Field(None, max_length=1000)
+
+class SpecializationUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=200)
+    description: Optional[str] = Field(None, max_length=1000)
+    is_active: Optional[bool] = None
+
+class SpecializationResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    is_active: bool
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Symptom Schemas
+class SymptomCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=200)
+    description: Optional[str] = Field(None, max_length=1000)
+    category: Optional[str] = Field(None, max_length=100)
+
+class SymptomUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=200)
+    description: Optional[str] = Field(None, max_length=1000)
+    category: Optional[str] = Field(None, max_length=100)
+    is_active: Optional[bool] = None
+
+class SymptomResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    category: Optional[str]
+    is_active: bool
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Admin Management Schemas
+class UserManagementUpdate(BaseModel):
+    is_active: Optional[bool] = None
+    is_verified: Optional[bool] = None
+
+class DoctorVerificationUpdate(BaseModel):
+    is_verified: Optional[bool] = None
+    is_active: Optional[bool] = None
