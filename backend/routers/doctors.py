@@ -256,26 +256,44 @@ async def upload_certificate(
     }
 
 @router.get("/home")
-def get_home_data(current_doctor: Doctor = Depends(get_current_doctor)):
+def get_home_data(current_doctor: Doctor = Depends(get_current_doctor), db: Session = Depends(get_db)):
     """Get doctor home page data with appointments and schedule"""
+    from datetime import date
+    from models import Appointment, AppointmentStatus, Prescription
     
-    # Placeholder data - will be replaced with actual appointments later
-    today_appointments = [
-        {
-            "id": 1,
-            "patient_name": "John Doe",
-            "time": "09:00 AM",
-            "type": "Consultation",
-            "status": "confirmed"
-        },
-        {
-            "id": 2,
-            "patient_name": "Jane Smith",
-            "time": "10:30 AM",
-            "type": "Follow-up",
-            "status": "confirmed"
-        },
-    ] if current_doctor.name else []
+    # Get today's date
+    today = date.today()
+    
+    # Calculate actual statistics
+    # 1. Total appointments remaining (confirmed and pending/unconfirmed)
+    remaining_appointments = db.query(Appointment).filter(
+        Appointment.doctor_id == current_doctor.id,
+        Appointment.status.in_([AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED]),
+        Appointment.appointment_date >= today
+    ).count()
+    
+    # 2. Today's appointments count
+    today_appointments_count = db.query(Appointment).filter(
+        Appointment.doctor_id == current_doctor.id,
+        Appointment.appointment_date == today
+    ).count()
+    
+    # 3. Prescriptions remaining to write (completed appointments without prescriptions)
+    completed_appointments = db.query(Appointment).filter(
+        Appointment.doctor_id == current_doctor.id,
+        Appointment.status == AppointmentStatus.COMPLETED
+    ).all()
+    
+    prescriptions_remaining = 0
+    for apt in completed_appointments:
+        prescription_exists = db.query(Prescription).filter(
+            Prescription.appointment_id == apt.id
+        ).first()
+        if not prescription_exists:
+            prescriptions_remaining += 1
+    
+    # Get today's appointments for display (keeping placeholder structure for now)
+    today_appointments = []
     
     return {
         "doctor": {
@@ -291,10 +309,10 @@ def get_home_data(current_doctor: Doctor = Depends(get_current_doctor)):
         },
         "todayAppointments": today_appointments,
         "stats": {
-            "total_patients": 45,
-            "today_appointments": len(today_appointments),
-            "pending_reports": 3,
-            "rating": 4.8
+            "total_patients": remaining_appointments,  # Appointments remaining
+            "today_appointments": today_appointments_count,  # Appointments today
+            "pending_reports": prescriptions_remaining,  # Prescriptions to write
+            "rating": 4.8  # Keep as is for now
         },
         "schedule": current_doctor.schedule or {
             "monday": [],

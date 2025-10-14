@@ -184,11 +184,11 @@ export default function DoctorHome() {
           <div className="stat-card blue">
             <div className="stat-content">
               <div className="stat-info">
-                <p>Total Patients</p>
+                <p>Appointments Remaining</p>
                 <div className="stat-number">{stats?.total_patients || 0}</div>
               </div>
               <div className="stat-icon blue">
-                <i className="icofont-patient-file"></i>
+                <i className="icofont-calendar"></i>
               </div>
             </div>
           </div>
@@ -200,7 +200,7 @@ export default function DoctorHome() {
                 <div className="stat-number">{stats?.today_appointments || 0}</div>
               </div>
               <div className="stat-icon green">
-                <i className="icofont-calendar"></i>
+                <i className="icofont-clock-time"></i>
               </div>
             </div>
           </div>
@@ -208,11 +208,11 @@ export default function DoctorHome() {
           <div className="stat-card orange">
             <div className="stat-content">
               <div className="stat-info">
-                <p>Pending Reports</p>
+                <p>Prescriptions Pending</p>
                 <div className="stat-number">{stats?.pending_reports || 0}</div>
               </div>
               <div className="stat-icon orange">
-                <i className="icofont-file-document"></i>
+                <i className="icofont-prescription"></i>
               </div>
             </div>
           </div>
