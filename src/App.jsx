@@ -21,6 +21,7 @@ import ViewPrescription from './pages/ViewPrescription';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import PatientManagement from './pages/PatientManagement';
+import DoctorManagement from './pages/DoctorManagement';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,7 @@ function App() {
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/patients" element={<PatientManagement />} />
+        <Route path="/admin/doctors" element={<DoctorManagement />} />
         
         {/* Routes without Header/Footer */}
         <Route path="/profile-update" element={<ProfileUpdate />} />
