@@ -164,9 +164,59 @@
 }
 
 .uh-concerns { background: var(--card); border: 1px solid #e5e7eb; border-radius: 16px; padding: 20px; box-shadow: 0 8px 20px rgba(2,6,23,.04); }
-.uh-chip-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+/* Scrollable chips container */
+.uh-chip-scroll {
+  max-height: 260px; /* controls visible area */
+  overflow: auto;
+  padding-right: 6px; /* space for scrollbar */
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(248,250,252,0.6) 0%, rgba(255,255,255,0.4) 100%);
+  position: relative;
+  scrollbar-width: thin;              /* Firefox */
+  scrollbar-color: var(--primary) #f1f5f9; /* Firefox */
+}
 
-.uh-chip { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--chip-border); background: var(--chip); color: #111827; font-weight: 500; transition: .2s ease; }
+/* top/bottom fade overlays */
+.uh-chip-scroll::before,
+.uh-chip-scroll::after {
+  content: "";
+  position: sticky;
+  left: 0;
+  right: 0;
+  height: 16px;
+  z-index: 1;
+  pointer-events: none;
+  display: block;
+}
+.uh-chip-scroll::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+}
+.uh-chip-scroll::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+}
+
+/* Custom scrollbar */
+.uh-chip-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.uh-chip-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+.uh-chip-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-2) 100%);
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+}
+.uh-chip-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--primary-2) 0%, var(--primary) 100%);
+}
+
+.uh-chip-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding-right: 6px; }
+
+.uh-chip { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--chip-border); background: var(--chip); color: #111827; font-weight: 500; transition: .2s ease; backdrop-filter: blur(2px); }
 .uh-chip:hover { background: #e8eef9; border-color: #c7d2fe; transform: translateY(-1px); }
 .uh-chip.active { background: #e0e7ff; border-color: #a5b4fc; box-shadow: 0 6px 16px rgba(37,99,235,.15); }
 .uh-chip-icon { width: 22px; height: 22px; border-radius: 999px; }
@@ -261,8 +311,12 @@
 }
 
 @media (max-width: 900px) {
-  .uh-chip-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .uh-chip-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
   .uh-activity-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .uh-chip-scroll { max-height: 200px; }
 }
 
 @media (max-width: 640px) {

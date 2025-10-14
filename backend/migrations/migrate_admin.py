@@ -42,6 +42,7 @@ def migrate():
         name VARCHAR UNIQUE NOT NULL,
         description TEXT,
         category VARCHAR,
+        suggested_specialization_id INTEGER REFERENCES specializations(id),
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         created_by INTEGER REFERENCES admins(id)
@@ -61,6 +62,16 @@ def migrate():
             conn.execute(text(migration_sql))
             conn.commit()
             print("✅ Admin tables created successfully!")
+
+            # Ensure new columns exist on existing tables
+            try:
+                conn.execute(text(
+                    "ALTER TABLE symptoms ADD COLUMN IF NOT EXISTS suggested_specialization_id INTEGER REFERENCES specializations(id)"
+                ))
+                conn.commit()
+            except Exception as _:
+                # Safe to ignore if DB doesn't support IF NOT EXISTS (handled by try)
+                pass
             
             # Check if default admin exists
             result = conn.execute(text("SELECT COUNT(*) FROM admins WHERE username = 'admin'"))
@@ -141,20 +152,60 @@ def migrate():
                 ("Depression", "Persistent sad mood", "Mental Health"),
                 ("Insomnia", "Difficulty sleeping", "Sleep Disorder")
             ]
+
+            # Ensure homepage quick concerns exist and are active
+            homepage_concerns = [
+                ("Temperature", "Raised body temperature", "General"),
+                ("Snuffle", "Nasal congestion and runny nose", "Respiratory"),
+                ("Weakness", "General weakness or fatigue", "General"),
+                ("Viruses", "Viral symptoms and infections", "General"),
+                ("Syncytial Virus", "Respiratory syncytial virus (RSV)", "Respiratory"),
+                ("Adenoviruses", "Common adenoviral infections", "Respiratory"),
+                ("Rhinoviruses", "Common cold viruses", "Respiratory"),
+                ("Factors", "Lifestyle or environmental factors", "General"),
+                ("Infection", "General infection symptoms", "General"),
+            ]
             
-            for symp_name, symp_desc, symp_cat in default_symptoms:
+            for symp_name, symp_desc, symp_cat in default_symptoms + homepage_concerns:
                 result = conn.execute(
                     text("SELECT COUNT(*) FROM symptoms WHERE name = :name"),
                     {"name": symp_name}
                 )
                 if result.scalar() == 0:
                     conn.execute(text("""
-                        INSERT INTO symptoms (name, description, category)
-                        VALUES (:name, :description, :category)
+                        INSERT INTO symptoms (name, description, category, is_active)
+                        VALUES (:name, :description, :category, TRUE)
                     """), {"name": symp_name, "description": symp_desc, "category": symp_cat})
+                else:
+                    # Ensure these are marked active
+                    conn.execute(text("""
+                        UPDATE symptoms SET is_active = TRUE, category = COALESCE(category, :category)
+                        WHERE name = :name
+                    """), {"name": symp_name, "category": symp_cat})
             
             conn.commit()
             print(f"✅ Added {len(default_symptoms)} default symptoms")
+
+            # Backfill mapping: map homepage concerns to common specializations if present
+            mapping = {
+                "Temperature": "General Medicine",
+                "Weakness": "General Medicine",
+                "Viruses": "General Medicine",
+                "Factors": "General Medicine",
+                "Snuffle": "ENT",
+                "Rhinoviruses": "ENT",
+                "Infection": "Dermatology",
+                "Syncytial Virus": "Pulmonology",
+                "Adenoviruses": "General Medicine",
+            }
+            for symptom_name, spec_name in mapping.items():
+                spec_id_row = conn.execute(text("SELECT id FROM specializations WHERE name=:n"), {"n": spec_name}).fetchone()
+                if spec_id_row:
+                    conn.execute(text("""
+                        UPDATE symptoms SET suggested_specialization_id=:sid
+                        WHERE name=:sname
+                    """), {"sid": spec_id_row[0], "sname": symptom_name})
+            conn.commit()
             
             return True
     except Exception as e:
