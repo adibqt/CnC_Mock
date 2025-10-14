@@ -18,10 +18,13 @@ export default function DoctorProfileUpdate() {
   const [degrees, setDegrees] = useState([{ degree: '', institution: '', year: '' }]);
   const [mbbsCertificate, setMbbsCertificate] = useState(null);
   const [fcpsCertificate, setFcpsCertificate] = useState(null);
+  const [profilePicture, setProfilePicture] = useState(null);
   const [mbbsPreview, setMbbsPreview] = useState('');
   const [fcpsPreview, setFcpsPreview] = useState('');
+  const [profilePicturePreview, setProfilePicturePreview] = useState('');
   const [uploadingMbbs, setUploadingMbbs] = useState(false);
   const [uploadingFcps, setUploadingFcps] = useState(false);
+  const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
 
   // Load existing profile data
   useEffect(() => {
@@ -51,6 +54,10 @@ export default function DoctorProfileUpdate() {
         }
         if (doctor.fcps_certificate_url) {
           setFcpsPreview(doctor.fcps_certificate_url.endsWith('.pdf') ? 'pdf' : doctor.fcps_certificate_url);
+        }
+        // Set profile picture preview if it exists
+        if (doctor.profile_picture_url) {
+          setProfilePicturePreview(doctor.profile_picture_url);
         }
       }
     } catch (err) {
@@ -86,36 +93,56 @@ export default function DoctorProfileUpdate() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file size (10MB max)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB');
-      return;
-    }
-
-    // Validate file type
-    const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-    if (!validTypes.includes(file.type)) {
-      setError('Only PDF, JPEG, and PNG files are allowed');
-      return;
-    }
-
-    if (type === 'mbbs') {
-      setMbbsCertificate(file);
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => setMbbsPreview(reader.result);
-        reader.readAsDataURL(file);
-      } else {
-        setMbbsPreview('pdf');
+    if (type === 'profile') {
+      // Validate file size (5MB max for profile pictures)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Profile picture size must be less than 5MB');
+        return;
       }
+
+      // Validate file type (only images for profile)
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        setError('Only JPEG, PNG, GIF, and WebP images are allowed for profile picture');
+        return;
+      }
+
+      setProfilePicture(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setProfilePicturePreview(reader.result);
+      reader.readAsDataURL(file);
     } else {
-      setFcpsCertificate(file);
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => setFcpsPreview(reader.result);
-        reader.readAsDataURL(file);
+      // Validate file size (10MB max for certificates)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('File size must be less than 10MB');
+        return;
+      }
+
+      // Validate file type
+      const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      if (!validTypes.includes(file.type)) {
+        setError('Only PDF, JPEG, and PNG files are allowed');
+        return;
+      }
+
+      if (type === 'mbbs') {
+        setMbbsCertificate(file);
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onloadend = () => setMbbsPreview(reader.result);
+          reader.readAsDataURL(file);
+        } else {
+          setMbbsPreview('pdf');
+        }
       } else {
-        setFcpsPreview('pdf');
+        setFcpsCertificate(file);
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onloadend = () => setFcpsPreview(reader.result);
+          reader.readAsDataURL(file);
+        } else {
+          setFcpsPreview('pdf');
+        }
       }
     }
     setError('');
@@ -125,9 +152,12 @@ export default function DoctorProfileUpdate() {
     if (type === 'mbbs') {
       setMbbsCertificate(null);
       setMbbsPreview(null);
-    } else {
+    } else if (type === 'fcps') {
       setFcpsCertificate(null);
       setFcpsPreview(null);
+    } else if (type === 'profile') {
+      setProfilePicture(null);
+      setProfilePicturePreview(null);
     }
   };
 
@@ -146,7 +176,17 @@ export default function DoctorProfileUpdate() {
     setLoading(true);
 
     try {
-      // Upload certificates first
+      // Upload profile picture first
+      if (profilePicture) {
+        setUploadingProfilePic(true);
+        const result = await doctorAPI.uploadProfilePicture(profilePicture);
+        setUploadingProfilePic(false);
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+      }
+
+      // Upload certificates
       if (mbbsCertificate) {
         setUploadingMbbs(true);
         await uploadCertificate('mbbs', mbbsCertificate);
@@ -239,6 +279,58 @@ export default function DoctorProfileUpdate() {
           )}
 
           <form onSubmit={handleSubmit}>
+            {/* Profile Picture Upload */}
+            <div className="form-group">
+              <label>
+                <i className="icofont-camera"></i>
+                Profile Picture
+              </label>
+              <div className="profile-picture-section">
+                <div className="profile-picture-preview">
+                  {profilePicturePreview ? (
+                    <img src={profilePicturePreview.startsWith('http') ? profilePicturePreview : `http://localhost:8000${profilePicturePreview}`} alt="Profile" className="profile-pic-img" />
+                  ) : (
+                    <div className="profile-pic-placeholder">
+                      <i className="icofont-doctor-alt"></i>
+                    </div>
+                  )}
+                  {uploadingProfilePic && (
+                    <div className="uploading-overlay">
+                      <i className="icofont-spinner-alt-6 spinner"></i>
+                    </div>
+                  )}
+                </div>
+                <div className="profile-picture-actions">
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('profile-upload').click()}
+                    className="upload-profile-btn"
+                  >
+                    <i className="icofont-upload-alt"></i>
+                    {profilePicturePreview ? 'Change Picture' : 'Upload Picture'}
+                  </button>
+                  {profilePicture && !uploadingProfilePic && (
+                    <button
+                      type="button"
+                      onClick={() => removeFile('profile')}
+                      className="remove-profile-btn"
+                    >
+                      <i className="icofont-close-line"></i>
+                      Remove
+                    </button>
+                  )}
+                  <p className="upload-hint">JPEG, PNG, GIF or WebP (Max 5MB)</p>
+                </div>
+              </div>
+              <input
+                id="profile-upload"
+                type="file"
+                className="hidden-input"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                onChange={(e) => handleFileChange(e, 'profile')}
+              />
+            </div>
+
             {/* Basic Information */}
             <div className="form-grid">
               <div className="form-group">
