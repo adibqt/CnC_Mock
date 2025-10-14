@@ -161,3 +161,65 @@ def get_current_doctor(
         )
     
     return doctor
+
+def get_current_admin(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(lambda: None)
+):
+    """
+    Dependency to get current authenticated admin from JWT token
+    Specifically ensures the user is an admin
+    """
+    from database import get_db
+    from models import Admin
+    
+    # Get actual DB session
+    if db is None:
+        db = next(get_db())
+    
+    # Extract token
+    token = credentials.credentials
+    
+    # Decode token
+    payload = decode_access_token(token)
+    
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Get admin info from token
+    username: str = payload.get("sub")
+    user_type: str = payload.get("user_type")
+    
+    if username is None or user_type is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Ensure user type is admin
+    if user_type != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can access this endpoint"
+        )
+    
+    # Query admin
+    admin = db.query(Admin).filter(Admin.username == username).first()
+    if admin is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin not found"
+        )
+    
+    if not admin.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin account is deactivated"
+        )
+    
+    return admin

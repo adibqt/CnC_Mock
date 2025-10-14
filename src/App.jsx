@@ -18,6 +18,8 @@ import AIConsultation from './pages/AIConsultation';
 import DoctorDetails from './pages/DoctorDetails';
 import WritePrescription from './pages/WritePrescription';
 import ViewPrescription from './pages/ViewPrescription';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Admin Routes (no Header/Footer) */}
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        
         {/* Routes without Header/Footer */}
         <Route path="/profile-update" element={<ProfileUpdate />} />
         <Route path="/patient-dashboard" element={<PatientDashboard />} />

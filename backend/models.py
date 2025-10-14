@@ -7,6 +7,7 @@ import enum
 class UserRole(str, enum.Enum):
     PATIENT = "patient"
     DOCTOR = "doctor"
+    ADMIN = "admin"
 
 class User(Base):
     __tablename__ = "users"
@@ -125,4 +126,39 @@ class Prescription(Base):
     appointment = relationship("Appointment", backref="prescription")
     patient = relationship("User", backref="prescriptions")
     doctor = relationship("Doctor", backref="prescriptions")
+
+class Admin(Base):
+    __tablename__ = "admins"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=True)
+    role = Column(String, default="admin", nullable=False)  # Can be 'admin' or 'super_admin'
+    
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_login = Column(DateTime(timezone=True), nullable=True)
+
+class Specialization(Base):
+    __tablename__ = "specializations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by = Column(Integer, ForeignKey("admins.id"), nullable=True)
+
+class Symptom(Base):
+    __tablename__ = "symptoms"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    category = Column(String, nullable=True)  # e.g., "General", "Respiratory", "Digestive"
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by = Column(Integer, ForeignKey("admins.id"), nullable=True)
 
