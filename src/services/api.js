@@ -62,6 +62,25 @@ api.interceptors.request.use(
       if (patientToken) {
         config.headers.Authorization = `Bearer ${patientToken}`;
       }
+    } else if (config.url.includes('/api/prescriptions/')) {
+      // Prescription endpoints - use appropriate token based on sub-path
+      if (config.url.includes('/doctor/') || config.method === 'post' || config.method === 'put') {
+        // Doctor operations: get completed appointments, create prescription, update prescription
+        if (doctorToken) {
+          config.headers.Authorization = `Bearer ${doctorToken}`;
+        }
+      } else if (config.url.includes('/patient/')) {
+        // Patient operations: view their prescriptions
+        if (patientToken) {
+          config.headers.Authorization = `Bearer ${patientToken}`;
+        }
+      } else {
+        // Default for prescriptions - try appropriate token based on context
+        const token = doctorToken || patientToken;
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
     } else if (config.url.includes('/api/appointments/')) {
       // Appointment endpoints - use appropriate token based on sub-path and method
       if (config.url.includes('/doctor/')) {
@@ -735,4 +754,73 @@ export const liveKitAPI = {
   }
 };
 
+// Prescription API endpoints
+export const prescriptionAPI = {
+  // Get completed appointments for doctor (to create prescriptions)
+  getCompletedAppointments: async () => {
+    try {
+      const response = await api.get('/api/prescriptions/doctor/appointments');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch completed appointments.',
+      };
+    }
+  },
+
+  // Create a new prescription
+  createPrescription: async (prescriptionData) => {
+    try {
+      const response = await api.post('/api/prescriptions/', prescriptionData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to create prescription.',
+      };
+    }
+  },
+
+  // Get prescription by appointment ID
+  getPrescriptionByAppointment: async (appointmentId) => {
+    try {
+      const response = await api.get(`/api/prescriptions/appointment/${appointmentId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch prescription.',
+      };
+    }
+  },
+
+  // Get all prescriptions for patient
+  getPatientPrescriptions: async () => {
+    try {
+      const response = await api.get('/api/prescriptions/patient/my-prescriptions');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch prescriptions.',
+      };
+    }
+  },
+
+  // Update prescription
+  updatePrescription: async (prescriptionId, prescriptionData) => {
+    try {
+      const response = await api.put(`/api/prescriptions/${prescriptionId}`, prescriptionData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to update prescription.',
+      };
+    }
+  }
+};
+
 export default api;
+

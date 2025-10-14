@@ -379,7 +379,7 @@ export default function DoctorHome() {
             <div className="quick-actions-card">
               <h3>Quick Actions</h3>
               <div className="actions-list">
-                <button className="action-btn">
+                <button className="action-btn" onClick={() => navigate('/write-prescription')}>
                   <i className="icofont-prescription"></i>
                   Write Prescription
                 </button>

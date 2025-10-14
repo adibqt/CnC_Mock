@@ -192,3 +192,38 @@ class AppointmentResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+# Prescription Schemas
+class MedicationItem(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    dosage: str = Field(..., min_length=1, max_length=100)
+    frequency: str = Field(..., min_length=1, max_length=200)
+    duration: str = Field(..., min_length=1, max_length=100)
+    notes: Optional[str] = Field(None, max_length=500)
+
+class PrescriptionCreate(BaseModel):
+    appointment_id: int = Field(..., gt=0)
+    diagnosis: str = Field(..., min_length=1, max_length=5000)
+    medications: list[MedicationItem] = Field(..., min_items=1)
+    advice: Optional[str] = Field(None, max_length=2000)
+    follow_up: Optional[str] = Field(None, max_length=1000)
+
+class PrescriptionResponse(BaseModel):
+    id: int
+    appointment_id: int
+    patient_id: int
+    doctor_id: int
+    prescription_id: str
+    diagnosis: str
+    medications: list
+    advice: Optional[str]
+    follow_up: Optional[str]
+    created_at: datetime
+    
+    # Nested data
+    patient: Optional[dict] = None
+    doctor: Optional[dict] = None
+    appointment: Optional[dict] = None
+    
+    class Config:
+        from_attributes = True

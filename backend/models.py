@@ -101,3 +101,28 @@ class Appointment(Base):
     # Relationships
     patient = relationship("User", backref="appointments")
     doctor = relationship("Doctor", backref="appointments")
+
+class Prescription(Base):
+    __tablename__ = "prescriptions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False, unique=True)
+    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    
+    # Prescription Details
+    prescription_id = Column(String, unique=True, nullable=False, index=True)  # e.g., "CC-84321"
+    diagnosis = Column(Text, nullable=False)
+    medications = Column(JSON, nullable=False)  # List of medication objects
+    advice = Column(Text, nullable=True)
+    follow_up = Column(Text, nullable=True)
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    appointment = relationship("Appointment", backref="prescription")
+    patient = relationship("User", backref="prescriptions")
+    doctor = relationship("Doctor", backref="prescriptions")
+
