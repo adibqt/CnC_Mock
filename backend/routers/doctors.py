@@ -3,16 +3,28 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from database import get_db
-from models import Doctor
+from models import Doctor, Specialization
 from schemas import DoctorCreate, DoctorLogin, DoctorResponse, Token, DoctorProfileUpdate
 from auth import get_password_hash, verify_password, create_access_token
 from config import settings
 import os
 import uuid
 from pathlib import Path
+from typing import List
 
 router = APIRouter(prefix="/api/doctors", tags=["doctors"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# Public endpoint to get active specializations (no authentication required)
+@router.get("/specializations", response_model=List[dict])
+def get_active_specializations(db: Session = Depends(get_db)):
+    """Get all active specializations for doctor signup"""
+    specializations = db.query(Specialization).filter(
+        Specialization.is_active == True
+    ).order_by(Specialization.name).all()
+    
+    return [{"id": spec.id, "name": spec.name, "description": spec.description, "is_active": spec.is_active} 
+            for spec in specializations]
 
 # Dependency to get current doctor from token
 async def get_current_doctor(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../components/Login.css';
 import { doctorAPI } from '../services/api';
@@ -14,6 +14,33 @@ const DoctorLogin = () => {
     licenseNumber: ''
   });
   const [errors, setErrors] = useState({});
+  const [specializations, setSpecializations] = useState([]);
+  const [loadingSpecializations, setLoadingSpecializations] = useState(true);
+
+  // Fetch specializations from API
+  useEffect(() => {
+    const fetchSpecializations = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/doctors/specializations');
+        const data = await response.json();
+        setSpecializations(data);
+      } catch (error) {
+        console.error('Error fetching specializations:', error);
+        // Fallback to default options if API fails
+        setSpecializations([
+          { id: 1, name: 'General Medicine', is_active: true },
+          { id: 2, name: 'Cardiology', is_active: true },
+          { id: 3, name: 'Dermatology', is_active: true },
+        ]);
+      } finally {
+        setLoadingSpecializations(false);
+      }
+    };
+
+    if (isSignup) {
+      fetchSpecializations();
+    }
+  }, [isSignup]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -222,6 +249,7 @@ const DoctorLogin = () => {
                         onChange={handleChange}
                         autoComplete="off"
                         data-native="true"
+                        disabled={loadingSpecializations}
                         style={{
                           color: '#2c2d3f',
                           WebkitTextSecurity: 'none',
@@ -239,17 +267,18 @@ const DoctorLogin = () => {
                           alignItems: 'center'
                         }}
                       >
-                        <option value="" disabled style={{ color: '#999', fontSize: '14px' }}>Select your specialization</option>
-                        <option value="general" style={{ color: '#2c2d3f', fontSize: '14px' }}>General Physician</option>
-                        <option value="cardiologist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Cardiologist</option>
-                        <option value="dermatologist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Dermatologist</option>
-                        <option value="pediatrician" style={{ color: '#2c2d3f', fontSize: '14px' }}>Pediatrician</option>
-                        <option value="orthopedic" style={{ color: '#2c2d3f', fontSize: '14px' }}>Orthopedic Surgeon</option>
-                        <option value="neurologist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Neurologist</option>
-                        <option value="gynecologist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Gynecologist</option>
-                        <option value="psychiatrist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Psychiatrist</option>
-                        <option value="dentist" style={{ color: '#2c2d3f', fontSize: '14px' }}>Dentist</option>
-                        <option value="other" style={{ color: '#2c2d3f', fontSize: '14px' }}>Other</option>
+                        <option value="" disabled style={{ color: '#999', fontSize: '14px' }}>
+                          {loadingSpecializations ? 'Loading specializations...' : 'Select your specialization'}
+                        </option>
+                        {specializations.map((spec) => (
+                          <option 
+                            key={spec.id} 
+                            value={spec.name} 
+                            style={{ color: '#2c2d3f', fontSize: '14px' }}
+                          >
+                            {spec.name}
+                          </option>
+                        ))}
                       </select>
                       {errors.specialization && <span className="error-message">{errors.specialization}</span>}
                     </div>

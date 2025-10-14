@@ -305,27 +305,383 @@ function DoctorsTab() {
   );
 }
 
-// Specializations Tab Component (placeholder)
+// Specializations Tab Component
 function SpecializationsTab() {
-  const navigate = useNavigate();
-  
+  const [specializations, setSpecializations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSpec, setSelectedSpec] = useState(null);
+  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [actionLoading, setActionLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    loadSpecializations();
+  }, []);
+
+  const loadSpecializations = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch('http://localhost:8000/api/admin/specializations', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSpecializations(data);
+      }
+    } catch (error) {
+      console.error('Error loading specializations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      alert('Specialization name is required');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch('http://localhost:8000/api/admin/specializations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert('Specialization added successfully!');
+        setFormData({ name: '', description: '' });
+        setShowAddModal(false);
+        loadSpecializations();
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to add specialization');
+      }
+    } catch (error) {
+      console.error('Error adding specialization:', error);
+      alert('An error occurred');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      alert('Specialization name is required');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch(`http://localhost:8000/api/admin/specializations/${selectedSpec.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert('Specialization updated successfully!');
+        setShowEditModal(false);
+        setSelectedSpec(null);
+        loadSpecializations();
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to update specialization');
+      }
+    } catch (error) {
+      console.error('Error updating specialization:', error);
+      alert('An error occurred');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (spec) => {
+    const newStatus = !spec.is_active;
+    const confirmMsg = newStatus 
+      ? 'Activate this specialization? It will appear in doctor sign-up.' 
+      : 'Deactivate this specialization? It will be hidden from doctor sign-up.';
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch(`http://localhost:8000/api/admin/specializations/${spec.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ...spec, is_active: newStatus })
+      });
+
+      if (response.ok) {
+        alert(`Specialization ${newStatus ? 'activated' : 'deactivated'} successfully!`);
+        loadSpecializations();
+      }
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      alert('An error occurred');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (spec) => {
+    if (!window.confirm(`Delete "${spec.name}"? This action cannot be undone.`)) return;
+
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch(`http://localhost:8000/api/admin/specializations/${spec.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        alert('Specialization deleted successfully!');
+        loadSpecializations();
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to delete specialization');
+      }
+    } catch (error) {
+      console.error('Error deleting specialization:', error);
+      alert('An error occurred');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openEditModal = (spec) => {
+    setSelectedSpec(spec);
+    setFormData({ name: spec.name, description: spec.description || '' });
+    setShowEditModal(true);
+  };
+
+  const filteredSpecs = specializations.filter(spec =>
+    spec.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (spec.description && spec.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const activeCount = specializations.filter(s => s.is_active).length;
+  const inactiveCount = specializations.filter(s => !s.is_active).length;
+
   return (
-    <div className="tab-content">
+    <div className="tab-content specializations-management">
       <div className="admin-page-header">
-        <h1>Specialization Management</h1>
-        <p>Manage medical specializations for doctor sign-up</p>
-      </div>
-      <div className="coming-soon">
-        <i className="icofont-stethoscope-alt"></i>
-        <h3>Specialization Management Interface</h3>
-     
+        <div>
+          <h1>Specialization Management</h1>
+          <p>Manage medical specializations for doctor sign-up dropdown</p>
+        </div>
         <button 
-          onClick={() => navigate('/admin/specializations')} 
+          onClick={() => {
+            setFormData({ name: '', description: '' });
+            setShowAddModal(true);
+          }}
           className="admin-btn-primary"
         >
-          Go to Full Specialization Management
+          <i className="icofont-plus"></i>
+          Add Specialization
         </button>
       </div>
+
+      {/* Stats */}
+      <div className="spec-stats">
+        <div className="spec-stat-card">
+          <i className="icofont-stethoscope-alt"></i>
+          <div>
+            <h3>{specializations.length}</h3>
+            <p>Total Specializations</p>
+          </div>
+        </div>
+        <div className="spec-stat-card active">
+          <i className="icofont-check-circled"></i>
+          <div>
+            <h3>{activeCount}</h3>
+            <p>Active</p>
+          </div>
+        </div>
+        <div className="spec-stat-card inactive">
+          <i className="icofont-close-circled"></i>
+          <div>
+            <h3>{inactiveCount}</h3>
+            <p>Inactive</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="spec-search-box">
+        <i className="icofont-search"></i>
+        <input
+          type="text"
+          placeholder="Search specializations..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {/* Specializations Grid */}
+      {loading ? (
+        <div className="spec-loading">
+          <i className="icofont-spinner icofont-spin"></i>
+          <p>Loading specializations...</p>
+        </div>
+      ) : filteredSpecs.length === 0 ? (
+        <div className="spec-empty">
+          <i className="icofont-stethoscope-alt"></i>
+          <h3>No Specializations Found</h3>
+          <p>Add your first specialization to get started</p>
+        </div>
+      ) : (
+        <div className="spec-grid">
+          {filteredSpecs.map((spec) => (
+            <div key={spec.id} className={`spec-card ${!spec.is_active ? 'inactive' : ''}`}>
+              <div className="spec-card-header">
+                <div className="spec-card-icon">
+                  <i className="icofont-stethoscope-alt"></i>
+                </div>
+                <span className={`spec-status-badge ${spec.is_active ? 'active' : 'inactive'}`}>
+                  {spec.is_active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <div className="spec-card-body">
+                <h3>{spec.name}</h3>
+                <p>{spec.description || 'No description provided'}</p>
+              </div>
+              <div className="spec-card-footer">
+                <button
+                  onClick={() => openEditModal(spec)}
+                  className="spec-action-btn edit"
+                  title="Edit"
+                  disabled={actionLoading}
+                >
+                  <i className="icofont-edit"></i>
+                </button>
+                <button
+                  onClick={() => handleToggleStatus(spec)}
+                  className={`spec-action-btn ${spec.is_active ? 'deactivate' : 'activate'}`}
+                  title={spec.is_active ? 'Deactivate' : 'Activate'}
+                  disabled={actionLoading}
+                >
+                  <i className={`icofont-${spec.is_active ? 'close-circled' : 'check-circled'}`}></i>
+                </button>
+                <button
+                  onClick={() => handleDelete(spec)}
+                  className="spec-action-btn delete"
+                  title="Delete"
+                  disabled={actionLoading}
+                >
+                  <i className="icofont-trash"></i>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add Modal */}
+      {showAddModal && (
+        <div className="spec-modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="spec-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="spec-modal-header">
+              <h2><i className="icofont-plus"></i> Add New Specialization</h2>
+              <button onClick={() => setShowAddModal(false)} className="spec-modal-close">
+                <i className="icofont-close"></i>
+              </button>
+            </div>
+            <form onSubmit={handleAdd} className="spec-form">
+              <div className="spec-form-group">
+                <label>Specialization Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Cardiology"
+                  required
+                />
+              </div>
+              <div className="spec-form-group">
+                <label>Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Brief description of this specialization..."
+                  rows="4"
+                />
+              </div>
+              <div className="spec-form-actions">
+                <button type="button" onClick={() => setShowAddModal(false)} className="spec-btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="spec-btn-primary" disabled={actionLoading}>
+                  {actionLoading ? 'Adding...' : 'Add Specialization'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && selectedSpec && (
+        <div className="spec-modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="spec-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="spec-modal-header">
+              <h2><i className="icofont-edit"></i> Edit Specialization</h2>
+              <button onClick={() => setShowEditModal(false)} className="spec-modal-close">
+                <i className="icofont-close"></i>
+              </button>
+            </div>
+            <form onSubmit={handleEdit} className="spec-form">
+              <div className="spec-form-group">
+                <label>Specialization Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Cardiology"
+                  required
+                />
+              </div>
+              <div className="spec-form-group">
+                <label>Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Brief description of this specialization..."
+                  rows="4"
+                />
+              </div>
+              <div className="spec-form-actions">
+                <button type="button" onClick={() => setShowEditModal(false)} className="spec-btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="spec-btn-primary" disabled={actionLoading}>
+                  {actionLoading ? 'Updating...' : 'Update Specialization'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
