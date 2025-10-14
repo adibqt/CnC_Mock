@@ -20,6 +20,7 @@ import WritePrescription from './pages/WritePrescription';
 import ViewPrescription from './pages/ViewPrescription';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import PatientManagement from './pages/PatientManagement';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -53,6 +54,7 @@ function App() {
         {/* Admin Routes (no Header/Footer) */}
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/patients" element={<PatientManagement />} />
         
         {/* Routes without Header/Footer */}
         <Route path="/profile-update" element={<ProfileUpdate />} />

@@ -290,6 +290,51 @@ async def update_patient_status(
         }
     }
 
+@router.get("/patients/{patient_id}/prescriptions")
+async def get_patient_prescriptions(
+    patient_id: int,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Get all prescriptions for a specific patient"""
+    
+    patient = db.query(User).filter(User.id == patient_id).first()
+    
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Patient not found"
+        )
+    
+    prescriptions = db.query(Prescription).filter(
+        Prescription.patient_id == patient_id
+    ).order_by(Prescription.created_at.desc()).all()
+    
+    result = []
+    for presc in prescriptions:
+        doctor = db.query(Doctor).filter(Doctor.id == presc.doctor_id).first()
+        
+        presc_dict = {
+            "id": presc.id,
+            "appointment_id": presc.appointment_id,
+            "prescription_id": presc.prescription_id,
+            "diagnosis": presc.diagnosis,
+            "medications": presc.medications,
+            "advice": presc.advice,
+            "follow_up": presc.follow_up,
+            "created_at": presc.created_at,
+            "updated_at": presc.updated_at,
+            "doctor": {
+                "id": doctor.id if doctor else None,
+                "name": doctor.name or doctor.full_name if doctor else None,
+                "specialization": doctor.specialization if doctor else None,
+                "license_number": doctor.bmdc_number if doctor else None
+            }
+        }
+        result.append(presc_dict)
+    
+    return result
+
 # ============== Doctor Management ==============
 
 @router.get("/doctors")

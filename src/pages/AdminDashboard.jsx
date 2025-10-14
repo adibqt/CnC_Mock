@@ -268,7 +268,7 @@ function PatientsTab() {
       <div className="coming-soon">
         <i className="icofont-users-alt-3"></i>
         <h3>Patient Management Interface</h3>
-        <p>This feature will be implemented next</p>
+        
         <button 
           onClick={() => navigate('/admin/patients')} 
           className="admin-btn-primary"
@@ -293,7 +293,7 @@ function DoctorsTab() {
       <div className="coming-soon">
         <i className="icofont-doctor-alt"></i>
         <h3>Doctor Management Interface</h3>
-        <p>This feature will be implemented next</p>
+        
         <button 
           onClick={() => navigate('/admin/doctors')} 
           className="admin-btn-primary"
@@ -318,7 +318,7 @@ function SpecializationsTab() {
       <div className="coming-soon">
         <i className="icofont-stethoscope-alt"></i>
         <h3>Specialization Management Interface</h3>
-        <p>This feature will be implemented next</p>
+     
         <button 
           onClick={() => navigate('/admin/specializations')} 
           className="admin-btn-primary"
@@ -343,7 +343,7 @@ function SymptomsTab() {
       <div className="coming-soon">
         <i className="icofont-prescription"></i>
         <h3>Symptom Management Interface</h3>
-        <p>This feature will be implemented next</p>
+        
         <button 
           onClick={() => navigate('/admin/symptoms')} 
           className="admin-btn-primary"
