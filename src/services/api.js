@@ -120,11 +120,6 @@ export const userAPI = {
       const response = await api.post('/api/users/login', credentials);
       const { access_token, user_data, user_type } = response.data;
       
-      // Clear doctor tokens to avoid conflicts
-      localStorage.removeItem('doctor_accessToken');
-      localStorage.removeItem('doctor_userType');
-      localStorage.removeItem('doctor_userData');
-      
       // Store token and user data with patient prefix
       localStorage.setItem('patient_accessToken', access_token);
       localStorage.setItem('patient_userType', user_type);
@@ -218,11 +213,6 @@ export const doctorAPI = {
     try {
       const response = await api.post('/api/doctors/login', credentials);
       const { access_token, user_data, user_type } = response.data;
-      
-      // Clear patient tokens to avoid conflicts
-      localStorage.removeItem('patient_accessToken');
-      localStorage.removeItem('patient_userType');
-      localStorage.removeItem('patient_userData');
       
       // Store token and user data with doctor prefix
       localStorage.setItem('doctor_accessToken', access_token);

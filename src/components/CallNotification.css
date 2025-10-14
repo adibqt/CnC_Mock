@@ -82,7 +82,8 @@
 .call-notification-content p {
   margin: 0 0 8px 0;
   font-size: 14px;
-  opacity: 0.95;
+  color: white;
+  opacity: 1;
 }
 
 .appointment-id {
