@@ -158,6 +158,7 @@ class Symptom(Base):
     name = Column(String, unique=True, nullable=False, index=True)
     description = Column(Text, nullable=True)
     category = Column(String, nullable=True)  # e.g., "General", "Respiratory", "Digestive"
+    suggested_specialization_id = Column(Integer, ForeignKey("specializations.id"), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     created_by = Column(Integer, ForeignKey("admins.id"), nullable=True)

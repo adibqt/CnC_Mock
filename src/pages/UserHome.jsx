@@ -14,7 +14,7 @@ const Icon = ({ name, className = '' }) => (
   <i className={`icofont-${name} ${className}`}></i>
 );
 
-const defaultConcerns = [
+const fallbackConcerns = [
   'Temperature',
   'Snuffle',
   'Weakness',
@@ -34,6 +34,9 @@ export default function UserHome() {
   const [selected, setSelected] = useState([]);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestion, setSuggestion] = useState(null);
+  const [concerns, setConcerns] = useState([]);
+  const [symptomMeta, setSymptomMeta] = useState([]); // full objects from public API
+  const [specById, setSpecById] = useState({}); // {id: name}
   const [showNotifications, setShowNotifications] = useState(false);
   const [doctors, setDoctors] = useState([]);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
@@ -113,6 +116,32 @@ export default function UserHome() {
         if (!mounted) return;
         setHome(data);
         
+        // Load public symptoms (concerns)
+        try {
+          const res = await fetch('http://localhost:8000/api/public/symptoms');
+          if (res.ok) {
+            const data = await res.json();
+            setSymptomMeta(data || []);
+            const names = (data || []).map(s => s.name);
+            setConcerns(names.length ? names : fallbackConcerns);
+          } else {
+            setConcerns(fallbackConcerns);
+          }
+        } catch {
+          setConcerns(fallbackConcerns);
+        }
+
+        // Load active specializations map for suggestion logic
+        try {
+          const resSpecs = await fetch('http://localhost:8000/api/doctors/specializations');
+          if (resSpecs.ok) {
+            const specs = await resSpecs.json();
+            const map = {};
+            (specs || []).forEach(s => { if (s && s.id != null) { map[s.id] = s.name; } });
+            setSpecById(map);
+          }
+        } catch {}
+
         // Load available doctors
         setLoadingDoctors(true);
         const doctorsResult = await appointmentAPI.getAllDoctors();
@@ -180,28 +209,37 @@ export default function UserHome() {
     try {
       setSuggesting(true);
       
-      // Map concerns to medical specializations
-      const concernMapping = {
-        'Temperature': 'general',
-        'Snuffle': 'ent',
-        'Weakness': 'general',
-        'Viruses': 'general',
-        'Syncytial Virus': 'pulmonologist',
-        'Adenoviruses': 'general',
-        'Rhinoviruses': 'ent',
-        'Factors': 'general',
-        'Infection': 'dermatologist'
-      };
-      
-      // Get preferred specialization based on concerns
-      const specializations = selected.map(concern => concernMapping[concern] || 'general');
-      const preferredSpec = specializations.find(spec => spec !== 'general') || 'general';
+      // Derive preferred specialization based on symptom mapping from backend
+      const mappedSpecs = selected.map(concern => {
+        const s = symptomMeta.find(x => x.name === concern);
+        if (s && s.suggested_specialization_id && specById[s.suggested_specialization_id]) {
+          return specById[s.suggested_specialization_id];
+        }
+        return 'General Medicine';
+      });
+      // Determine the most common specialization, preferring non-General Medicine
+      const counts = mappedSpecs.reduce((acc, n) => {
+        const key = (n || '').toLowerCase();
+        if (!key) return acc;
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const topNonGeneral = sorted.find(([k]) => k !== 'general medicine');
+      const prefLower = (topNonGeneral?.[0]) || 'general medicine';
+      const preferredSpecName = prefLower === 'general medicine'
+        ? 'General Medicine'
+        : (mappedSpecs.find(n => n && n.toLowerCase() === prefLower) || 'General Medicine');
       
       // Find doctors matching the specialization
-      const matchingDoctors = doctors.filter(doctor => 
-        doctor.specialization.toLowerCase().includes(preferredSpec) ||
-        (preferredSpec === 'general' && doctor.specialization.toLowerCase().includes('general'))
-      );
+  const pref = preferredSpecName.toLowerCase();
+      const matchingDoctors = doctors.filter(doctor => {
+        const spec = (doctor.specialization || '').toLowerCase();
+        if (pref === 'general medicine') {
+          return spec.includes('general');
+        }
+        return spec.includes(pref);
+      });
       
       // If no matching doctors, get any available doctor
       const availableDoctors = matchingDoctors.length > 0 ? matchingDoctors : doctors;
@@ -379,17 +417,19 @@ export default function UserHome() {
 
       {/* Concerns Chips */}
       <section className="uh-concerns">
-        <div className="uh-chip-grid">
-          {(home?.concerns?.length ? home.concerns : defaultConcerns).map((c) => (
-            <button
-              key={c}
-              className={`uh-chip ${selected.includes(c) ? 'active' : ''}`}
-              onClick={() => toggleConcern(c)}
-            >
-              <img src="/img/section-img2.png" alt="" className="uh-chip-icon" />
-              <span>{c}</span>
-            </button>
-          ))}
+        <div className="uh-chip-scroll">
+          <div className="uh-chip-grid">
+            {(concerns.length ? concerns : (home?.concerns || fallbackConcerns)).map((c) => (
+              <button
+                key={c}
+                className={`uh-chip ${selected.includes(c) ? 'active' : ''}`}
+                onClick={() => toggleConcern(c)}
+              >
+                <img src="/img/section-img2.png" alt="" className="uh-chip-icon" />
+                <span>{c}</span>
+              </button>
+            ))}
+          </div>
         </div>
         <div className="uh-chip-cta">
           <button

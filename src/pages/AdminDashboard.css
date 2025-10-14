@@ -985,6 +985,21 @@
   cursor: not-allowed;
 }
 
+/* Minor utility for selects in filters */
+.admin-select {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  background: white;
+  transition: all 0.3s ease;
+}
+.admin-select:focus {
+  outline: none;
+  border-color: #1F2B6C;
+  box-shadow: 0 0 0 3px rgba(31, 43, 108, 0.1);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .spec-grid {

@@ -686,27 +686,346 @@ function SpecializationsTab() {
   );
 }
 
-// Symptoms Tab Component (placeholder)
+// Symptoms Tab Component
 function SymptomsTab() {
-  const navigate = useNavigate();
-  
+  const [symptoms, setSymptoms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSymptom, setSelectedSymptom] = useState(null);
+  const [formData, setFormData] = useState({ name: '', description: '', category: '', suggested_specialization_id: null });
+  const [actionLoading, setActionLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [specOptions, setSpecOptions] = useState([]);
+
+  useEffect(() => {
+    loadSymptoms();
+    loadSpecs();
+  }, []);
+
+  const token = () => localStorage.getItem('admin_accessToken');
+
+  const loadSymptoms = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/admin/symptoms', {
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSymptoms(data);
+      }
+    } catch (err) {
+      console.error('Error loading symptoms:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadSpecs = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/admin/specializations', { headers: { 'Authorization': `Bearer ${token()}` } });
+      if (res.ok) {
+        const data = await res.json();
+        setSpecOptions(data.filter(s => s.is_active));
+      }
+    } catch (e) { console.error('Error loading specializations:', e); }
+  };
+
+  const openAdd = () => {
+    setFormData({ name: '', description: '', category: '', suggested_specialization_id: null });
+    setShowAddModal(true);
+  };
+
+  const openEdit = (sym) => {
+    setSelectedSymptom(sym);
+    setFormData({ name: sym.name || '', description: sym.description || '', category: sym.category || '', suggested_specialization_id: sym.suggested_specialization_id || null });
+    setShowEditModal(true);
+  };
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) { alert('Symptom name is required'); return; }
+    setActionLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/admin/symptoms', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (response.ok) {
+        alert('Symptom added successfully');
+        setShowAddModal(false);
+        setFormData({ name: '', description: '', category: '', suggested_specialization_id: null });
+        loadSymptoms();
+      } else {
+        const err = await response.json();
+        alert(err.detail || 'Failed to add symptom');
+      }
+    } catch (err) {
+      console.error('Error adding symptom:', err);
+    } finally { setActionLoading(false); }
+  };
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    if (!selectedSymptom) return;
+    if (!formData.name.trim()) { alert('Symptom name is required'); return; }
+    setActionLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8000/api/admin/symptoms/${selectedSymptom.id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (response.ok) {
+        alert('Symptom updated');
+        setShowEditModal(false);
+        setSelectedSymptom(null);
+        loadSymptoms();
+      } else {
+        const err = await response.json();
+        alert(err.detail || 'Failed to update symptom');
+      }
+    } catch (err) { console.error('Error updating symptom:', err); }
+    finally { setActionLoading(false); }
+  };
+
+  const handleToggleStatus = async (sym) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/admin/symptoms/${sym.id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !sym.is_active })
+      });
+      if (response.ok) {
+        loadSymptoms();
+      }
+    } catch (err) { console.error('Error toggling status:', err); }
+  };
+
+  const handleDelete = async (sym) => {
+    if (!window.confirm(`Delete symptom "${sym.name}"? This cannot be undone.`)) return;
+    try {
+      const response = await fetch(`http://localhost:8000/api/admin/symptoms/${sym.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      if (response.ok) {
+        loadSymptoms();
+      }
+    } catch (err) { console.error('Error deleting symptom:', err); }
+  };
+
+  const filtered = symptoms.filter(s => {
+    const q = searchQuery.toLowerCase();
+    const matchesText = !q || s.name.toLowerCase().includes(q) || (s.description || '').toLowerCase().includes(q);
+    const matchesCategory = !categoryFilter || (s.category || '').toLowerCase() === categoryFilter.toLowerCase();
+    return matchesText && matchesCategory;
+  });
+
+  const counts = {
+    total: symptoms.length,
+    active: symptoms.filter(s => s.is_active).length,
+    inactive: symptoms.filter(s => !s.is_active).length,
+  };
+
+  // Helper list of specialization names for dropdown/display logic
+  const specNames = specOptions.map(s => s.name);
+
   return (
-    <div className="tab-content">
+    <div className="specializations-management">
       <div className="admin-page-header">
-        <h1>Symptom Management</h1>
-        <p>Manage symptoms for patient consultations</p>
-      </div>
-      <div className="coming-soon">
-        <i className="icofont-prescription"></i>
-        <h3>Symptom Management Interface</h3>
-        
-        <button 
-          onClick={() => navigate('/admin/symptoms')} 
-          className="admin-btn-primary"
-        >
-          Go to Full Symptom Management
+        <div>
+          <h1>Symptom Management</h1>
+          <p>Manage the quick concerns shown on the user home page</p>
+        </div>
+        <button className="admin-btn-primary" onClick={openAdd}>
+          <i className="icofont-plus"></i> Add Symptom
         </button>
       </div>
+
+      {/* Stats */}
+      <div className="spec-stats">
+        <div className="spec-stat-card">
+          <i className="icofont-prescription"></i>
+          <div>
+            <h3>{counts.total}</h3>
+            <p>Total Symptoms</p>
+          </div>
+        </div>
+        <div className="spec-stat-card active">
+          <i className="icofont-ui-check"></i>
+          <div>
+            <h3>{counts.active}</h3>
+            <p>Active</p>
+          </div>
+        </div>
+        <div className="spec-stat-card inactive">
+          <i className="icofont-ui-close"></i>
+          <div>
+            <h3>{counts.inactive}</h3>
+            <p>Inactive</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="spec-search-box" style={{display:'grid', gridTemplateColumns:'1fr 220px', gap:'12px'}}>
+        <div style={{position:'relative'}}>
+          <i className="icofont-search-1"></i>
+          <input placeholder="Search symptoms..." value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} />
+        </div>
+        <select className="admin-select" value={categoryFilter} onChange={(e)=>setCategoryFilter(e.target.value)}>
+          <option value="">All categories</option>
+          <option value="General">General</option>
+          <option value="Respiratory">Respiratory</option>
+          <option value="Cardiovascular">Cardiovascular</option>
+          <option value="Digestive">Digestive</option>
+          <option value="Dermatological">Dermatological</option>
+          <option value="Neurological">Neurological</option>
+          <option value="Musculoskeletal">Musculoskeletal</option>
+          <option value="Mental Health">Mental Health</option>
+          <option value="Sleep Disorder">Sleep Disorder</option>
+        </select>
+      </div>
+
+      {loading ? (
+        <div className="spec-loading"><i className="icofont-spinner icofont-spin"></i> Loading symptoms...</div>
+      ) : filtered.length === 0 ? (
+        <div className="spec-empty">
+          <i className="icofont-laboratory"></i>
+          <h3>No Symptoms Found</h3>
+          <p>Try adjusting search or add a new symptom</p>
+        </div>
+      ) : (
+        <div className="spec-grid">
+          {filtered.map(sym => (
+            <div key={sym.id} className={`spec-card ${sym.is_active ? '' : 'inactive'}`}>
+              <div className="spec-card-header">
+                <div className="spec-card-icon"><i className="icofont-prescription"></i></div>
+                <span className={`spec-status-badge ${sym.is_active ? 'active' : 'inactive'}`}>{sym.is_active ? 'Active' : 'Inactive'}</span>
+              </div>
+              <div className="spec-card-body">
+                <h3>{sym.name}</h3>
+                {sym.category && <p><strong>Category:</strong> {sym.category}</p>}
+                {sym.description && <p>{sym.description}</p>}
+              </div>
+              <div className="spec-card-footer">
+                <button className="spec-action-btn edit" onClick={()=>openEdit(sym)}><i className="icofont-edit"></i> Edit</button>
+                <button className={`spec-action-btn ${sym.is_active ? 'deactivate' : 'activate'}`} onClick={()=>handleToggleStatus(sym)}>
+                  <i className={`icofont-toggle-${sym.is_active ? 'off' : 'on'}`}></i> {sym.is_active ? 'Deactivate' : 'Activate'}
+                </button>
+                <button className="spec-action-btn delete" onClick={()=>handleDelete(sym)}><i className="icofont-trash"></i> Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add Modal */}
+      {showAddModal && (
+        <div className="spec-modal-overlay">
+          <div className="spec-modal">
+            <div className="spec-modal-header">
+              <h2><i className="icofont-plus"></i> Add Symptom</h2>
+              <button className="spec-modal-close" onClick={()=>setShowAddModal(false)}><i className="icofont-close"></i></button>
+            </div>
+            <form className="spec-form" onSubmit={handleAdd}>
+              <div className="spec-form-group">
+                <label>Name</label>
+                <input value={formData.name} onChange={(e)=>setFormData({...formData, name: e.target.value})} placeholder="Symptom name" />
+              </div>
+              <div className="spec-form-group">
+                <label>Category (Specialization)</label>
+                <select
+                  className="admin-select"
+                  value={formData.category ?? ''}
+                  onChange={(e)=>{
+                    const val = e.target.value;
+                    const sp = specOptions.find(s => s.name === val);
+                    setFormData({
+                      ...formData,
+                      category: val,
+                      // If a specialization is chosen, auto-set suggested_specialization_id to match
+                      suggested_specialization_id: sp ? sp.id : null
+                    });
+                  }}
+                >
+                  <option value="">-- Select specialization --</option>
+                  {specOptions.map(sp => (
+                    <option key={sp.id} value={sp.name}>{sp.name}</option>
+                  ))}
+                </select>
+              </div>
+              {/** Suggested Specialization removed; Category now defines mapping */}
+              <div className="spec-form-group">
+                <label>Description</label>
+                <textarea value={formData.description} onChange={(e)=>setFormData({...formData, description: e.target.value})} placeholder="Describe the symptom" />
+              </div>
+              <div className="spec-form-actions">
+                <button type="button" className="spec-btn-secondary" onClick={()=>setShowAddModal(false)}>Cancel</button>
+                <button type="submit" className="spec-btn-primary" disabled={actionLoading}>{actionLoading ? 'Adding...' : 'Add Symptom'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && selectedSymptom && (
+        <div className="spec-modal-overlay">
+          <div className="spec-modal">
+            <div className="spec-modal-header">
+              <h2><i className="icofont-edit"></i> Edit Symptom</h2>
+              <button className="spec-modal-close" onClick={()=>{setShowEditModal(false); setSelectedSymptom(null);}}><i className="icofont-close"></i></button>
+            </div>
+            <form className="spec-form" onSubmit={handleEdit}>
+              <div className="spec-form-group">
+                <label>Name</label>
+                <input value={formData.name} onChange={(e)=>setFormData({...formData, name: e.target.value})} />
+              </div>
+              <div className="spec-form-group">
+                <label>Category (Specialization)</label>
+                <select
+                  className="admin-select"
+                  value={formData.category ?? ''}
+                  onChange={(e)=>{
+                    const val = e.target.value;
+                    const sp = specOptions.find(s => s.name === val);
+                    setFormData({
+                      ...formData,
+                      category: val,
+                      suggested_specialization_id: sp ? sp.id : null
+                    });
+                  }}
+                >
+                  {/* Preserve legacy/custom category if it exists and isn't a specialization */}
+                  {formData.category && !specNames.includes(formData.category) && (
+                    <option value={formData.category}>{formData.category} (legacy)</option>
+                  )}
+                  <option value="">-- Select specialization --</option>
+                  {specOptions.map(sp => (
+                    <option key={sp.id} value={sp.name}>{sp.name}</option>
+                  ))}
+                </select>
+              </div>
+              {/** Suggested Specialization removed; Category now defines mapping */}
+              <div className="spec-form-group">
+                <label>Description</label>
+                <textarea value={formData.description} onChange={(e)=>setFormData({...formData, description: e.target.value})} />
+              </div>
+              <div className="spec-form-actions">
+                <button type="button" className="spec-btn-secondary" onClick={()=>{setShowEditModal(false); setSelectedSymptom(null);}}>Cancel</button>
+                <button type="submit" className="spec-btn-primary" disabled={actionLoading}>{actionLoading ? 'Saving...' : 'Save Changes'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+ 

@@ -634,6 +634,7 @@ async def create_symptom(
         name=symptom.name,
         description=symptom.description,
         category=symptom.category,
+        suggested_specialization_id=symptom.suggested_specialization_id,
         created_by=current_admin.id
     )
     
@@ -668,6 +669,8 @@ async def update_symptom(
         symptom.category = update_data.category
     if update_data.is_active is not None:
         symptom.is_active = update_data.is_active
+    if update_data.suggested_specialization_id is not None:
+        symptom.suggested_specialization_id = update_data.suggested_specialization_id
     
     db.commit()
     db.refresh(symptom)

@@ -271,18 +271,21 @@ class SymptomCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     category: Optional[str] = Field(None, max_length=100)
+    suggested_specialization_id: Optional[int] = None
 
 class SymptomUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=2, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     category: Optional[str] = Field(None, max_length=100)
     is_active: Optional[bool] = None
+    suggested_specialization_id: Optional[int] = None
 
 class SymptomResponse(BaseModel):
     id: int
     name: str
     description: Optional[str]
     category: Optional[str]
+    suggested_specialization_id: Optional[int]
     is_active: bool
     created_at: datetime
     
