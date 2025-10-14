@@ -117,11 +117,13 @@ class LiveKitService:
                             'max_participants': room.max_participants
                         }
                 
-                # Room not found
+                # Room not found - this is normal when no one is in the call
                 raise Exception(f"Room {room_name} not found")
             
         except Exception as e:
-            logger.error(f"Error getting room info: {str(e)}")
+            # Only log as error if it's not the expected "room not found" scenario
+            if "not found" not in str(e).lower():
+                logger.error(f"Error getting room info: {str(e)}")
             raise Exception(f"Failed to get room info: {str(e)}")
 
 # Global instance
