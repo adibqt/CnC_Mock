@@ -292,7 +292,7 @@
 .appointments-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .appointment-item {
@@ -300,6 +300,7 @@
   border-radius: 12px;
   padding: 16px;
   transition: all 0.3s ease;
+  background: white;
 }
 
 .appointment-item:hover {
@@ -311,44 +312,55 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .appointment-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
   flex: 1;
 }
 
 .patient-avatar {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   background: #dbeafe;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.patient-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .patient-avatar i {
   color: #2563EB;
-  font-size: 20px;
+  font-size: 22px;
+}
+
+.appointment-info {
+  min-width: 200px;
 }
 
 .appointment-info h3 {
   font-size: 16px;
   font-weight: 600;
   color: #111827;
-  margin: 0 0 4px 0;
+  margin: 0 0 6px 0;
 }
 
 .appointment-details {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
   font-size: 13px;
   color: #6b7280;
@@ -357,32 +369,40 @@
 .appointment-details span {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .appointment-details i {
   font-size: 14px;
+  color: #2563EB;
+}
+
+.appointment-symptoms {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.appointment-symptoms i {
+  color: #f59e0b;
+  flex-shrink: 0;
 }
 
 .appointment-right {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.status-badge {
-  padding: 6px 12px;
-  background: #d1fae5;
-  color: #065f46;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .call-btn {
-  width: 40px;
-  height: 40px;
-  background: none;
+  width: 42px;
+  height: 42px;
+  background: #10b981;
   border: none;
   border-radius: 10px;
   display: flex;
@@ -390,14 +410,17 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .call-btn:hover {
-  background: #f3f4f6;
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .call-btn i {
-  color: #2563EB;
+  color: white;
   font-size: 20px;
 }
 
@@ -613,6 +636,21 @@
   background: #1D4ED8;
 }
 
+/* Desktop Optimizations */
+@media (min-width: 1024px) {
+  .appointment-item {
+    padding: 20px;
+  }
+
+  .appointment-info {
+    min-width: 250px;
+  }
+
+  .appointment-right {
+    gap: 16px;
+  }
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .doctor-main {
@@ -636,16 +674,6 @@
 
   .card-title {
     font-size: 18px;
-  }
-
-  .appointment-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .appointment-right {
-    width: 100%;
-    justify-content: space-between;
   }
 }
 
@@ -673,6 +701,12 @@
   .stat-card {
     padding: 20px;
   }
+
+  .appointment-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
 }
 
 /* Video Call Button Styles */
@@ -680,6 +714,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .video-call-btn {
@@ -687,8 +722,8 @@
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 10px 16px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -696,6 +731,8 @@
   gap: 6px;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .video-call-btn:hover:not(:disabled) {
@@ -714,55 +751,60 @@
   font-size: 16px;
 }
 
-.call-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  border: none;
-  background: #10b981;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.call-btn:hover {
-  background: #059669;
-  transform: translateY(-2px);
-}
-
-.call-btn i {
-  font-size: 18px;
-}
-
 /* Status Management Styles */
 .status-management {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
-  margin-bottom: 10px;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.confirmed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.completed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.cancelled {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .status-actions {
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-wrap: nowrap;
 }
 
 .status-action-btn {
-  padding: 6px 12px;
+  padding: 7px 14px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   transition: all 0.3s ease;
   white-space: nowrap;
 }
@@ -801,19 +843,49 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* Adjust appointment-right layout */
-.appointment-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
 /* Mobile responsive for status actions */
 @media (max-width: 768px) {
-  .status-management {
-    align-items: center;
+  .appointment-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .appointment-left {
     width: 100%;
+  }
+
+  .appointment-right {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .status-management {
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  .appointment-actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px) {
+  .appointment-right {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .status-management {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .status-badge {
+    text-align: center;
   }
 
   .status-actions {
@@ -827,8 +899,8 @@
     min-width: 90px;
   }
 
-  .appointment-right {
+  .appointment-actions {
     width: 100%;
-    align-items: center;
+    justify-content: center;
   }
 }
