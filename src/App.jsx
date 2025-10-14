@@ -16,6 +16,8 @@ import DoctorHome from './pages/DoctorHome';
 import DoctorSchedule from './pages/DoctorSchedule';
 import AIConsultation from './pages/AIConsultation';
 import DoctorDetails from './pages/DoctorDetails';
+import WritePrescription from './pages/WritePrescription';
+import ViewPrescription from './pages/ViewPrescription';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -55,6 +57,8 @@ function App() {
         <Route path="/doctor-home" element={<DoctorHome />} />
         <Route path="/doctor-schedule" element={<DoctorSchedule />} />
         <Route path="/doctor/:doctorId" element={<DoctorDetails />} />
+        <Route path="/write-prescription" element={<WritePrescription />} />
+        <Route path="/view-prescription" element={<ViewPrescription />} />
         
         {/* Routes with Header/Footer */}
         <Route path="/*" element={

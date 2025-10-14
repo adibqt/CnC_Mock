@@ -585,6 +585,8 @@ export default function UserHome() {
               onClick={() => {
                 if (a.key === 'schedule') {
                   setShowAppointments(!showAppointments);
+                } else if (a.key === 'prescriptions') {
+                  navigate('/view-prescription');
                 }
               }}
             >

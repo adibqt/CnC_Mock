@@ -7,6 +7,7 @@ from routers import users_router, doctors_router, ai_router
 # Force reload after .env changes
 from routers.appointments import router as appointments_router
 from routers.livekit import router as livekit_router
+from routers.prescriptions import router as prescriptions_router
 from pathlib import Path
 
 # Create database tables
@@ -41,6 +42,7 @@ app.include_router(doctors_router)
 app.include_router(ai_router)
 app.include_router(appointments_router)
 app.include_router(livekit_router)
+app.include_router(prescriptions_router)
 
 @app.on_event("startup")
 async def startup_event():
