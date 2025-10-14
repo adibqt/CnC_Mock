@@ -139,7 +139,15 @@ export default function DoctorHome() {
           <div className="header-content">
             <div className="doctor-info">
               <div className="doctor-avatar">
-                <i className="icofont-doctor"></i>
+                {doctor?.profile_picture_url ? (
+                  <img 
+                    src={`http://localhost:8000${doctor.profile_picture_url}`}
+                    alt={doctor.name}
+                    className="doctor-avatar-img"
+                  />
+                ) : (
+                  <i className="icofont-doctor"></i>
+                )}
               </div>
               <div className="doctor-details">
                 <h1>Dr. {doctor?.name}</h1>
