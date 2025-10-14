@@ -547,7 +547,10 @@ export default function AIConsultation() {
                       {doctor.reason}
                     </div>
 
-                    <button className="book-btn">
+                    <button 
+                      className="book-btn"
+                      onClick={() => navigate(`/doctor/${doctor.id}`)}
+                    >
                       <i className="icofont-ui-calendar"></i>
                       Book Appointment
                     </button>
