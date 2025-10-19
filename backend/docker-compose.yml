@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cnc_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-click_and_care}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - cnc_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cnc_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-click_and_care}
+      
+      # JWT
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-this-in-production-min-32-characters}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
+      
+      # Gemini AI
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      
+      # LiveKit
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-your-api-key}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-your-api-secret}
+      LIVEKIT_URL: ${LIVEKIT_URL:-wss://your-livekit-server.livekit.io}
+      
+      # CORS - Allow frontend connections
+      CORS_ORIGINS: '["http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "http://localhost:80"]'
+      
+      # Environment
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    volumes:
+      # Mount uploads directory for persistent file storage
+      - ./uploads:/app/uploads
+      # Mount code for development (comment out for production)
+      - .:/app
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    networks:
+      - cnc_network
+    # Development mode with hot reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # pgAdmin (Optional - Database management UI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cnc_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@clickandcare.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - cnc_network
+    depends_on:
+      - postgres
+    profiles:
+      - tools  # Only start when explicitly requested
+
+networks:
+  cnc_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local

@@ -22,6 +22,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Health check endpoint for Docker
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring and Docker healthcheck"""
+    return {
+        "status": "healthy",
+        "service": "Click & Care Backend",
+        "version": "1.0.0"
+    }
+
 # Create uploads directory if it doesn't exist
 uploads_dir = Path("uploads")
 uploads_dir.mkdir(exist_ok=True)
