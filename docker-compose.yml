@@ -1,3 +1,6 @@
+# Full-Stack Docker Compose Configuration
+# Orchestrates Frontend (React+Vite), Backend (FastAPI), and PostgreSQL
+
 version: '3.8'
 
 services:
@@ -26,7 +29,7 @@ services:
   # FastAPI Backend
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: cnc_backend
     restart: unless-stopped
@@ -51,15 +54,15 @@ services:
       LIVEKIT_URL: ${LIVEKIT_URL:-wss://your-livekit-server.livekit.io}
       
       # CORS - Allow frontend connections
-      CORS_ORIGINS: '["http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "http://localhost:80"]'
+      CORS_ORIGINS: '["http://localhost", "http://localhost:80", "http://localhost:3000", "http://localhost:5173"]'
       
       # Environment
       ENVIRONMENT: ${ENVIRONMENT:-development}
     volumes:
       # Mount uploads directory for persistent file storage
-      - ./uploads:/app/uploads
-      # Mount code for development (comment out for production)
-      - .:/app
+      - ./backend/uploads:/app/uploads
+      # Mount code for development hot reload (comment out for production)
+      - ./backend:/app
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     networks:
@@ -72,6 +75,27 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # React Frontend (Nginx)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cnc_frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    networks:
+      - cnc_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   # pgAdmin (Optional - Database management UI)
   pgadmin:
@@ -91,7 +115,7 @@ services:
     depends_on:
       - postgres
     profiles:
-      - tools  # Only start when explicitly requested
+      - tools  # Only start when explicitly requested with --profile tools
 
 networks:
   cnc_network:
