@@ -39,6 +39,17 @@
   box-shadow: 0 5px 15px rgba(44, 45, 63, 0.3);
 }
 
+.get-quote .login-buttons .btn-pharmacy {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.get-quote .login-buttons .btn-pharmacy:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
 /* Responsive adjustments */
 @media only screen and (min-width: 992px) {
   .get-quote .login-buttons {

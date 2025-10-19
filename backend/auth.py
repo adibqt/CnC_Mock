@@ -7,6 +7,7 @@ from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from config import settings
+from database import get_db
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against a hashed password"""
@@ -39,7 +40,8 @@ def decode_access_token(token: str):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
-    except JWTError:
+    except JWTError as exc:
+        print(f"❌ DEBUG: JWT decode failed: {exc}")
         return None
 
 # Security scheme
@@ -47,23 +49,20 @@ security = HTTPBearer()
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(lambda: None)
+    db: Session = Depends(get_db)
 ):
     """
     Dependency to get current authenticated user from JWT token
     """
-    from database import get_db
     from models import User, Doctor
-    
-    # Get actual DB session
-    if db is None:
-        db = next(get_db())
     
     # Extract token
     token = credentials.credentials
+    print(f"🔍 DEBUG: Token received: {token[:20]}...")
     
     # Decode token
     payload = decode_access_token(token)
+    print(f"🔍 DEBUG: Payload decoded: {payload}")
     
     if payload is None:
         raise HTTPException(
@@ -85,7 +84,9 @@ def get_current_user(
     
     # Query user based on type
     if user_type == "user":
+        print(f"🔍 DEBUG: Querying User with phone: {phone}")
         user = db.query(User).filter(User.phone == phone).first()
+        print(f"🔍 DEBUG: User found: {user is not None}")
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -108,18 +109,13 @@ def get_current_user(
 
 def get_current_doctor(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(lambda: None)
+    db: Session = Depends(get_db)
 ):
     """
     Dependency to get current authenticated doctor from JWT token
     Specifically ensures the user is a doctor
     """
-    from database import get_db
     from models import Doctor
-    
-    # Get actual DB session
-    if db is None:
-        db = next(get_db())
     
     # Extract token
     token = credentials.credentials
@@ -164,18 +160,13 @@ def get_current_doctor(
 
 def get_current_admin(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(lambda: None)
+    db: Session = Depends(get_db)
 ):
     """
     Dependency to get current authenticated admin from JWT token
     Specifically ensures the user is an admin
     """
-    from database import get_db
     from models import Admin
-    
-    # Get actual DB session
-    if db is None:
-        db = next(get_db())
     
     # Extract token
     token = credentials.credentials
@@ -223,3 +214,67 @@ def get_current_admin(
         )
     
     return admin
+
+def get_current_pharmacy(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    """
+    Dependency to get current authenticated pharmacy from JWT token
+    Specifically ensures the user is a pharmacy
+    """
+    from models import Pharmacy
+    
+    # Extract token
+    token = credentials.credentials
+    
+    # Decode token
+    payload = decode_access_token(token)
+    
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Get pharmacy info from token
+    phone: str = payload.get("sub")
+    user_type: str = payload.get("user_type")
+    
+    if phone is None or user_type is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Ensure user type is pharmacy
+    if user_type != "pharmacy":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only pharmacies can access this endpoint"
+        )
+    
+    # Query pharmacy
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.phone == phone).first()
+    if pharmacy is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Pharmacy not found"
+        )
+    
+    if not pharmacy.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Pharmacy account is deactivated"
+        )
+    
+    if not pharmacy.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Pharmacy account is not verified yet"
+        )
+    
+    return pharmacy
+

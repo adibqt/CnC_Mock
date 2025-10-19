@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, JSON, ForeignKey, Numeric, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -162,4 +162,128 @@ class Symptom(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     created_by = Column(Integer, ForeignKey("admins.id"), nullable=True)
+
+class Pharmacy(Base):
+    __tablename__ = "pharmacies"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    phone = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    
+    # Pharmacy Details
+    pharmacy_name = Column(String, nullable=False, index=True)
+    owner_name = Column(String, nullable=True)
+    license_number = Column(String, unique=True, nullable=False, index=True)
+    
+    # Address Information
+    street_address = Column(String, nullable=False)
+    city = Column(String, nullable=False)
+    state = Column(String, nullable=False)
+    postal_code = Column(String, nullable=False)
+    country = Column(String, default="Bangladesh", nullable=False)
+    
+    # Contact Information
+    email = Column(String, unique=True, nullable=True)
+    alternate_phone = Column(String, nullable=True)
+    
+    # Verification & Status
+    is_verified = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    verified_by = Column(Integer, ForeignKey("admins.id"), nullable=True)
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class QuotationStatus(str, enum.Enum):
+    PENDING = "pending"
+    QUOTED = "quoted"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+
+class QuotationRequest(Base):
+    __tablename__ = "quotation_requests"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    prescription_id = Column(Integer, ForeignKey("prescriptions.id"), nullable=False)
+    
+    # Request Details
+    status = Column(Enum(QuotationStatus, values_callable=lambda x: [e.value for e in x]), default=QuotationStatus.PENDING, nullable=False)
+    patient_notes = Column(Text, nullable=True)  # Additional requests or preferences
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    patient = relationship("User", backref="quotation_requests")
+    prescription = relationship("Prescription", backref="quotation_requests")
+    target_pharmacies = relationship(
+        "QuotationRequestPharmacy",
+        back_populates="quotation_request",
+        cascade="all, delete-orphan"
+    )
+
+class QuotationResponse(Base):
+    __tablename__ = "quotation_responses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    quotation_request_id = Column(Integer, ForeignKey("quotation_requests.id"), nullable=False)
+    pharmacy_id = Column(Integer, ForeignKey("pharmacies.id"), nullable=False)
+    
+    # Quotation Details
+    quoted_items = Column(JSON, nullable=False)  # List of items: [{"medicine": "Med A", "quantity": 10, "unit_price": 50, "total_price": 500}, ...]
+    subtotal = Column(Numeric(10, 2), nullable=False)  # Total of all items
+    delivery_charge = Column(Numeric(10, 2), default=0.00, nullable=False)
+    total_amount = Column(Numeric(10, 2), nullable=False)  # Subtotal + Delivery
+    
+    # Additional Information
+    notes = Column(Text, nullable=True)  # Pharmacy's message to patient
+    estimated_delivery_time = Column(String, nullable=True)  # e.g., "2-3 hours", "Next day"
+    
+    # Status
+    status = Column(Enum(QuotationStatus, values_callable=lambda x: [e.value for e in x]), default=QuotationStatus.QUOTED, nullable=False)
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    quotation_request = relationship("QuotationRequest", backref="quotation_responses")
+    pharmacy = relationship("Pharmacy", backref="quotation_responses")
+
+
+class QuotationRequestPharmacy(Base):
+    __tablename__ = "quotation_request_pharmacies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    quotation_request_id = Column(Integer, ForeignKey("quotation_requests.id", ondelete="CASCADE"), nullable=False)
+    pharmacy_id = Column(Integer, ForeignKey("pharmacies.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("quotation_request_id", "pharmacy_id", name="uq_request_pharmacy"),
+    )
+
+    quotation_request = relationship("QuotationRequest", back_populates="target_pharmacies")
+    pharmacy = relationship("Pharmacy", backref="quotation_request_targets")
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+    category = Column(String(50), nullable=False, default="general")
+    data = Column(JSON, nullable=True)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    read_at = Column(DateTime(timezone=True), nullable=True)
+
+    user = relationship("User", backref="notifications")
 

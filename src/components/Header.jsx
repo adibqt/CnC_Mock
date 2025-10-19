@@ -71,6 +71,7 @@ const Header = () => {
                   <div className="login-buttons">
                     <Link to="/login" className="btn btn-user">Patient</Link>
                     <Link to="/doctor-login" className="btn btn-doctor">Doctor</Link>
+                    <Link to="/pharmacy-login" className="btn btn-pharmacy">Pharmacy</Link>
                   </div>
                 </div>
               </div>

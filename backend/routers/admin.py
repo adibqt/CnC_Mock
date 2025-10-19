@@ -697,3 +697,190 @@ async def delete_symptom(
     db.commit()
     
     return {"success": True, "message": "Symptom deleted successfully"}
+
+
+# Pharmacy Management Endpoints
+
+@router.get("/pharmacies", response_model=List[dict])
+async def get_all_pharmacies(
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    is_verified: Optional[bool] = None,
+    is_active: Optional[bool] = None,
+    search: Optional[str] = None
+):
+    """
+    Get all pharmacies with optional filters.
+    Supports filtering by verification status, active status, and search.
+    """
+    from models import Pharmacy
+    from sqlalchemy import or_, and_
+    
+    query = db.query(Pharmacy)
+    
+    # Apply filters
+    filters = []
+    if is_verified is not None:
+        filters.append(Pharmacy.is_verified == is_verified)
+    if is_active is not None:
+        filters.append(Pharmacy.is_active == is_active)
+    if search:
+        search_filter = or_(
+            Pharmacy.pharmacy_name.ilike(f"%{search}%"),
+            Pharmacy.license_number.ilike(f"%{search}%"),
+            Pharmacy.phone.ilike(f"%{search}%"),
+            Pharmacy.city.ilike(f"%{search}%")
+        )
+        filters.append(search_filter)
+    
+    if filters:
+        query = query.filter(and_(*filters))
+    
+    pharmacies = query.order_by(Pharmacy.created_at.desc()).offset(skip).limit(limit).all()
+    
+    # Format response
+    return [
+        {
+            "id": pharmacy.id,
+            "phone": pharmacy.phone,
+            "pharmacy_name": pharmacy.pharmacy_name,
+            "owner_name": pharmacy.owner_name,
+            "license_number": pharmacy.license_number,
+            "street_address": pharmacy.street_address,
+            "city": pharmacy.city,
+            "state": pharmacy.state,
+            "postal_code": pharmacy.postal_code,
+            "country": pharmacy.country,
+            "email": pharmacy.email,
+            "alternate_phone": pharmacy.alternate_phone,
+            "is_verified": pharmacy.is_verified,
+            "is_active": pharmacy.is_active,
+            "verified_at": pharmacy.verified_at,
+            "created_at": pharmacy.created_at,
+            "updated_at": pharmacy.updated_at
+        }
+        for pharmacy in pharmacies
+    ]
+
+
+@router.get("/pharmacies/{pharmacy_id}", response_model=dict)
+async def get_pharmacy_details(
+    pharmacy_id: int,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Get detailed information about a specific pharmacy."""
+    from models import Pharmacy
+    
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_id).first()
+    
+    if not pharmacy:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pharmacy not found"
+        )
+    
+    return {
+        "id": pharmacy.id,
+        "phone": pharmacy.phone,
+        "pharmacy_name": pharmacy.pharmacy_name,
+        "owner_name": pharmacy.owner_name,
+        "license_number": pharmacy.license_number,
+        "street_address": pharmacy.street_address,
+        "city": pharmacy.city,
+        "state": pharmacy.state,
+        "postal_code": pharmacy.postal_code,
+        "country": pharmacy.country,
+        "email": pharmacy.email,
+        "alternate_phone": pharmacy.alternate_phone,
+        "is_verified": pharmacy.is_verified,
+        "is_active": pharmacy.is_active,
+        "verified_at": pharmacy.verified_at,
+        "verified_by": pharmacy.verified_by,
+        "created_at": pharmacy.created_at,
+        "updated_at": pharmacy.updated_at
+    }
+
+
+@router.put("/pharmacies/{pharmacy_id}/verify", response_model=dict)
+async def verify_pharmacy(
+    pharmacy_id: int,
+    verification_data: dict,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Verify or reject a pharmacy.
+    Sets is_verified to True/False and records admin who verified.
+    """
+    from models import Pharmacy
+    from datetime import datetime
+    
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_id).first()
+    
+    if not pharmacy:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pharmacy not found"
+        )
+    
+    is_verified = verification_data.get("is_verified")
+    is_active = verification_data.get("is_active")
+    
+    if is_verified is not None:
+        pharmacy.is_verified = is_verified
+        pharmacy.verified_by = current_admin.id
+        pharmacy.verified_at = datetime.utcnow() if is_verified else None
+    
+    if is_active is not None:
+        pharmacy.is_active = is_active
+    
+    pharmacy.updated_at = datetime.utcnow()
+    
+    # Update admin's last login
+    current_admin.last_login = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(pharmacy)
+    
+    action = "verified" if pharmacy.is_verified else "rejected"
+    
+    return {
+        "success": True,
+        "message": f"Pharmacy {action} successfully",
+        "pharmacy": {
+            "id": pharmacy.id,
+            "pharmacy_name": pharmacy.pharmacy_name,
+            "is_verified": pharmacy.is_verified,
+            "is_active": pharmacy.is_active,
+            "verified_at": pharmacy.verified_at
+        }
+    }
+
+
+@router.get("/pharmacies/stats/summary", response_model=dict)
+async def get_pharmacy_stats(
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Get pharmacy statistics for admin dashboard."""
+    from models import Pharmacy
+    from sqlalchemy import func
+    
+    total_pharmacies = db.query(func.count(Pharmacy.id)).scalar()
+    verified_pharmacies = db.query(func.count(Pharmacy.id)).filter(Pharmacy.is_verified == True).scalar()
+    pending_verification = db.query(func.count(Pharmacy.id)).filter(
+        Pharmacy.is_verified == False,
+        Pharmacy.is_active == True
+    ).scalar()
+    inactive_pharmacies = db.query(func.count(Pharmacy.id)).filter(Pharmacy.is_active == False).scalar()
+    
+    return {
+        "total_pharmacies": total_pharmacies,
+        "verified_pharmacies": verified_pharmacies,
+        "pending_verification": pending_verification,
+        "inactive_pharmacies": inactive_pharmacies
+    }
+

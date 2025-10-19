@@ -65,6 +65,8 @@ export default function AdminDashboard() {
         return <PatientsTab />;
       case 'doctors':
         return <DoctorsTab />;
+      case 'pharmacies':
+        return <PharmaciesTab />;
       case 'specializations':
         return <SpecializationsTab />;
       case 'symptoms':
@@ -122,6 +124,17 @@ export default function AdminDashboard() {
             <span>Doctors</span>
             {stats?.pending?.unverified_doctors > 0 && (
               <span className="badge-count">{stats.pending.unverified_doctors}</span>
+            )}
+          </button>
+          
+          <button
+            className={`admin-nav-item ${activeTab === 'pharmacies' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pharmacies')}
+          >
+            <i className="icofont-pills"></i>
+            <span>Pharmacies</span>
+            {stats?.pending?.pending_pharmacy_verification > 0 && (
+              <span className="badge-count">{stats.pending.pending_pharmacy_verification}</span>
             )}
           </button>
           
@@ -1021,6 +1034,633 @@ function SymptomsTab() {
                 <button type="submit" className="spec-btn-primary" disabled={actionLoading}>{actionLoading ? 'Saving...' : 'Save Changes'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Pharmacies Tab Component
+function PharmaciesTab() {
+  const [pharmacies, setPharmacies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedPharmacy, setSelectedPharmacy] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); // all, pending, verified, inactive
+  const [stats, setStats] = useState({ total: 0, verified: 0, pending: 0, inactive: 0 });
+
+  useEffect(() => {
+    loadPharmacies();
+    loadStats();
+  }, [filterStatus]);
+
+  const loadStats = async () => {
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch('http://localhost:8000/api/admin/pharmacies/stats/summary', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStats({
+          total: data.total_pharmacies,
+          verified: data.verified_pharmacies,
+          pending: data.pending_verification,
+          inactive: data.inactive_pharmacies
+        });
+      }
+    } catch (error) {
+      console.error('Error loading pharmacy stats:', error);
+    }
+  };
+
+  const loadPharmacies = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      let url = 'http://localhost:8000/api/admin/pharmacies?limit=100';
+      
+      // Apply filters
+      if (filterStatus === 'pending') {
+        url += '&is_verified=false&is_active=true';
+      } else if (filterStatus === 'verified') {
+        url += '&is_verified=true&is_active=true';
+      } else if (filterStatus === 'inactive') {
+        url += '&is_active=false';
+      }
+
+      if (searchQuery) {
+        url += `&search=${encodeURIComponent(searchQuery)}`;
+      }
+
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPharmacies(data);
+      }
+    } catch (error) {
+      console.error('Error loading pharmacies:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    loadPharmacies();
+  };
+
+  const viewDetails = async (pharmacyId) => {
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch(`http://localhost:8000/api/admin/pharmacies/${pharmacyId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedPharmacy(data);
+        setShowDetailsModal(true);
+      }
+    } catch (error) {
+      console.error('Error loading pharmacy details:', error);
+      alert('Failed to load pharmacy details');
+    }
+  };
+
+  const handleVerify = async (pharmacyId, isVerified) => {
+    if (!confirm(`Are you sure you want to ${isVerified ? 'verify' : 'reject'} this pharmacy?`)) {
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch(`http://localhost:8000/api/admin/pharmacies/${pharmacyId}/verify`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_verified: isVerified })
+      });
+
+      if (response.ok) {
+        alert(`Pharmacy ${isVerified ? 'verified' : 'rejected'} successfully!`);
+        loadPharmacies();
+        loadStats();
+        if (showDetailsModal) {
+          setShowDetailsModal(false);
+          setSelectedPharmacy(null);
+        }
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to update pharmacy: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error updating pharmacy:', error);
+      alert('Failed to update pharmacy');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (pharmacyId, isActive) => {
+    if (!confirm(`Are you sure you want to ${isActive ? 'activate' : 'deactivate'} this pharmacy?`)) {
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch(`http://localhost:8000/api/admin/pharmacies/${pharmacyId}/verify`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_active: isActive })
+      });
+
+      if (response.ok) {
+        alert(`Pharmacy ${isActive ? 'activated' : 'deactivated'} successfully!`);
+        loadPharmacies();
+        loadStats();
+        if (showDetailsModal) {
+          setShowDetailsModal(false);
+          setSelectedPharmacy(null);
+        }
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to update pharmacy: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error updating pharmacy:', error);
+      alert('Failed to update pharmacy');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const filteredPharmacies = pharmacies;
+
+  return (
+    <div className="admin-content">
+      <div className="admin-content-header">
+        <div>
+          <h2>Pharmacy Management</h2>
+          <p>Manage pharmacy verifications and status</p>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="spec-stats-grid">
+        <div className="spec-stat-card">
+          <div className="spec-stat-icon" style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
+            <i className="icofont-pills"></i>
+          </div>
+          <div className="spec-stat-content">
+            <div className="spec-stat-value">{stats.total}</div>
+            <div className="spec-stat-label">Total Pharmacies</div>
+          </div>
+        </div>
+        <div className="spec-stat-card">
+          <div className="spec-stat-icon" style={{background: 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)'}}>
+            <i className="icofont-check-circled"></i>
+          </div>
+          <div className="spec-stat-content">
+            <div className="spec-stat-value">{stats.verified}</div>
+            <div className="spec-stat-label">Verified</div>
+          </div>
+        </div>
+        <div className="spec-stat-card">
+          <div className="spec-stat-icon" style={{background: 'linear-gradient(135deg, #ed8936 0%, #dd6b20 100%)'}}>
+            <i className="icofont-clock-time"></i>
+          </div>
+          <div className="spec-stat-content">
+            <div className="spec-stat-value">{stats.pending}</div>
+            <div className="spec-stat-label">Pending Verification</div>
+          </div>
+        </div>
+        <div className="spec-stat-card">
+          <div className="spec-stat-icon" style={{background: 'linear-gradient(135deg, #718096 0%, #4a5568 100%)'}}>
+            <i className="icofont-ban"></i>
+          </div>
+          <div className="spec-stat-content">
+            <div className="spec-stat-value">{stats.inactive}</div>
+            <div className="spec-stat-label">Inactive</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="spec-controls">
+        <div className="spec-search-wrapper">
+          <input
+            type="text"
+            className="spec-search-input"
+            placeholder="Search by name, license, phone, or city..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+          />
+          <button className="spec-search-button" onClick={handleSearch}>
+            <i className="icofont-search-1"></i>
+          </button>
+        </div>
+        <div className="spec-filter-group">
+          <select 
+            className="admin-select"
+            value={filterStatus} 
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="all">All Pharmacies</option>
+            <option value="pending">Pending Verification</option>
+            <option value="verified">Verified</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Pharmacies List */}
+      {loading ? (
+        <div className="spec-loading">
+          <i className="icofont-spinner icofont-spin"></i>
+          <p>Loading pharmacies...</p>
+        </div>
+      ) : filteredPharmacies.length === 0 ? (
+        <div className="spec-empty">
+          <i className="icofont-pills"></i>
+          <p>No pharmacies found</p>
+        </div>
+      ) : (
+        <div className="spec-table-wrapper">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>Pharmacy Name</th>
+                <th>License Number</th>
+                <th>Location</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Registered</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPharmacies.map((pharmacy) => (
+                <tr key={pharmacy.id}>
+                  <td>
+                    <div style={{fontWeight: 500}}>{pharmacy.pharmacy_name}</div>
+                    {pharmacy.owner_name && (
+                      <div style={{fontSize: '0.85em', color: '#64748b'}}>Owner: {pharmacy.owner_name}</div>
+                    )}
+                  </td>
+                  <td>{pharmacy.license_number}</td>
+                  <td>
+                    <div>{pharmacy.city}, {pharmacy.state}</div>
+                    <div style={{fontSize: '0.85em', color: '#64748b'}}>{pharmacy.postal_code}</div>
+                  </td>
+                  <td>{pharmacy.phone}</td>
+                  <td>
+                    <div style={{display: 'flex', gap: '5px', flexDirection: 'column', alignItems: 'flex-start'}}>
+                      {pharmacy.is_verified ? (
+                        <span className="spec-badge" style={{background: '#d4edda', color: '#155724'}}>
+                          <i className="icofont-check"></i> Verified
+                        </span>
+                      ) : (
+                        <span className="spec-badge" style={{background: '#fff3cd', color: '#856404'}}>
+                          <i className="icofont-clock-time"></i> Pending
+                        </span>
+                      )}
+                      {!pharmacy.is_active && (
+                        <span className="spec-badge" style={{background: '#f8d7da', color: '#721c24'}}>
+                          <i className="icofont-ban"></i> Inactive
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td>{new Date(pharmacy.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                      <button 
+                        className="spec-btn-icon" 
+                        title="View Details"
+                        onClick={() => viewDetails(pharmacy.id)}
+                        style={{borderColor: '#3b82f6', color: '#3b82f6'}}
+                      >
+                        <i className="icofont-eye"></i>
+                      </button>
+                      {!pharmacy.is_verified && pharmacy.is_active && (
+                        <>
+                          <button 
+                            className="spec-btn-icon" 
+                            style={{borderColor: '#10b981', color: '#10b981'}}
+                            title="Verify Pharmacy"
+                            onClick={() => handleVerify(pharmacy.id, true)}
+                            disabled={actionLoading}
+                          >
+                            <i className="icofont-check-circled"></i>
+                          </button>
+                          <button 
+                            className="spec-btn-icon" 
+                            style={{borderColor: '#ef4444', color: '#ef4444'}}
+                            title="Reject Pharmacy"
+                            onClick={() => handleVerify(pharmacy.id, false)}
+                            disabled={actionLoading}
+                          >
+                            <i className="icofont-close-circled"></i>
+                          </button>
+                        </>
+                      )}
+                      {pharmacy.is_verified && (
+                        <button 
+                          className="spec-btn-icon" 
+                          style={{borderColor: '#f59e0b', color: '#f59e0b'}}
+                          title="Revoke Verification"
+                          onClick={() => handleVerify(pharmacy.id, false)}
+                          disabled={actionLoading}
+                        >
+                          <i className="icofont-close-circled"></i>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedPharmacy && (
+        <div className="spec-modal-overlay" onClick={() => setShowDetailsModal(false)}>
+          <div className="spec-modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '800px'}}>
+            <div className="spec-modal-header">
+              <h3 style={{margin: 0, display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <i className="icofont-pills" style={{color: '#667eea'}}></i>
+                Pharmacy Details
+              </h3>
+              <button className="spec-modal-close" onClick={() => setShowDetailsModal(false)}>
+                <i className="icofont-close"></i>
+              </button>
+            </div>
+            <div className="spec-modal-body" style={{maxHeight: '70vh', overflowY: 'auto'}}>
+              {/* Status Overview */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+                padding: '20px', 
+                borderRadius: '12px',
+                marginBottom: '24px',
+                display: 'flex',
+                gap: '12px',
+                flexWrap: 'wrap'
+              }}>
+                {selectedPharmacy.is_verified ? (
+                  <span className="spec-badge" style={{background: '#d4edda', color: '#155724', fontSize: '14px', padding: '8px 16px'}}>
+                    <i className="icofont-check-circled"></i> Verified Pharmacy
+                  </span>
+                ) : (
+                  <span className="spec-badge" style={{background: '#fff3cd', color: '#856404', fontSize: '14px', padding: '8px 16px'}}>
+                    <i className="icofont-clock-time"></i> Pending Verification
+                  </span>
+                )}
+                {selectedPharmacy.is_active ? (
+                  <span className="spec-badge" style={{background: '#d4edda', color: '#155724', fontSize: '14px', padding: '8px 16px'}}>
+                    <i className="icofont-check"></i> Active
+                  </span>
+                ) : (
+                  <span className="spec-badge" style={{background: '#f8d7da', color: '#721c24', fontSize: '14px', padding: '8px 16px'}}>
+                    <i className="icofont-ban"></i> Inactive
+                  </span>
+                )}
+              </div>
+
+              {/* Basic Information */}
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{marginBottom: '16px', color: '#1e293b', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <i className="icofont-building" style={{color: '#667eea'}}></i>
+                  Basic Information
+                </h4>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px'}}>
+                  <div style={{
+                    background: 'white', 
+                    padding: '16px', 
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                      Pharmacy Name
+                    </label>
+                    <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                      {selectedPharmacy.pharmacy_name}
+                    </p>
+                  </div>
+                  <div style={{
+                    background: 'white', 
+                    padding: '16px', 
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                      License Number
+                    </label>
+                    <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                      {selectedPharmacy.license_number}
+                    </p>
+                  </div>
+                  {selectedPharmacy.owner_name && (
+                    <div style={{
+                      background: 'white', 
+                      padding: '16px', 
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                        Owner Name
+                      </label>
+                      <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                        {selectedPharmacy.owner_name}
+                      </p>
+                    </div>
+                  )}
+                  <div style={{
+                    background: 'white', 
+                    padding: '16px', 
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                      Registered Date
+                    </label>
+                    <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                      {new Date(selectedPharmacy.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{marginBottom: '16px', color: '#1e293b', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <i className="icofont-phone" style={{color: '#667eea'}}></i>
+                  Contact Information
+                </h4>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px'}}>
+                  <div style={{
+                    background: 'white', 
+                    padding: '16px', 
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                      Phone Number
+                    </label>
+                    <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                      {selectedPharmacy.phone}
+                    </p>
+                  </div>
+                  {selectedPharmacy.alternate_phone && (
+                    <div style={{
+                      background: 'white', 
+                      padding: '16px', 
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                        Alternate Phone
+                      </label>
+                      <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                        {selectedPharmacy.alternate_phone}
+                      </p>
+                    </div>
+                  )}
+                  {selectedPharmacy.email && (
+                    <div style={{
+                      background: 'white', 
+                      padding: '16px', 
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                        Email Address
+                      </label>
+                      <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                        {selectedPharmacy.email}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Location */}
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{marginBottom: '16px', color: '#1e293b', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <i className="icofont-location-pin" style={{color: '#667eea'}}></i>
+                  Location
+                </h4>
+                <div style={{
+                  background: 'white', 
+                  padding: '20px', 
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <p style={{fontSize: '15px', color: '#1e293b', lineHeight: '1.6', margin: 0}}>
+                    <strong>{selectedPharmacy.street_address}</strong><br />
+                    {selectedPharmacy.city}, {selectedPharmacy.state} {selectedPharmacy.postal_code}<br />
+                    {selectedPharmacy.country}
+                  </p>
+                </div>
+              </div>
+
+              {/* Verification Details */}
+              {selectedPharmacy.verified_at && (
+                <div style={{
+                  background: 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)',
+                  padding: '16px 20px',
+                  borderRadius: '10px',
+                  marginBottom: '24px',
+                  border: '1px solid #b1dfbb'
+                }}>
+                  <p style={{margin: 0, fontSize: '14px', color: '#155724', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <i className="icofont-check-circled" style={{fontSize: '20px'}}></i>
+                    <strong>Verified on:</strong> {new Date(selectedPharmacy.verified_at).toLocaleString()}
+                  </p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div style={{
+                marginTop: '30px', 
+                paddingTop: '24px', 
+                borderTop: '2px solid #e2e8f0',
+                background: '#f8fafc',
+                margin: '0 -24px -24px -24px',
+                padding: '24px'
+              }}>
+                <h4 style={{marginBottom: '16px', color: '#1e293b', fontSize: '16px', fontWeight: 700}}>
+                  Management Actions
+                </h4>
+                <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                  {!selectedPharmacy.is_verified && selectedPharmacy.is_active && (
+                    <button 
+                      className="spec-btn-primary"
+                      onClick={() => handleVerify(selectedPharmacy.id, true)}
+                      disabled={actionLoading}
+                      style={{
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        flex: '1',
+                        minWidth: '160px'
+                      }}
+                    >
+                      <i className="icofont-check-circled"></i> Verify Pharmacy
+                    </button>
+                  )}
+                  {selectedPharmacy.is_verified && selectedPharmacy.is_active && (
+                    <button 
+                      className="spec-btn-secondary"
+                      onClick={() => handleVerify(selectedPharmacy.id, false)}
+                      disabled={actionLoading}
+                      style={{flex: '1', minWidth: '160px'}}
+                    >
+                      <i className="icofont-close-circled"></i> Revoke Verification
+                    </button>
+                  )}
+                  {selectedPharmacy.is_active ? (
+                    <button 
+                      className="spec-btn-secondary"
+                      onClick={() => handleToggleActive(selectedPharmacy.id, false)}
+                      disabled={actionLoading}
+                      style={{
+                        background: '#f59e0b',
+                        color: 'white',
+                        border: 'none',
+                        flex: '1',
+                        minWidth: '160px'
+                      }}
+                    >
+                      <i className="icofont-ban"></i> Deactivate
+                    </button>
+                  ) : (
+                    <button 
+                      className="spec-btn-primary"
+                      onClick={() => handleToggleActive(selectedPharmacy.id, true)}
+                      disabled={actionLoading}
+                      style={{flex: '1', minWidth: '160px'}}
+                    >
+                      <i className="icofont-check"></i> Activate
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
