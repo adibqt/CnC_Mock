@@ -10,6 +10,8 @@ from routers.livekit import router as livekit_router
 from routers.prescriptions import router as prescriptions_router
 from routers.admin import router as admin_router
 from routers.public import router as public_router
+from routers.pharmacy import router as pharmacy_router
+from routers.quotations import router as quotations_router
 from pathlib import Path
 
 # Create database tables
@@ -57,6 +59,8 @@ app.include_router(livekit_router)
 app.include_router(prescriptions_router)
 app.include_router(admin_router)
 app.include_router(public_router)
+app.include_router(pharmacy_router)
+app.include_router(quotations_router)
 
 @app.on_event("startup")
 async def startup_event():

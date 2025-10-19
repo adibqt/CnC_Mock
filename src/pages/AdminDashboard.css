@@ -1000,6 +1000,225 @@
   box-shadow: 0 0 0 3px rgba(31, 43, 108, 0.1);
 }
 
+/* Professional Table Styles */
+.spec-table-wrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.spec-table thead {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.spec-table thead th {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.spec-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.spec-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.spec-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.spec-table tbody td {
+  padding: 16px 20px;
+  color: #334155;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.spec-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.spec-badge i {
+  font-size: 14px;
+}
+
+.spec-btn-icon {
+  width: 36px;
+  height: 36px;
+  border: 2px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+.spec-btn-icon:hover:not(:disabled) {
+  background: #1F2B6C;
+  border-color: #1F2B6C;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(31, 43, 108, 0.2);
+}
+
+.spec-btn-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Search and Controls */
+.spec-controls {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.spec-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 300px;
+}
+
+.spec-search-input {
+  width: 100%;
+  padding: 12px 48px 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.spec-search-input:focus {
+  outline: none;
+  border-color: #1F2B6C;
+  box-shadow: 0 0 0 3px rgba(31, 43, 108, 0.1);
+}
+
+.spec-search-button {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: linear-gradient(135deg, #1F2B6C 0%, #159EEC 100%);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.spec-search-button:hover {
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 4px 12px rgba(31, 43, 108, 0.3);
+}
+
+.spec-filter-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-select {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.admin-select:focus {
+  outline: none;
+  border-color: #1F2B6C;
+  box-shadow: 0 0 0 3px rgba(31, 43, 108, 0.1);
+}
+
+/* Stats Grid */
+.spec-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.spec-stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+}
+
+.spec-stat-content {
+  flex: 1;
+}
+
+.spec-stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.spec-stat-label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Modal Body */
+.spec-modal-body {
+  padding: 24px;
+}
+
+.spec-modal h3,
+.spec-modal h4 {
+  color: #1e293b;
+  margin: 0 0 16px 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .spec-grid {
@@ -1007,6 +1226,10 @@
   }
 
   .spec-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .spec-stats-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1023,5 +1246,21 @@
   .admin-btn-primary {
     width: 100%;
     justify-content: center;
+  }
+  
+  .spec-controls {
+    flex-direction: column;
+  }
+  
+  .spec-search-wrapper {
+    min-width: 100%;
+  }
+  
+  .spec-table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .spec-table {
+    min-width: 800px;
   }
 }

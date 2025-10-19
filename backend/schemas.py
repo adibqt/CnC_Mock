@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 # User Schemas
@@ -300,3 +300,178 @@ class UserManagementUpdate(BaseModel):
 class DoctorVerificationUpdate(BaseModel):
     is_verified: Optional[bool] = None
     is_active: Optional[bool] = None
+
+# Pharmacy Schemas
+class PharmacyBase(BaseModel):
+    phone: str = Field(..., min_length=10, max_length=20)
+    pharmacy_name: str = Field(..., min_length=2, max_length=200)
+    license_number: str = Field(..., min_length=3, max_length=100)
+
+class PharmacyCreate(PharmacyBase):
+    password: str = Field(..., min_length=6, max_length=72, description="Password must be 6-72 characters")
+    owner_name: Optional[str] = Field(None, max_length=100)
+    street_address: str = Field(..., min_length=5, max_length=300)
+    city: str = Field(..., min_length=2, max_length=100)
+    state: str = Field(..., min_length=2, max_length=100)
+    postal_code: str = Field(..., min_length=3, max_length=20)
+    country: Optional[str] = Field("Bangladesh", max_length=100)
+    email: Optional[str] = Field(None, max_length=200)
+    alternate_phone: Optional[str] = Field(None, max_length=20)
+    
+    @validator('pharmacy_name', 'owner_name')
+    def name_must_not_be_empty(cls, v):
+        if v and v.strip() == '':
+            raise ValueError('Name cannot be empty')
+        return v.strip() if v else v
+
+class PharmacyLogin(BaseModel):
+    phone: str
+    password: str = Field(..., max_length=72)
+
+class PharmacyResponse(PharmacyBase):
+    id: int
+    owner_name: Optional[str]
+    street_address: str
+    city: str
+    state: str
+    postal_code: str
+    country: str
+    email: Optional[str]
+    alternate_phone: Optional[str]
+    is_verified: bool
+    is_active: bool
+    verified_at: Optional[datetime]
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class PharmacyProfileUpdate(BaseModel):
+    pharmacy_name: Optional[str] = Field(None, min_length=2, max_length=200)
+    owner_name: Optional[str] = Field(None, max_length=100)
+    street_address: Optional[str] = Field(None, min_length=5, max_length=300)
+    city: Optional[str] = Field(None, min_length=2, max_length=100)
+    state: Optional[str] = Field(None, min_length=2, max_length=100)
+    postal_code: Optional[str] = Field(None, min_length=3, max_length=20)
+    email: Optional[str] = Field(None, max_length=200)
+    alternate_phone: Optional[str] = Field(None, max_length=20)
+
+class PharmacyVerificationUpdate(BaseModel):
+    is_verified: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+# Quotation Schemas
+class QuotationTargetPharmacy(BaseModel):
+    id: int
+    pharmacy_name: str
+    city: Optional[str]
+    state: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+class QuotationRequestCreate(BaseModel):
+    prescription_id: int = Field(..., gt=0)
+    pharmacy_ids: List[int] = Field(..., min_items=1, description="List of pharmacy IDs to receive the request")
+    patient_notes: Optional[str] = Field(None, max_length=1000)
+
+    @validator('pharmacy_ids')
+    def validate_pharmacy_ids(cls, v):
+        if len(set(v)) != len(v):
+            raise ValueError('Duplicate pharmacy IDs are not allowed')
+        return v
+
+class QuotationRequestResponse(BaseModel):
+    id: int
+    patient_id: int
+    prescription_id: int
+    status: str
+    patient_notes: Optional[str]
+    created_at: datetime
+    updated_at: Optional[datetime]
+    
+    # Nested data
+    patient: Optional[dict] = None
+    prescription: Optional[dict] = None
+    quotation_responses: Optional[list] = []
+    target_pharmacies: Optional[List[QuotationTargetPharmacy]] = None
+    
+    class Config:
+        from_attributes = True
+
+class QuotedItem(BaseModel):
+    medicine: str = Field(..., min_length=1, max_length=200)
+    quantity: int = Field(..., gt=0)
+    unit_price: float = Field(..., gt=0)
+    total_price: float = Field(..., gt=0)
+    
+    @validator('total_price')
+    def validate_total_price(cls, v, values):
+        if 'quantity' in values and 'unit_price' in values:
+            expected = values['quantity'] * values['unit_price']
+            if abs(v - expected) > 0.01:  # Allow small floating point differences
+                raise ValueError('Total price must equal quantity * unit_price')
+        return v
+
+class QuotationResponseCreate(BaseModel):
+    quotation_request_id: int = Field(..., gt=0)
+    quoted_items: list[QuotedItem] = Field(..., min_items=1)
+    delivery_charge: Optional[float] = Field(0.00, ge=0)
+    notes: Optional[str] = Field(None, max_length=1000)
+    estimated_delivery_time: Optional[str] = Field(None, max_length=100)
+    
+    @validator('quoted_items')
+    def validate_quoted_items(cls, v):
+        if not v:
+            raise ValueError('At least one item must be quoted')
+        return v
+
+class QuotationResponseUpdate(BaseModel):
+    status: Optional[str] = None
+    
+    @validator('status')
+    def validate_status(cls, v):
+        if v and v not in ['quoted', 'accepted', 'rejected', 'cancelled']:
+            raise ValueError('Invalid status')
+        return v
+
+class QuotationResponseResponse(BaseModel):
+    id: int
+    quotation_request_id: int
+    pharmacy_id: int
+    quoted_items: list
+    subtotal: float
+    delivery_charge: float
+    total_amount: float
+    notes: Optional[str]
+    estimated_delivery_time: Optional[str]
+    status: str
+    created_at: datetime
+    updated_at: Optional[datetime]
+    
+    # Nested data
+    pharmacy: Optional[dict] = None
+    quotation_request: Optional[dict] = None
+    
+    class Config:
+        from_attributes = True
+
+
+# Notification Schemas
+class NotificationResponse(BaseModel):
+    id: int
+    title: str
+    message: str
+    category: str
+    is_read: bool
+    created_at: datetime
+    data: Optional[dict] = None
+
+    class Config:
+        from_attributes = True
+
+
+class NotificationMarkRead(BaseModel):
+    is_read: bool = True
+
