@@ -8,6 +8,8 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [adminData, setAdminData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview'); // overview, patients, doctors, specializations, symptoms
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     // Check if admin is logged in
@@ -24,7 +26,29 @@ export default function AdminDashboard() {
     }
 
     loadDashboardStats();
+
+    // Check if we're on mobile and set initial state
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setMobileOpen(false);
+        setSidebarCollapsed(true);
+      } else {
+        setSidebarCollapsed(false);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [navigate]);
+
+  const handleSidebarToggle = () => {
+    if (window.innerWidth <= 1024) {
+      setMobileOpen(!mobileOpen);
+    } else {
+      setSidebarCollapsed(!sidebarCollapsed);
+    }
+  };
 
   const loadDashboardStats = async () => {
     try {
@@ -87,8 +111,23 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
+      {/* Sidebar Toggle Button */}
+      <button 
+        className={`admin-sidebar-toggle ${sidebarCollapsed ? 'collapsed' : ''}`}
+        onClick={handleSidebarToggle}
+        title={mobileOpen || !sidebarCollapsed ? 'Close Menu' : 'Open Menu'}
+      >
+        <i className={`icofont-${mobileOpen || !sidebarCollapsed ? 'close-line' : 'navigation-menu'}`}></i>
+      </button>
+
+      {/* Mobile Overlay */}
+      <div 
+        className={`admin-sidebar-overlay ${mobileOpen ? 'active' : ''}`}
+        onClick={handleSidebarToggle}
+      ></div>
+
       {/* Sidebar */}
-      <aside className="admin-sidebar">
+      <aside className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
         <div className="admin-sidebar-header">
           <div className="admin-brand">
             <img src="/img/logo.png" alt="Click & Care" className="admin-brand-logo" />
@@ -102,23 +141,35 @@ export default function AdminDashboard() {
         <nav className="admin-nav">
           <button
             className={`admin-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
+            onClick={() => {
+              setActiveTab('overview');
+              if (window.innerWidth <= 1024) setMobileOpen(false);
+            }}
+            title="Overview"
           >
             <i className="icofont-dashboard"></i>
             <span>Overview</span>
           </button>
           
           <button
-            className={`admin-nav-item ${activeTab === 'patients' ? 'active' : ''}`}
-            onClick={() => setActiveTab('patients')}
+            className={`admin-nav-item`}
+            onClick={() => {
+              navigate('/admin/patients');
+              if (window.innerWidth <= 1024) setMobileOpen(false);
+            }}
+            title="Patients"
           >
             <i className="icofont-users-alt-3"></i>
             <span>Patients</span>
           </button>
           
           <button
-            className={`admin-nav-item ${activeTab === 'doctors' ? 'active' : ''}`}
-            onClick={() => setActiveTab('doctors')}
+            className={`admin-nav-item`}
+            onClick={() => {
+              navigate('/admin/doctors');
+              if (window.innerWidth <= 1024) setMobileOpen(false);
+            }}
+            title="Doctors"
           >
             <i className="icofont-doctor-alt"></i>
             <span>Doctors</span>
@@ -129,7 +180,11 @@ export default function AdminDashboard() {
           
           <button
             className={`admin-nav-item ${activeTab === 'pharmacies' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pharmacies')}
+            onClick={() => {
+              setActiveTab('pharmacies');
+              if (window.innerWidth <= 1024) setMobileOpen(false);
+            }}
+            title="Pharmacies"
           >
             <i className="icofont-pills"></i>
             <span>Pharmacies</span>
@@ -140,7 +195,11 @@ export default function AdminDashboard() {
           
           <button
             className={`admin-nav-item ${activeTab === 'specializations' ? 'active' : ''}`}
-            onClick={() => setActiveTab('specializations')}
+            onClick={() => {
+              setActiveTab('specializations');
+              if (window.innerWidth <= 1024) setMobileOpen(false);
+            }}
+            title="Specializations"
           >
             <i className="icofont-stethoscope-alt"></i>
             <span>Specializations</span>
@@ -148,7 +207,11 @@ export default function AdminDashboard() {
           
           <button
             className={`admin-nav-item ${activeTab === 'symptoms' ? 'active' : ''}`}
-            onClick={() => setActiveTab('symptoms')}
+            onClick={() => {
+              setActiveTab('symptoms');
+              if (window.innerWidth <= 1024) setMobileOpen(false);
+            }}
+            title="Symptoms"
           >
             <i className="icofont-prescription"></i>
             <span>Symptoms</span>
@@ -165,15 +228,24 @@ export default function AdminDashboard() {
               <p className="admin-user-role">{adminData?.role || 'admin'}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="admin-logout-btn">
+          <button onClick={handleLogout} className="admin-logout-btn" title="Logout">
             <i className="icofont-logout"></i>
-            Logout
+            <span>Logout</span>
           </button>
         </div>
+
+        {/* Sidebar Toggle Button */}
+        <button 
+          className={`admin-sidebar-toggle ${sidebarCollapsed ? 'collapsed' : ''}`}
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        >
+          <i className={`icofont-${sidebarCollapsed ? 'navigation-menu' : 'close-line'}`}></i>
+        </button>
       </aside>
 
       {/* Main Content */}
-      <main className="admin-main">
+      <main className={`admin-main ${sidebarCollapsed ? 'expanded' : ''}`}>
         <div className="admin-main-content">
           {renderContent()}
         </div>
