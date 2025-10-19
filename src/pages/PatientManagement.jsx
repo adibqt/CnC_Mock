@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AdminSidebar from '../components/AdminSidebar';
 import './PatientManagement.css';
 
 export default function PatientManagement() {
@@ -13,6 +14,9 @@ export default function PatientManagement() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPatients, setTotalPatients] = useState(0);
   const [actionLoading, setActionLoading] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [stats, setStats] = useState(null);
   
   const patientsPerPage = 20;
 
@@ -25,7 +29,58 @@ export default function PatientManagement() {
     }
 
     loadPatients();
+    loadStats();
   }, [currentPage, searchQuery, filterActive]);
+
+  // Handle window resize for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1024) {
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleSidebarToggle = () => {
+    if (window.innerWidth <= 1024) {
+      setMobileOpen(!mobileOpen);
+    } else {
+      setSidebarCollapsed(!sidebarCollapsed);
+    }
+  };
+
+  useEffect(() => {
+    // Check if admin is logged in
+    const token = localStorage.getItem('admin_accessToken');
+    if (!token) {
+      navigate('/admin');
+      return;
+    }
+
+    loadPatients();
+    loadStats();
+  }, [currentPage, searchQuery, filterActive]);
+
+  const loadStats = async () => {
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch('http://localhost:8000/api/admin/dashboard/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  };
 
   const loadPatients = async () => {
     setLoading(true);
@@ -138,24 +193,44 @@ export default function PatientManagement() {
   const totalPages = Math.ceil(totalPatients / patientsPerPage);
 
   return (
-    <div className="patient-management">
-      {/* Header */}
-      <div className="pm-header">
-        <div className="pm-header-left">
-          <button onClick={() => navigate('/admin/dashboard')} className="pm-back-btn">
-            <i className="icofont-arrow-left"></i>
-            Back to Dashboard
-          </button>
-          <div className="pm-title-section">
-            <h1>Patient Management</h1>
-            <p>View and manage all registered patients</p>
-          </div>
-        </div>
-      </div>
+    <div className="admin-dashboard">
+      {/* Mobile Toggle Button */}
+      <button 
+        className={`admin-sidebar-toggle ${sidebarCollapsed ? 'collapsed' : ''}`}
+        onClick={handleSidebarToggle}
+        title={mobileOpen || !sidebarCollapsed ? 'Close Menu' : 'Open Menu'}
+      >
+        <i className={`icofont-${mobileOpen || !sidebarCollapsed ? 'close-line' : 'navigation-menu'}`}></i>
+      </button>
 
-      {/* Controls */}
-      <div className="pm-controls">
-        <div className="pm-search-box">
+      {/* Mobile Overlay */}
+      <div 
+        className={`admin-sidebar-overlay ${mobileOpen ? 'active' : ''}`}
+        onClick={handleSidebarToggle}
+      ></div>
+
+      <AdminSidebar 
+        stats={stats}
+        collapsed={sidebarCollapsed}
+        onToggle={handleSidebarToggle}
+        mobileOpen={mobileOpen}
+      />
+      
+      <main className={`admin-main ${sidebarCollapsed ? 'expanded' : ''}`}>
+        <div className="patient-management">
+          {/* Header */}
+          <div className="pm-header">
+            <div className="pm-header-left">
+              <div className="pm-title-section">
+                <h1>Patient Management</h1>
+                <p>View and manage all registered patients</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="pm-controls">
+            <div className="pm-search-box">
           <i className="icofont-search"></i>
           <input
             type="text"
@@ -350,6 +425,8 @@ export default function PatientManagement() {
           actionLoading={actionLoading}
         />
       )}
+        </div>
+      </main>
     </div>
   );
 }
@@ -646,3 +723,4 @@ function PrescriptionList({ patientId }) {
     </div>
   );
 }
+
