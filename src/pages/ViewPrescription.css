@@ -386,6 +386,24 @@
   margin-top: 0.25rem;
 }
 
+/* Lab Tests Section */
+.lab-tests-list {
+  margin-top: 1rem;
+}
+
+.lab-tests-list .medications-table thead {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+}
+
+.lab-tests-list .medications-table tbody tr:hover {
+  background: #ebf8ff;
+}
+
+/* Icon colors for different sections */
+.prescription-section h3 .icofont-test-tube-alt {
+  color: #4299e1;
+}
+
 /* Prescription Footer */
 .prescription-footer {
   margin-top: 3rem;

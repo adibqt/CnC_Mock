@@ -69,6 +69,9 @@ async def create_prescription(
     # Convert medications to dict format for JSON storage
     medications_json = [med.dict() for med in prescription_data.medications]
     
+    # Convert lab tests to dict format for JSON storage
+    lab_tests_json = [test.dict() for test in prescription_data.lab_tests] if prescription_data.lab_tests else []
+    
     # Create new prescription
     new_prescription = Prescription(
         appointment_id=prescription_data.appointment_id,
@@ -77,6 +80,7 @@ async def create_prescription(
         prescription_id=prescription_id,
         diagnosis=prescription_data.diagnosis,
         medications=medications_json,
+        lab_tests=lab_tests_json,
         advice=prescription_data.advice,
         follow_up=prescription_data.follow_up
     )
@@ -98,6 +102,7 @@ async def create_prescription(
         "prescription_id": new_prescription.prescription_id,
         "diagnosis": new_prescription.diagnosis,
         "medications": new_prescription.medications,
+        "lab_tests": new_prescription.lab_tests or [],
         "advice": new_prescription.advice,
         "follow_up": new_prescription.follow_up,
         "created_at": new_prescription.created_at,
@@ -266,6 +271,7 @@ async def get_patient_prescriptions(
             "prescription_id": presc.prescription_id,
             "diagnosis": presc.diagnosis,
             "medications": presc.medications,  # Include medications
+            "lab_tests": presc.lab_tests or [],  # Include lab tests
             "advice": presc.advice,  # Include advice
             "follow_up": presc.follow_up,  # Include follow_up
             "created_at": presc.created_at,
@@ -323,9 +329,13 @@ async def update_prescription(
     # Convert medications to dict format
     medications_json = [med.dict() for med in prescription_data.medications]
     
+    # Convert lab tests to dict format
+    lab_tests_json = [test.dict() for test in prescription_data.lab_tests] if prescription_data.lab_tests else []
+    
     # Update prescription
     prescription.diagnosis = prescription_data.diagnosis
     prescription.medications = medications_json
+    prescription.lab_tests = lab_tests_json
     prescription.advice = prescription_data.advice
     prescription.follow_up = prescription_data.follow_up
     
