@@ -1,5 +1,4 @@
-# Multi-stage Dockerfile for FastAPI Backend
-# Stage 1: Builder - Install dependencies
+
 FROM python:3.11-slim as builder
 
 # Set working directory

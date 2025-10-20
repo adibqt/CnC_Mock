@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from config import settings
 from database import engine, Base
 from routers import users_router, doctors_router, ai_router
+
 # Force reload after .env changes
 from routers.appointments import router as appointments_router
 from routers.livekit import router as livekit_router
@@ -13,6 +14,9 @@ from routers.public import router as public_router
 from routers.pharmacy import router as pharmacy_router
 from routers.quotations import router as quotations_router
 from pathlib import Path
+from routers import clinic, lab_quotations
+from routers.lab_reports import router as lab_reports_router
+
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -61,6 +65,10 @@ app.include_router(admin_router)
 app.include_router(public_router)
 app.include_router(pharmacy_router)
 app.include_router(quotations_router)
+app.include_router(clinic.router)
+app.include_router(lab_quotations.router)
+app.include_router(lab_reports_router)
+
 
 @app.on_event("startup")
 async def startup_event():

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, JSON, ForeignKey, Numeric, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, JSON, ForeignKey, Numeric, Float, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -287,4 +287,138 @@ class Notification(Base):
     read_at = Column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", backref="notifications")
+
+
+class Clinic(Base):
+    __tablename__ = "clinics"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    clinic_name = Column(String, nullable=False, index=True)
+    phone = Column(String, unique=True, nullable=False, index=True)
+    hashed_password = Column(String, nullable=False)
+    
+    # Clinic Information
+    license_number = Column(String, unique=True, nullable=False)
+    address = Column(String, nullable=False)
+    city = Column(String, nullable=True)
+    state = Column(String, nullable=True)
+    postal_code = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    
+    # Verification
+    is_verified = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    verified_by = Column(Integer, nullable=True)  # Admin ID who verified
+    
+    # Additional Info
+    services_offered = Column(JSON, nullable=True)  # List of lab tests offered
+    operating_hours = Column(String, nullable=True)
+    contact_person = Column(String, nullable=True)
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class LabTestQuotationRequest(Base):
+    __tablename__ = "lab_test_quotation_requests"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    prescription_id = Column(Integer, ForeignKey("prescriptions.id"), nullable=False)
+    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # Request Details
+    lab_tests = Column(JSON, nullable=False)  # List of lab tests from prescription
+    additional_notes = Column(Text, nullable=True)
+    
+    # Status
+    status = Column(String, default="pending")  # pending, accepted, completed, cancelled
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    prescription = relationship("Prescription", backref="lab_quotation_requests")
+    patient = relationship("User", backref="lab_quotation_requests")
+    target_clinics = relationship("LabTestQuotationRequestClinic", back_populates="quotation_request")
+
+
+class LabTestQuotationResponse(Base):
+    __tablename__ = "lab_test_quotation_responses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    quotation_request_id = Column(Integer, ForeignKey("lab_test_quotation_requests.id"), nullable=False)
+    clinic_id = Column(Integer, ForeignKey("clinics.id"), nullable=False)
+    
+    # Response Details
+    test_items = Column(JSON, nullable=False)  # List of {test_name, price, notes}
+    total_amount = Column(Float, nullable=False)
+    estimated_delivery = Column(String, nullable=True)  # e.g., "24 hours", "2-3 days"
+    additional_notes = Column(Text, nullable=True)
+    
+    # Status
+    is_accepted = Column(Boolean, default=False)
+    accepted_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    quotation_request = relationship("LabTestQuotationRequest", backref="quotation_responses")
+    clinic = relationship("Clinic", backref="lab_quotation_responses")
+
+
+class LabTestQuotationRequestClinic(Base):
+    __tablename__ = "lab_test_quotation_request_clinics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    quotation_request_id = Column(Integer, ForeignKey("lab_test_quotation_requests.id", ondelete="CASCADE"), nullable=False)
+    clinic_id = Column(Integer, ForeignKey("clinics.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("quotation_request_id", "clinic_id", name="uq_lab_request_clinic"),
+    )
+
+    quotation_request = relationship("LabTestQuotationRequest", back_populates="target_clinics")
+    clinic = relationship("Clinic", backref="lab_quotation_request_targets")
+
+
+class LabReport(Base):
+    __tablename__ = "lab_reports"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    quotation_response_id = Column(Integer, ForeignKey("lab_test_quotation_responses.id"), nullable=False)
+    clinic_id = Column(Integer, ForeignKey("clinics.id"), nullable=False)
+    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # Report Details
+    report_id = Column(String, unique=True, nullable=False, index=True)  # e.g., "LAB-12345"
+    report_title = Column(String, nullable=False)
+    test_results = Column(JSON, nullable=False)  # List of {test_name, result, unit, normal_range, status}
+    diagnosis_notes = Column(Text, nullable=True)
+    technician_name = Column(String, nullable=True)
+    pathologist_name = Column(String, nullable=True)
+    
+    # File Attachments
+    report_file_url = Column(String, nullable=True)  # PDF report path
+    report_images = Column(JSON, nullable=True)  # List of image paths
+    
+    # Status
+    status = Column(String, default="pending")  # pending, completed, verified
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Metadata
+    test_date = Column(DateTime(timezone=True), nullable=True)
+    report_date = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    quotation_response = relationship("LabTestQuotationResponse", backref="lab_report")
+    clinic = relationship("Clinic", backref="lab_reports")
+    patient = relationship("User", backref="lab_reports")
 

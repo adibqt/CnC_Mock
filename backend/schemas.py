@@ -481,3 +481,155 @@ class NotificationResponse(BaseModel):
 class NotificationMarkRead(BaseModel):
     is_read: bool = True
 
+
+# Clinic Schemas
+class ClinicSignup(BaseModel):
+    clinic_name: str = Field(..., min_length=3, max_length=200)
+    phone: str = Field(..., min_length=10, max_length=15)
+    password: str = Field(..., min_length=6, max_length=72)
+    license_number: str = Field(..., min_length=5, max_length=50)
+    address: str = Field(..., min_length=10, max_length=500)
+    city: Optional[str] = Field(None, max_length=100)
+    state: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=20)
+    email: Optional[str] = Field(None, max_length=100)
+    contact_person: Optional[str] = Field(None, max_length=100)
+
+class ClinicLogin(BaseModel):
+    phone: str = Field(..., min_length=10, max_length=15)
+    password: str = Field(..., min_length=6, max_length=72)
+
+class ClinicResponse(BaseModel):
+    id: int
+    clinic_name: str
+    phone: str
+    license_number: str
+    address: str
+    city: Optional[str]
+    state: Optional[str]
+    postal_code: Optional[str]
+    email: Optional[str]
+    is_verified: bool
+    is_active: bool
+    contact_person: Optional[str]
+    services_offered: Optional[list]
+    operating_hours: Optional[str]
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class ClinicUpdate(BaseModel):
+    clinic_name: Optional[str] = Field(None, min_length=3, max_length=200)
+    address: Optional[str] = Field(None, min_length=10, max_length=500)
+    city: Optional[str] = Field(None, max_length=100)
+    state: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=20)
+    email: Optional[str] = Field(None, max_length=100)
+    contact_person: Optional[str] = Field(None, max_length=100)
+    services_offered: Optional[list] = None
+    operating_hours: Optional[str] = Field(None, max_length=200)
+
+
+# Lab Test Quotation Request Schemas
+class LabTestQuotationRequestCreate(BaseModel):
+    prescription_id: int = Field(..., gt=0)
+    clinic_ids: list[int] = Field(..., min_items=1)
+    additional_notes: Optional[str] = Field(None, max_length=1000)
+    
+    @validator('clinic_ids')
+    def validate_clinic_ids(cls, v):
+        if len(v) != len(set(v)):
+            raise ValueError('Duplicate clinic IDs are not allowed')
+        return v
+
+class LabTestQuotationRequestResponse(BaseModel):
+    id: int
+    prescription_id: int
+    patient_id: int
+    lab_tests: list
+    additional_notes: Optional[str]
+    status: str
+    created_at: datetime
+    
+    # Nested data
+    patient: Optional[dict] = None
+    prescription: Optional[dict] = None
+    target_clinics: Optional[list] = []
+    
+    class Config:
+        from_attributes = True
+
+
+# Lab Test Quotation Response Schemas
+class LabTestQuotationItemCreate(BaseModel):
+    test_name: str = Field(..., min_length=1, max_length=300)
+    price: float = Field(..., gt=0)
+    notes: Optional[str] = Field(None, max_length=200)
+
+class LabTestQuotationResponseCreate(BaseModel):
+    quotation_request_id: int = Field(..., gt=0)
+    test_items: list[LabTestQuotationItemCreate] = Field(..., min_items=1)
+    estimated_delivery: Optional[str] = Field(None, max_length=100)
+    additional_notes: Optional[str] = Field(None, max_length=500)
+
+class LabTestQuotationResponseModel(BaseModel):
+    id: int
+    quotation_request_id: int
+    clinic_id: int
+    test_items: list
+    total_amount: float
+    estimated_delivery: Optional[str]
+    additional_notes: Optional[str]
+    is_accepted: bool
+    created_at: datetime
+    
+    # Nested data
+    clinic: Optional[dict] = None
+    quotation_request: Optional[dict] = None
+    
+    class Config:
+        from_attributes = True
+
+
+# Lab Report Schemas
+class TestResultItem(BaseModel):
+    test_name: str = Field(..., min_length=1, max_length=300)
+    result: str = Field(..., min_length=1, max_length=200)
+    unit: Optional[str] = Field(None, max_length=50)
+    normal_range: Optional[str] = Field(None, max_length=100)
+    status: str = Field(default="normal")  # normal, abnormal, critical
+
+class LabReportCreate(BaseModel):
+    quotation_response_id: int = Field(..., gt=0)
+    report_title: str = Field(..., min_length=3, max_length=300)
+    test_results: list[TestResultItem] = Field(..., min_items=1)
+    diagnosis_notes: Optional[str] = Field(None, max_length=2000)
+    technician_name: Optional[str] = Field(None, max_length=100)
+    pathologist_name: Optional[str] = Field(None, max_length=100)
+    test_date: Optional[datetime] = None
+
+class LabReportResponse(BaseModel):
+    id: int
+    report_id: str
+    quotation_response_id: int
+    clinic_id: int
+    patient_id: int
+    report_title: str
+    test_results: list
+    diagnosis_notes: Optional[str]
+    technician_name: Optional[str]
+    pathologist_name: Optional[str]
+    report_file_url: Optional[str]
+    report_images: Optional[list]
+    status: str
+    test_date: Optional[datetime]
+    report_date: datetime
+    created_at: datetime
+    
+    # Nested data
+    clinic: Optional[dict] = None
+    patient: Optional[dict] = None
+    
+    class Config:
+        from_attributes = True

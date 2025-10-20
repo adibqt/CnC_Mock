@@ -14,6 +14,9 @@ RUN npm ci --only=production=false
 # Copy source code
 COPY . .
 
+# Ensure public exists so the later COPY from the builder won't fail if the folder is absent
+RUN mkdir -p /app/public
+
 # Build the app for production
 RUN npm run build
 
@@ -23,11 +26,8 @@ FROM nginx:1.25-alpine
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy public assets if they exist
-COPY --from=builder /app/public /usr/share/nginx/html 2>/dev/null || true
+# Copy public assets
+COPY --from=builder /app/public/ /usr/share/nginx/html/
 
 # Create nginx cache directories
 RUN mkdir -p /var/cache/nginx/client_temp \
