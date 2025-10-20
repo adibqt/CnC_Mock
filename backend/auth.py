@@ -278,3 +278,65 @@ def get_current_pharmacy(
     
     return pharmacy
 
+
+def get_current_clinic(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    """
+    Dependency to get the current authenticated and verified clinic
+    """
+    from models import Clinic
+    
+    # Extract token
+    token = credentials.credentials
+    
+    # Decode token
+    payload = decode_access_token(token)
+    
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Get clinic info from token
+    phone: str = payload.get("sub")
+    user_type: str = payload.get("user_type")
+    
+    if phone is None or user_type is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Ensure user type is clinic
+    if user_type != "clinic":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only clinics can access this endpoint"
+        )
+    
+    # Query clinic
+    clinic = db.query(Clinic).filter(Clinic.phone == phone).first()
+    if clinic is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Clinic not found"
+        )
+    
+    if not clinic.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Clinic account is deactivated"
+        )
+    
+    if not clinic.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Clinic account is not verified yet"
+        )
+    
+    return clinic

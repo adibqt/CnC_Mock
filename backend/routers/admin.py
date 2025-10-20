@@ -10,7 +10,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from database import get_db
-from models import Admin, User, Doctor, Appointment, Prescription, Specialization, Symptom, AppointmentStatus
+from models import Admin, User, Doctor, Appointment, Prescription, Specialization, Symptom, AppointmentStatus, Clinic
 from schemas import (
     AdminLogin, AdminResponse, 
     UserResponse, DoctorVerificationUpdate,
@@ -89,15 +89,21 @@ async def get_dashboard_stats(
     db: Session = Depends(get_db)
 ):
     """Get dashboard statistics"""
+    from models import Pharmacy, Clinic
+    from datetime import timedelta
     
     # Count totals
     total_patients = db.query(User).count()
     total_doctors = db.query(Doctor).count()
     total_appointments = db.query(Appointment).count()
     total_prescriptions = db.query(Prescription).count()
+    total_pharmacies = db.query(Pharmacy).count()
+    total_clinics = db.query(Clinic).count()
     
     # Count pending verifications
     unverified_doctors = db.query(Doctor).filter(Doctor.is_verified == False).count()
+    unverified_pharmacies = db.query(Pharmacy).filter(Pharmacy.is_verified == False, Pharmacy.is_active == True).count()
+    unverified_clinics = db.query(Clinic).filter(Clinic.is_verified == False, Clinic.is_active == True).count()
     
     # Count by status
     pending_appointments = db.query(Appointment).filter(
@@ -109,27 +115,34 @@ async def get_dashboard_stats(
     ).count()
     
     # Recent registrations (last 7 days)
-    from datetime import timedelta
     week_ago = datetime.utcnow() - timedelta(days=7)
     
     new_patients = db.query(User).filter(User.created_at >= week_ago).count()
     new_doctors = db.query(Doctor).filter(Doctor.created_at >= week_ago).count()
+    new_pharmacies = db.query(Pharmacy).filter(Pharmacy.created_at >= week_ago).count()
+    new_clinics = db.query(Clinic).filter(Clinic.created_at >= week_ago).count()
     
     return {
         "totals": {
             "patients": total_patients,
             "doctors": total_doctors,
             "appointments": total_appointments,
-            "prescriptions": total_prescriptions
+            "prescriptions": total_prescriptions,
+            "pharmacies": total_pharmacies,
+            "clinics": total_clinics
         },
         "pending": {
             "unverified_doctors": unverified_doctors,
+            "unverified_pharmacies": unverified_pharmacies,
+            "unverified_clinics": unverified_clinics,
             "pending_appointments": pending_appointments,
             "confirmed_appointments": confirmed_appointments
         },
         "recent": {
             "new_patients_7d": new_patients,
-            "new_doctors_7d": new_doctors
+            "new_doctors_7d": new_doctors,
+            "new_pharmacies_7d": new_pharmacies,
+            "new_clinics_7d": new_clinics
         }
     }
 
@@ -882,5 +895,233 @@ async def get_pharmacy_stats(
         "verified_pharmacies": verified_pharmacies,
         "pending_verification": pending_verification,
         "inactive_pharmacies": inactive_pharmacies
+    }
+
+
+# ============== Clinic Management ==============
+
+@router.get("/clinics", response_model=List[dict])
+async def get_all_clinics(
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    is_verified: Optional[bool] = None,
+    is_active: Optional[bool] = None,
+    search: Optional[str] = None
+):
+    """
+    Get all clinics with optional filters.
+    Supports filtering by verification status, active status, and search.
+    """
+    from sqlalchemy import or_, and_
+    
+    query = db.query(Clinic)
+    
+    # Apply filters
+    filters = []
+    if is_verified is not None:
+        filters.append(Clinic.is_verified == is_verified)
+    if is_active is not None:
+        filters.append(Clinic.is_active == is_active)
+    if search:
+        search_filter = or_(
+            Clinic.clinic_name.ilike(f"%{search}%"),
+            Clinic.license_number.ilike(f"%{search}%"),
+            Clinic.phone.ilike(f"%{search}%"),
+            Clinic.city.ilike(f"%{search}%")
+        )
+        filters.append(search_filter)
+    
+    if filters:
+        query = query.filter(and_(*filters))
+    
+    clinics = query.order_by(Clinic.created_at.desc()).offset(skip).limit(limit).all()
+    
+    # Format response
+    return [
+        {
+            "id": clinic.id,
+            "phone": clinic.phone,
+            "clinic_name": clinic.clinic_name,
+            "license_number": clinic.license_number,
+            "address": clinic.address,
+            "city": clinic.city,
+            "state": clinic.state,
+            "postal_code": clinic.postal_code,
+            "email": clinic.email,
+            "contact_person": clinic.contact_person,
+            "is_verified": clinic.is_verified,
+            "is_active": clinic.is_active,
+            "verified_at": clinic.verified_at,
+            "created_at": clinic.created_at,
+            "updated_at": clinic.updated_at
+        }
+        for clinic in clinics
+    ]
+
+
+@router.get("/clinics/{clinic_id}", response_model=dict)
+async def get_clinic_details(
+    clinic_id: int,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Get detailed information about a specific clinic."""
+    
+    clinic = db.query(Clinic).filter(Clinic.id == clinic_id).first()
+    
+    if not clinic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found"
+        )
+    
+    # Get statistics
+    from models import LabTestQuotationResponse, LabReport
+    
+    total_quotations = db.query(LabTestQuotationResponse).filter(
+        LabTestQuotationResponse.clinic_id == clinic_id
+    ).count()
+    
+    total_reports = db.query(LabReport).filter(
+        LabReport.clinic_id == clinic_id
+    ).count()
+    
+    return {
+        "id": clinic.id,
+        "phone": clinic.phone,
+        "clinic_name": clinic.clinic_name,
+        "license_number": clinic.license_number,
+        "address": clinic.address,
+        "city": clinic.city,
+        "state": clinic.state,
+        "postal_code": clinic.postal_code,
+        "email": clinic.email,
+        "contact_person": clinic.contact_person,
+        "is_verified": clinic.is_verified,
+        "is_active": clinic.is_active,
+        "verified_at": clinic.verified_at,
+        "verified_by": clinic.verified_by,
+        "created_at": clinic.created_at,
+        "updated_at": clinic.updated_at,
+        "stats": {
+            "total_quotations": total_quotations,
+            "total_reports": total_reports
+        }
+    }
+
+
+@router.put("/clinics/{clinic_id}/verify", response_model=dict)
+async def verify_clinic(
+    clinic_id: int,
+    verification_data: dict,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Verify or reject a clinic.
+    Sets is_verified to True/False and records admin who verified.
+    """
+    
+    clinic = db.query(Clinic).filter(Clinic.id == clinic_id).first()
+    
+    if not clinic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found"
+        )
+    
+    is_verified = verification_data.get("is_verified")
+    is_active = verification_data.get("is_active")
+    
+    if is_verified is not None:
+        clinic.is_verified = is_verified
+        clinic.verified_by = current_admin.id
+        clinic.verified_at = datetime.utcnow() if is_verified else None
+    
+    if is_active is not None:
+        clinic.is_active = is_active
+    
+    clinic.updated_at = datetime.utcnow()
+    
+    # Update admin's last login
+    current_admin.last_login = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(clinic)
+    
+    action = "verified" if clinic.is_verified else "rejected"
+    
+    return {
+        "success": True,
+        "message": f"Clinic {action} successfully",
+        "clinic": {
+            "id": clinic.id,
+            "clinic_name": clinic.clinic_name,
+            "is_verified": clinic.is_verified,
+            "is_active": clinic.is_active,
+            "verified_at": clinic.verified_at
+        }
+    }
+
+
+@router.put("/clinics/{clinic_id}/toggle-active", response_model=dict)
+async def toggle_clinic_active_status(
+    clinic_id: int,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Toggle clinic active status (activate/deactivate)."""
+    
+    clinic = db.query(Clinic).filter(Clinic.id == clinic_id).first()
+    
+    if not clinic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found"
+        )
+    
+    # Toggle the active status
+    clinic.is_active = not clinic.is_active
+    clinic.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(clinic)
+    
+    status_text = "activated" if clinic.is_active else "deactivated"
+    
+    return {
+        "success": True,
+        "message": f"Clinic {status_text} successfully",
+        "clinic": {
+            "id": clinic.id,
+            "clinic_name": clinic.clinic_name,
+            "is_active": clinic.is_active
+        }
+    }
+
+
+@router.get("/clinics/stats/summary", response_model=dict)
+async def get_clinic_stats(
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Get clinic statistics for admin dashboard."""
+    from sqlalchemy import func
+    
+    total_clinics = db.query(func.count(Clinic.id)).scalar()
+    verified_clinics = db.query(func.count(Clinic.id)).filter(Clinic.is_verified == True).scalar()
+    pending_verification = db.query(func.count(Clinic.id)).filter(
+        Clinic.is_verified == False,
+        Clinic.is_active == True
+    ).scalar()
+    inactive_clinics = db.query(func.count(Clinic.id)).filter(Clinic.is_active == False).scalar()
+    
+    return {
+        "total_clinics": total_clinics,
+        "verified_clinics": verified_clinics,
+        "pending_verification": pending_verification,
+        "inactive_clinics": inactive_clinics
     }
 
