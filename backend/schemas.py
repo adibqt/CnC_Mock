@@ -201,10 +201,15 @@ class MedicationItem(BaseModel):
     duration: str = Field(..., min_length=1, max_length=100)
     notes: Optional[str] = Field(None, max_length=500)
 
+class LabTestItem(BaseModel):
+    test_name: str = Field(..., min_length=1, max_length=300)
+    instructions: Optional[str] = Field(None, max_length=500)
+
 class PrescriptionCreate(BaseModel):
     appointment_id: int = Field(..., gt=0)
     diagnosis: str = Field(..., min_length=1, max_length=5000)
     medications: list[MedicationItem] = Field(..., min_items=1)
+    lab_tests: Optional[list[LabTestItem]] = Field(default=[])
     advice: Optional[str] = Field(None, max_length=2000)
     follow_up: Optional[str] = Field(None, max_length=1000)
 
@@ -216,6 +221,7 @@ class PrescriptionResponse(BaseModel):
     prescription_id: str
     diagnosis: str
     medications: list
+    lab_tests: Optional[list] = []
     advice: Optional[str]
     follow_up: Optional[str]
     created_at: datetime

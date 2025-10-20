@@ -601,3 +601,29 @@
     justify-content: center;
   }
 }
+
+/* Lab Tests Section */
+.lab-test-item {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border-left: 4px solid #4299e1;
+}
+
+.lab-test-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lab-test-fields .form-input {
+  width: 100%;
+}
+
+.lab-test-fields .form-textarea {
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+/* Icon styling for lab tests */
+.form-label .icofont-test-tube-alt {
+  color: #4299e1;
+}

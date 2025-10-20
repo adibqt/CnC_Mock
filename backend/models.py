@@ -115,6 +115,7 @@ class Prescription(Base):
     prescription_id = Column(String, unique=True, nullable=False, index=True)  # e.g., "CC-84321"
     diagnosis = Column(Text, nullable=False)
     medications = Column(JSON, nullable=False)  # List of medication objects
+    lab_tests = Column(JSON, nullable=True, default=[])  # List of lab test objects
     advice = Column(Text, nullable=True)
     follow_up = Column(Text, nullable=True)
     

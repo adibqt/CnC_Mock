@@ -19,6 +19,9 @@ export default function WritePrescription() {
   const [medications, setMedications] = useState([
     { name: '', dosage: '', frequency: '', duration: '', notes: '' }
   ]);
+  const [labTests, setLabTests] = useState([
+    { test_name: '', instructions: '' }
+  ]);
   const [advice, setAdvice] = useState('');
   const [followUp, setFollowUp] = useState('');
 
@@ -51,6 +54,7 @@ export default function WritePrescription() {
     // Reset form
     setDiagnosis('');
     setMedications([{ name: '', dosage: '', frequency: '', duration: '', notes: '' }]);
+    setLabTests([{ test_name: '', instructions: '' }]);
     setAdvice('');
     setFollowUp('');
   };
@@ -70,6 +74,26 @@ export default function WritePrescription() {
       i === index ? { ...med, [field]: value } : med
     );
     setMedications(updatedMedications);
+  };
+
+  const addLabTest = () => {
+    setLabTests([...labTests, { test_name: '', instructions: '' }]);
+  };
+
+  const removeLabTest = (index) => {
+    if (labTests.length > 1) {
+      setLabTests(labTests.filter((_, i) => i !== index));
+    } else {
+      // If removing the last test, just clear it
+      setLabTests([{ test_name: '', instructions: '' }]);
+    }
+  };
+
+  const updateLabTest = (index, field, value) => {
+    const updatedTests = labTests.map((test, i) => 
+      i === index ? { ...test, [field]: value } : test
+    );
+    setLabTests(updatedTests);
   };
 
   const validateForm = () => {
@@ -113,6 +137,7 @@ export default function WritePrescription() {
       appointment_id: selectedAppointment.id,
       diagnosis: diagnosis.trim(),
       medications: medications.filter(med => med.name.trim()),
+      lab_tests: labTests.filter(test => test.test_name.trim()),
       advice: advice.trim() || null,
       follow_up: followUp.trim() || null
     };
@@ -138,6 +163,7 @@ export default function WritePrescription() {
         setSelectedAppointment(null);
         setDiagnosis('');
         setMedications([{ name: '', dosage: '', frequency: '', duration: '', notes: '' }]);
+        setLabTests([{ test_name: '', instructions: '' }]);
         setAdvice('');
         setFollowUp('');
         setSuccess('');
@@ -377,6 +403,57 @@ export default function WritePrescription() {
                           placeholder="Notes (optional)"
                           value={medication.notes}
                           onChange={(e) => updateMedication(index, 'notes', e.target.value)}
+                          className="form-textarea"
+                          rows="2"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Lab Tests */}
+              <section className="form-section">
+                <div className="section-header">
+                  <label className="form-label">
+                    <i className="icofont-test-tube-alt"></i>
+                    Lab Tests (Optional)
+                  </label>
+                  <button type="button" onClick={addLabTest} className="add-medication-btn">
+                    <i className="icofont-plus-circle"></i>
+                    Add Lab Test
+                  </button>
+                </div>
+
+                <div className="medications-list">
+                  {labTests.map((test, index) => (
+                    <div key={index} className="medication-item lab-test-item">
+                      <div className="medication-header">
+                        <span className="medication-number">Lab Test {index + 1}</span>
+                        {labTests.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeLabTest(index)}
+                            className="remove-medication-btn"
+                          >
+                            <i className="icofont-close-line"></i>
+                            Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="lab-test-fields">
+                        <input
+                          type="text"
+                          placeholder="Test Name (e.g., Complete Blood Count, Blood Sugar)"
+                          value={test.test_name}
+                          onChange={(e) => updateLabTest(index, 'test_name', e.target.value)}
+                          className="form-input"
+                        />
+                        <textarea
+                          placeholder="Instructions (optional)"
+                          value={test.instructions}
+                          onChange={(e) => updateLabTest(index, 'instructions', e.target.value)}
                           className="form-textarea"
                           rows="2"
                         />

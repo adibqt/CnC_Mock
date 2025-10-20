@@ -418,6 +418,33 @@ export default function ViewPrescription() {
                   </div>
                 </div>
 
+                {/* Lab Tests */}
+                {selectedPrescription.lab_tests && selectedPrescription.lab_tests.length > 0 && (
+                  <div className="prescription-section">
+                    <h3><i className="icofont-test-tube-alt"></i> Lab Tests Recommended</h3>
+                    <div className="lab-tests-list">
+                      <table className="medications-table">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Test Name</th>
+                            <th>Instructions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedPrescription.lab_tests.map((test, index) => (
+                            <tr key={index}>
+                              <td>{index + 1}</td>
+                              <td><strong>{test.test_name}</strong></td>
+                              <td>{test.instructions || 'As per standard protocol'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
                 {/* General Advice */}
                 {selectedPrescription.advice && (
                   <div className="prescription-section">

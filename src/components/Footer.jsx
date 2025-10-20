@@ -32,15 +32,14 @@ const Footer = () => {
                       <li><Link to="/"><i className="fa fa-caret-right" aria-hidden="true"></i>Home</Link></li>
                       <li><Link to="/about"><i className="fa fa-caret-right" aria-hidden="true"></i>About Us</Link></li>
                       <li><Link to="/services"><i className="fa fa-caret-right" aria-hidden="true"></i>Services</Link></li>
-                      <li><Link to="/cases"><i className="fa fa-caret-right" aria-hidden="true"></i>Our Cases</Link></li>
+                      
                       <li><Link to="/other"><i className="fa fa-caret-right" aria-hidden="true"></i>Other Links</Link></li>
                     </ul>
                   </div>
                   <div className="col-lg-6 col-md-6 col-12">
                     <ul>
-                      <li><Link to="/consultation"><i className="fa fa-caret-right" aria-hidden="true"></i>Consuling</Link></li>
-                      <li><Link to="/finance"><i className="fa fa-caret-right" aria-hidden="true"></i>Finance</Link></li>
-                      <li><Link to="/testimonials"><i className="fa fa-caret-right" aria-hidden="true"></i>Testimonials</Link></li>
+                     
+                      
                       <li><Link to="/faq"><i className="fa fa-caret-right" aria-hidden="true"></i>FAQ</Link></li>
                       <li><Link to="/contact"><i className="fa fa-caret-right" aria-hidden="true"></i>Contact Us</Link></li>
                     </ul>
