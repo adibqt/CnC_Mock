@@ -23,7 +23,7 @@ import json
 router = APIRouter(prefix="/api/lab-reports", tags=["lab-reports"])
 
 # File upload configuration
-UPLOAD_DIR = "backend/uploads/lab_reports"
+UPLOAD_DIR = "uploads/lab_reports"
 ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
@@ -209,6 +209,27 @@ def get_my_lab_reports(
     for report in reports:
         clinic = db.query(Clinic).filter(Clinic.id == report.clinic_id).first()
         
+        # Get quotation response and request to include prescription_id
+        quotation_response = None
+        prescription_id = None
+        if report.quotation_response_id:
+            qr = db.query(LabTestQuotationResponse).filter(
+                LabTestQuotationResponse.id == report.quotation_response_id
+            ).first()
+            if qr:
+                quotation_request = db.query(LabTestQuotationRequest).filter(
+                    LabTestQuotationRequest.id == qr.quotation_request_id
+                ).first()
+                if quotation_request:
+                    prescription_id = quotation_request.prescription_id
+                    quotation_response = {
+                        "id": qr.id,
+                        "quotation_request": {
+                            "id": quotation_request.id,
+                            "prescription_id": quotation_request.prescription_id
+                        }
+                    }
+        
         result.append({
             "id": report.id,
             "report_id": report.report_id,
@@ -223,6 +244,9 @@ def get_my_lab_reports(
             "test_date": report.test_date,
             "report_date": report.report_date,
             "created_at": report.created_at,
+            "quotation_response_id": report.quotation_response_id,
+            "quotation_response": quotation_response,
+            "prescription_id": prescription_id,
             "clinic": {
                 "id": clinic.id,
                 "clinic_name": clinic.clinic_name,
@@ -257,6 +281,11 @@ def get_clinic_reports(
             "report_id": report.report_id,
             "report_title": report.report_title,
             "test_results": report.test_results,
+            "diagnosis_notes": report.diagnosis_notes,
+            "technician_name": report.technician_name,
+            "pathologist_name": report.pathologist_name,
+            "report_file_url": report.report_file_url,
+            "report_images": report.report_images,
             "status": report.status,
             "test_date": report.test_date,
             "report_date": report.report_date,
@@ -401,13 +430,13 @@ def delete_lab_report(
     
     # Delete associated files
     if report.report_file_url:
-        file_path = os.path.join("backend", report.report_file_url.lstrip('/'))
+        file_path = report.report_file_url.lstrip('/')
         if os.path.exists(file_path):
             os.remove(file_path)
     
     if report.report_images:
         for image_url in report.report_images:
-            image_path = os.path.join("backend", image_url.lstrip('/'))
+            image_path = image_url.lstrip('/')
             if os.path.exists(image_path):
                 os.remove(image_path)
     
