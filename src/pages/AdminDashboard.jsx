@@ -91,6 +91,8 @@ export default function AdminDashboard() {
         return <DoctorsTab />;
       case 'pharmacies':
         return <PharmaciesTab />;
+      case 'clinics':
+        return <ClinicsTab />;
       case 'specializations':
         return <SpecializationsTab />;
       case 'symptoms':
@@ -190,6 +192,21 @@ export default function AdminDashboard() {
             <span>Pharmacies</span>
             {stats?.pending?.pending_pharmacy_verification > 0 && (
               <span className="badge-count">{stats.pending.pending_pharmacy_verification}</span>
+            )}
+          </button>
+          
+          <button
+            className={`admin-nav-item ${activeTab === 'clinics' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('clinics');
+              if (window.innerWidth <= 1024) setMobileOpen(false);
+            }}
+            title="Clinics"
+          >
+            <i className="icofont-laboratory"></i>
+            <span>Clinics</span>
+            {stats?.pending?.unverified_clinics > 0 && (
+              <span className="badge-count">{stats.pending.unverified_clinics}</span>
             )}
           </button>
           
@@ -1724,6 +1741,650 @@ function PharmaciesTab() {
                     <button 
                       className="spec-btn-primary"
                       onClick={() => handleToggleActive(selectedPharmacy.id, true)}
+                      disabled={actionLoading}
+                      style={{flex: '1', minWidth: '160px'}}
+                    >
+                      <i className="icofont-check"></i> Activate
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Clinics Tab Component
+function ClinicsTab() {
+  const [clinics, setClinics] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedClinic, setSelectedClinic] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); // all, pending, verified, inactive
+  const [stats, setStats] = useState({ total: 0, verified: 0, pending: 0, inactive: 0 });
+
+  useEffect(() => {
+    loadClinics();
+    loadStats();
+  }, [filterStatus]);
+
+  const loadStats = async () => {
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch('http://localhost:8000/api/admin/clinics/stats/summary', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStats({
+          total: data.total_clinics,
+          verified: data.verified_clinics,
+          pending: data.pending_verification,
+          inactive: data.inactive_clinics
+        });
+      }
+    } catch (error) {
+      console.error('Error loading clinic stats:', error);
+    }
+  };
+
+  const loadClinics = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      let url = 'http://localhost:8000/api/admin/clinics?limit=100';
+      
+      // Apply filters
+      if (filterStatus === 'pending') {
+        url += '&is_verified=false&is_active=true';
+      } else if (filterStatus === 'verified') {
+        url += '&is_verified=true&is_active=true';
+      } else if (filterStatus === 'inactive') {
+        url += '&is_active=false';
+      }
+
+      if (searchQuery) {
+        url += `&search=${encodeURIComponent(searchQuery)}`;
+      }
+
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setClinics(data);
+      }
+    } catch (error) {
+      console.error('Error loading clinics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    loadClinics();
+  };
+
+  const viewDetails = async (clinicId) => {
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch(`http://localhost:8000/api/admin/clinics/${clinicId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedClinic(data);
+        setShowDetailsModal(true);
+      }
+    } catch (error) {
+      console.error('Error loading clinic details:', error);
+      alert('Failed to load clinic details');
+    }
+  };
+
+  const handleVerify = async (clinicId, isVerified) => {
+    if (!confirm(`Are you sure you want to ${isVerified ? 'verify' : 'reject'} this clinic?`)) {
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch(`http://localhost:8000/api/admin/clinics/${clinicId}/verify`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_verified: isVerified })
+      });
+
+      if (response.ok) {
+        alert(`Clinic ${isVerified ? 'verified' : 'rejected'} successfully!`);
+        loadClinics();
+        loadStats();
+        if (showDetailsModal) {
+          setShowDetailsModal(false);
+          setSelectedClinic(null);
+        }
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to update clinic: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error updating clinic:', error);
+      alert('Failed to update clinic');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (clinicId, isActive) => {
+    if (!confirm(`Are you sure you want to ${isActive ? 'activate' : 'deactivate'} this clinic?`)) {
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('admin_accessToken');
+      const response = await fetch(`http://localhost:8000/api/admin/clinics/${clinicId}/verify`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_active: isActive })
+      });
+
+      if (response.ok) {
+        alert(`Clinic ${isActive ? 'activated' : 'deactivated'} successfully!`);
+        loadClinics();
+        loadStats();
+        if (showDetailsModal) {
+          setShowDetailsModal(false);
+          setSelectedClinic(null);
+        }
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to update clinic: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error updating clinic:', error);
+      alert('Failed to update clinic');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const filteredClinics = clinics;
+
+  return (
+    <div className="admin-content">
+      <div className="admin-content-header">
+        <div>
+          <h2>Clinic Management</h2>
+          <p>Manage clinic verifications and status</p>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="spec-stats-grid">
+        <div className="spec-stat-card">
+          <div className="spec-stat-icon" style={{background: 'linear-gradient(135deg, #17a2b8 0%, #0e6ba8 100%)'}}>
+            <i className="icofont-laboratory"></i>
+          </div>
+          <div className="spec-stat-content">
+            <div className="spec-stat-value">{stats.total}</div>
+            <div className="spec-stat-label">Total Clinics</div>
+          </div>
+        </div>
+        <div className="spec-stat-card">
+          <div className="spec-stat-icon" style={{background: 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)'}}>
+            <i className="icofont-check-circled"></i>
+          </div>
+          <div className="spec-stat-content">
+            <div className="spec-stat-value">{stats.verified}</div>
+            <div className="spec-stat-label">Verified</div>
+          </div>
+        </div>
+        <div className="spec-stat-card">
+          <div className="spec-stat-icon" style={{background: 'linear-gradient(135deg, #ed8936 0%, #dd6b20 100%)'}}>
+            <i className="icofont-clock-time"></i>
+          </div>
+          <div className="spec-stat-content">
+            <div className="spec-stat-value">{stats.pending}</div>
+            <div className="spec-stat-label">Pending Verification</div>
+          </div>
+        </div>
+        <div className="spec-stat-card">
+          <div className="spec-stat-icon" style={{background: 'linear-gradient(135deg, #718096 0%, #4a5568 100%)'}}>
+            <i className="icofont-ban"></i>
+          </div>
+          <div className="spec-stat-content">
+            <div className="spec-stat-value">{stats.inactive}</div>
+            <div className="spec-stat-label">Inactive</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="spec-controls">
+        <div className="spec-search-wrapper">
+          <input
+            type="text"
+            className="spec-search-input"
+            placeholder="Search by name, license, phone, or city..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+          />
+          <button className="spec-search-button" onClick={handleSearch}>
+            <i className="icofont-search-1"></i>
+          </button>
+        </div>
+        <div className="spec-filter-group">
+          <select 
+            className="admin-select"
+            value={filterStatus} 
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="all">All Clinics</option>
+            <option value="pending">Pending Verification</option>
+            <option value="verified">Verified</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Clinics List */}
+      {loading ? (
+        <div className="spec-loading">
+          <i className="icofont-spinner icofont-spin"></i>
+          <p>Loading clinics...</p>
+        </div>
+      ) : filteredClinics.length === 0 ? (
+        <div className="spec-empty">
+          <i className="icofont-laboratory"></i>
+          <p>No clinics found</p>
+        </div>
+      ) : (
+        <div className="spec-table-wrapper">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>Clinic Name</th>
+                <th>License Number</th>
+                <th>Location</th>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Registered</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredClinics.map((clinic) => (
+                <tr key={clinic.id}>
+                  <td>
+                    <div style={{fontWeight: 500}}>{clinic.clinic_name}</div>
+                    {clinic.contact_person && (
+                      <div style={{fontSize: '0.85em', color: '#64748b'}}>Contact: {clinic.contact_person}</div>
+                    )}
+                  </td>
+                  <td>{clinic.license_number}</td>
+                  <td>
+                    <div>{clinic.city}{clinic.state && `, ${clinic.state}`}</div>
+                    {clinic.postal_code && (
+                      <div style={{fontSize: '0.85em', color: '#64748b'}}>{clinic.postal_code}</div>
+                    )}
+                  </td>
+                  <td>
+                    <div>{clinic.phone}</div>
+                    {clinic.email && (
+                      <div style={{fontSize: '0.85em', color: '#64748b'}}>{clinic.email}</div>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{display: 'flex', gap: '5px', flexDirection: 'column', alignItems: 'flex-start'}}>
+                      {clinic.is_verified ? (
+                        <span className="spec-badge" style={{background: '#d4edda', color: '#155724'}}>
+                          <i className="icofont-check"></i> Verified
+                        </span>
+                      ) : (
+                        <span className="spec-badge" style={{background: '#fff3cd', color: '#856404'}}>
+                          <i className="icofont-clock-time"></i> Pending
+                        </span>
+                      )}
+                      {!clinic.is_active && (
+                        <span className="spec-badge" style={{background: '#f8d7da', color: '#721c24'}}>
+                          <i className="icofont-ban"></i> Inactive
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td>{new Date(clinic.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                      <button 
+                        className="spec-btn-icon" 
+                        title="View Details"
+                        onClick={() => viewDetails(clinic.id)}
+                        style={{borderColor: '#3b82f6', color: '#3b82f6'}}
+                      >
+                        <i className="icofont-eye"></i>
+                      </button>
+                      {!clinic.is_verified && clinic.is_active && (
+                        <>
+                          <button 
+                            className="spec-btn-icon" 
+                            style={{borderColor: '#10b981', color: '#10b981'}}
+                            title="Verify Clinic"
+                            onClick={() => handleVerify(clinic.id, true)}
+                            disabled={actionLoading}
+                          >
+                            <i className="icofont-check-circled"></i>
+                          </button>
+                          <button 
+                            className="spec-btn-icon" 
+                            style={{borderColor: '#ef4444', color: '#ef4444'}}
+                            title="Reject Clinic"
+                            onClick={() => handleVerify(clinic.id, false)}
+                            disabled={actionLoading}
+                          >
+                            <i className="icofont-close-circled"></i>
+                          </button>
+                        </>
+                      )}
+                      {clinic.is_verified && (
+                        <button 
+                          className="spec-btn-icon" 
+                          style={{borderColor: '#f59e0b', color: '#f59e0b'}}
+                          title="Revoke Verification"
+                          onClick={() => handleVerify(clinic.id, false)}
+                          disabled={actionLoading}
+                        >
+                          <i className="icofont-close-circled"></i>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedClinic && (
+        <div className="spec-modal-overlay" onClick={() => setShowDetailsModal(false)}>
+          <div className="spec-modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '800px'}}>
+            <div className="spec-modal-header">
+              <h3 style={{margin: 0, display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <i className="icofont-laboratory" style={{color: '#17a2b8'}}></i>
+                Clinic Details
+              </h3>
+              <button className="spec-modal-close" onClick={() => setShowDetailsModal(false)}>
+                <i className="icofont-close"></i>
+              </button>
+            </div>
+            <div className="spec-modal-body" style={{maxHeight: '70vh', overflowY: 'auto'}}>
+              {/* Status Overview */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', 
+                padding: '20px', 
+                borderRadius: '12px',
+                marginBottom: '24px',
+                display: 'flex',
+                gap: '12px',
+                flexWrap: 'wrap'
+              }}>
+                {selectedClinic.is_verified ? (
+                  <span className="spec-badge" style={{background: '#d4edda', color: '#155724', fontSize: '14px', padding: '8px 16px'}}>
+                    <i className="icofont-check-circled"></i> Verified Clinic
+                  </span>
+                ) : (
+                  <span className="spec-badge" style={{background: '#fff3cd', color: '#856404', fontSize: '14px', padding: '8px 16px'}}>
+                    <i className="icofont-clock-time"></i> Pending Verification
+                  </span>
+                )}
+                {selectedClinic.is_active ? (
+                  <span className="spec-badge" style={{background: '#d4edda', color: '#155724', fontSize: '14px', padding: '8px 16px'}}>
+                    <i className="icofont-check"></i> Active
+                  </span>
+                ) : (
+                  <span className="spec-badge" style={{background: '#f8d7da', color: '#721c24', fontSize: '14px', padding: '8px 16px'}}>
+                    <i className="icofont-ban"></i> Inactive
+                  </span>
+                )}
+              </div>
+
+              {/* Basic Information */}
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{marginBottom: '16px', color: '#1e293b', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <i className="icofont-building" style={{color: '#17a2b8'}}></i>
+                  Basic Information
+                </h4>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px'}}>
+                  <div style={{
+                    background: 'white', 
+                    padding: '16px', 
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                      Clinic Name
+                    </label>
+                    <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                      {selectedClinic.clinic_name}
+                    </p>
+                  </div>
+                  <div style={{
+                    background: 'white', 
+                    padding: '16px', 
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                      License Number
+                    </label>
+                    <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                      {selectedClinic.license_number}
+                    </p>
+                  </div>
+                  {selectedClinic.contact_person && (
+                    <div style={{
+                      background: 'white', 
+                      padding: '16px', 
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                        Contact Person
+                      </label>
+                      <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                        {selectedClinic.contact_person}
+                      </p>
+                    </div>
+                  )}
+                  <div style={{
+                    background: 'white', 
+                    padding: '16px', 
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                      Phone
+                    </label>
+                    <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                      {selectedClinic.phone}
+                    </p>
+                  </div>
+                  {selectedClinic.email && (
+                    <div style={{
+                      background: 'white', 
+                      padding: '16px', 
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <label style={{fontWeight: 600, color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                        Email
+                      </label>
+                      <p style={{marginTop: '8px', fontSize: '15px', color: '#1e293b', fontWeight: 500, margin: '8px 0 0 0'}}>
+                        {selectedClinic.email}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Address Information */}
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{marginBottom: '16px', color: '#1e293b', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <i className="icofont-location-pin" style={{color: '#17a2b8'}}></i>
+                  Address Information
+                </h4>
+                <div style={{
+                  background: 'white', 
+                  padding: '16px', 
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <p style={{fontSize: '15px', color: '#1e293b', margin: 0}}>
+                    {selectedClinic.address}
+                  </p>
+                  <p style={{fontSize: '14px', color: '#64748b', marginTop: '8px', margin: '8px 0 0 0'}}>
+                    {selectedClinic.city}{selectedClinic.state && `, ${selectedClinic.state}`} {selectedClinic.postal_code}
+                  </p>
+                </div>
+              </div>
+
+              {/* Statistics */}
+              {selectedClinic.stats && (
+                <div style={{marginBottom: '24px'}}>
+                  <h4 style={{marginBottom: '16px', color: '#1e293b', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <i className="icofont-chart-bar-graph" style={{color: '#17a2b8'}}></i>
+                    Activity Statistics
+                  </h4>
+                  <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px'}}>
+                    <div style={{
+                      background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)', 
+                      padding: '16px', 
+                      borderRadius: '10px',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{fontSize: '28px', fontWeight: 700, color: '#0e7490', marginBottom: '4px'}}>
+                        {selectedClinic.stats.total_quotations}
+                      </div>
+                      <div style={{fontSize: '13px', color: '#0e7490', fontWeight: 600}}>
+                        Total Quotations
+                      </div>
+                    </div>
+                    <div style={{
+                      background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', 
+                      padding: '16px', 
+                      borderRadius: '10px',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{fontSize: '28px', fontWeight: 700, color: '#1e40af', marginBottom: '4px'}}>
+                        {selectedClinic.stats.total_reports}
+                      </div>
+                      <div style={{fontSize: '13px', color: '#1e40af', fontWeight: 600}}>
+                        Lab Reports Created
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Verification Information */}
+              {selectedClinic.verified_at && (
+                <div style={{marginBottom: '24px'}}>
+                  <h4 style={{marginBottom: '16px', color: '#1e293b', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <i className="icofont-check-circled" style={{color: '#17a2b8'}}></i>
+                    Verification Information
+                  </h4>
+                  <div style={{
+                    background: 'white', 
+                    padding: '16px', 
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <p style={{fontSize: '14px', color: '#64748b', margin: 0}}>
+                      Verified on {new Date(selectedClinic.verified_at).toLocaleString()}
+                    </p>
+                    {selectedClinic.verified_by && (
+                      <p style={{fontSize: '14px', color: '#64748b', marginTop: '4px', margin: '4px 0 0 0'}}>
+                        Verified by Admin ID: {selectedClinic.verified_by}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Management Actions */}
+              <div style={{
+                marginTop: '30px', 
+                paddingTop: '24px', 
+                borderTop: '2px solid #e2e8f0',
+                background: '#f8fafc',
+                margin: '0 -24px -24px -24px',
+                padding: '24px'
+              }}>
+                <h4 style={{marginBottom: '16px', color: '#1e293b', fontSize: '16px', fontWeight: 700}}>
+                  Management Actions
+                </h4>
+                <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                  {!selectedClinic.is_verified && selectedClinic.is_active && (
+                    <button 
+                      className="spec-btn-primary"
+                      onClick={() => handleVerify(selectedClinic.id, true)}
+                      disabled={actionLoading}
+                      style={{
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        flex: '1',
+                        minWidth: '160px'
+                      }}
+                    >
+                      <i className="icofont-check-circled"></i> Verify Clinic
+                    </button>
+                  )}
+                  {selectedClinic.is_verified && selectedClinic.is_active && (
+                    <button 
+                      className="spec-btn-secondary"
+                      onClick={() => handleVerify(selectedClinic.id, false)}
+                      disabled={actionLoading}
+                      style={{flex: '1', minWidth: '160px'}}
+                    >
+                      <i className="icofont-close-circled"></i> Revoke Verification
+                    </button>
+                  )}
+                  {selectedClinic.is_active ? (
+                    <button 
+                      className="spec-btn-secondary"
+                      onClick={() => handleToggleActive(selectedClinic.id, false)}
+                      disabled={actionLoading}
+                      style={{
+                        background: '#f59e0b',
+                        color: 'white',
+                        border: 'none',
+                        flex: '1',
+                        minWidth: '160px'
+                      }}
+                    >
+                      <i className="icofont-ban"></i> Deactivate
+                    </button>
+                  ) : (
+                    <button 
+                      className="spec-btn-primary"
+                      onClick={() => handleToggleActive(selectedClinic.id, true)}
                       disabled={actionLoading}
                       style={{flex: '1', minWidth: '160px'}}
                     >
