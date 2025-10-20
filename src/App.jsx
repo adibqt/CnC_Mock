@@ -24,6 +24,8 @@ import PatientManagement from './pages/PatientManagement';
 import DoctorManagement from './pages/DoctorManagement';
 import PharmacyLogin from './pages/PharmacyLogin';
 import PharmacyDashboard from './pages/PharmacyDashboard';
+import ClinicLogin from './pages/ClinicLogin';
+import ClinicDashboard from './pages/ClinicDashboard';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,10 @@ function App() {
         {/* Pharmacy Routes (no Header/Footer) */}
         <Route path="/pharmacy-login" element={<PharmacyLogin />} />
         <Route path="/pharmacy-dashboard" element={<PharmacyDashboard />} />
+        
+        {/* Clinic Routes (no Header/Footer) */}
+        <Route path="/clinic-login" element={<ClinicLogin />} />
+        <Route path="/clinic-dashboard" element={<ClinicDashboard />} />
         
         {/* Routes without Header/Footer */}
         <Route path="/profile-update" element={<ProfileUpdate />} />

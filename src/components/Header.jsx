@@ -35,7 +35,7 @@ const Header = () => {
         <div className="container">
           <div className="inner">
             <div className="row">
-              <div className="col-lg-3 col-md-3 col-12">
+              <div className="col-lg-2 col-md-3 col-12">
                 {/* Start Logo */}
                 <div className="logo">
                   <Link to="/">
@@ -51,7 +51,7 @@ const Header = () => {
                 <div className="mobile-nav"></div>
                 {/* End Mobile Nav */}
               </div>
-              <div className="col-lg-7 col-md-9 col-12">
+              <div className="col-lg-6 col-md-9 col-12">
                 {/* Main Menu */}
                 <div className="main-menu">
                   <nav className="navigation">
@@ -66,12 +66,13 @@ const Header = () => {
                 </div>
                 {/*/ End Main Menu */}
               </div>
-              <div className="col-lg-2 col-12">
+              <div className="col-lg-4 col-12">
                 <div className="get-quote">
                   <div className="login-buttons">
                     <Link to="/login" className="btn btn-user">Patient</Link>
                     <Link to="/doctor-login" className="btn btn-doctor">Doctor</Link>
                     <Link to="/pharmacy-login" className="btn btn-pharmacy">Pharmacy</Link>
+                    <Link to="/clinic-login" className="btn btn-clinic">Clinic</Link>
                   </div>
                 </div>
               </div>

@@ -1,20 +1,26 @@
 /* Header Login Buttons Styling */
 .get-quote .login-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-direction: column;
+  align-items: stretch;
 }
 
 .get-quote .login-buttons .btn {
-  padding: 10px 18px;
-  font-size: 14px;
+  padding: 8px 12px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   transition: all 0.3s ease;
-  border-radius: 5px;
+  border-radius: 4px;
   text-align: center;
   white-space: nowrap;
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 .get-quote .login-buttons .btn-user {
@@ -50,26 +56,73 @@
   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
+.get-quote .login-buttons .btn-clinic {
+  background: linear-gradient(135deg, #17a2b8 0%, #0e6ba8 100%);
+  color: #fff;
+}
+
+.get-quote .login-buttons .btn-clinic:hover {
+  background: linear-gradient(135deg, #138496 0%, #0c5a8e 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+}
+
+/* Ensure no overflow */
+.get-quote {
+  overflow: visible;
+}
+
+.header-inner .get-quote .login-buttons {
+  max-width: 100%;
+}
+
 /* Responsive adjustments */
-@media only screen and (min-width: 992px) {
+@media only screen and (min-width: 1200px) {
   .get-quote .login-buttons {
+    display: flex;
     flex-direction: row;
     gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
   }
   
   .get-quote .login-buttons .btn {
-    padding: 12px 15px;
+    padding: 12px 16px;
     font-size: 13px;
+    width: auto;
+    flex: 1 1 auto;
+    min-width: fit-content;
+    max-width: none;
+  }
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+  .get-quote .login-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  
+  .get-quote .login-buttons .btn {
+    padding: 10px 12px;
+    font-size: 12px;
+    width: auto;
+    flex: 1 1 auto;
+    min-width: fit-content;
+    max-width: none;
   }
 }
 
 @media only screen and (max-width: 991px) {
   .get-quote .login-buttons {
     gap: 8px;
+    flex-direction: column;
   }
   
   .get-quote .login-buttons .btn {
     padding: 10px 15px;
-    font-size: 13px;
+    font-size: 12px;
   }
 }

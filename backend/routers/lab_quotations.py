@@ -157,15 +157,19 @@ def get_pending_lab_quotation_requests(
     
     result = []
     for req in requests:
-        patient = db.query(User).filter(User.id == req.patient_id).first()
-        prescription = db.query(Prescription).filter(
-            Prescription.id == req.prescription_id
-        ).first()
-        
-        # Check if clinic already responded
+        # Check if clinic already responded - skip if already responded
         existing_response = db.query(LabTestQuotationResponse).filter(
             LabTestQuotationResponse.quotation_request_id == req.id,
             LabTestQuotationResponse.clinic_id == current_clinic.id
+        ).first()
+        
+        # Skip requests that clinic has already responded to
+        if existing_response:
+            continue
+        
+        patient = db.query(User).filter(User.id == req.patient_id).first()
+        prescription = db.query(Prescription).filter(
+            Prescription.id == req.prescription_id
         ).first()
         
         result.append({
@@ -175,7 +179,7 @@ def get_pending_lab_quotation_requests(
             "additional_notes": req.additional_notes,
             "status": req.status,
             "created_at": req.created_at,
-            "has_responded": existing_response is not None,
+            "has_responded": False,
             "patient": {
                 "id": patient.id,
                 "name": patient.name,
@@ -259,6 +263,63 @@ def submit_lab_quotation_response(
         "response_id": quotation_response.id,
         "total_amount": total_amount
     }
+
+
+@router.get("/my-responses", response_model=list[dict])
+def get_my_lab_quotation_responses(
+    current_clinic: Clinic = Depends(get_current_clinic),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all quotation responses submitted by current clinic
+    """
+    
+    responses = db.query(LabTestQuotationResponse).filter(
+        LabTestQuotationResponse.clinic_id == current_clinic.id
+    ).order_by(LabTestQuotationResponse.created_at.desc()).all()
+    
+    result = []
+    for resp in responses:
+        request = db.query(LabTestQuotationRequest).filter(
+            LabTestQuotationRequest.id == resp.quotation_request_id
+        ).first()
+        
+        patient = None
+        prescription = None
+        if request:
+            patient = db.query(User).filter(User.id == request.patient_id).first()
+            prescription = db.query(Prescription).filter(
+                Prescription.id == request.prescription_id
+            ).first()
+        
+        result.append({
+            "id": resp.id,
+            "quotation_request_id": resp.quotation_request_id,
+            "test_items": resp.test_items,
+            "total_amount": resp.total_amount,
+            "estimated_delivery": resp.estimated_delivery,
+            "additional_notes": resp.additional_notes,
+            "is_accepted": resp.is_accepted,
+            "accepted_at": resp.accepted_at,
+            "created_at": resp.created_at,
+            "quotation_request": {
+                "id": request.id,
+                "prescription_id": request.prescription_id,
+                "lab_tests": request.lab_tests,
+                "status": request.status,
+                "patient": {
+                    "id": patient.id,
+                    "name": patient.name,
+                    "phone": patient.phone
+                } if patient else None,
+                "prescription": {
+                    "prescription_id": prescription.prescription_id,
+                    "diagnosis": prescription.diagnosis
+                } if prescription else None
+            } if request else None
+        })
+    
+    return result
 
 
 @router.get("/responses/{request_id}", response_model=list[dict])
