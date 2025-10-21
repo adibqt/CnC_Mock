@@ -30,7 +30,7 @@
 - [API Documentation](#-api-documentation)
 - [Project Structure](#-project-structure)
 - [Features in Detail](#-features-in-detail)
-- [Screenshots](#-screenshots)
+
 - [Testing](#-testing)
 - [Deployment](#-deployment)
 - [Contributing](#-contributing)
@@ -643,27 +643,7 @@ AI: "I understand you're experiencing headaches and dizziness.
 
 ---
 
-## 📸 Screenshots
 
-### Patient Dashboard
-![Patient Dashboard](docs/screenshots/patient-dashboard.png)
-
-### AI Consultation
-![AI Consultation](docs/screenshots/ai-consultation.png)
-
-### Doctor Profile
-![Doctor Profile](docs/screenshots/doctor-profile.png)
-
-### Video Consultation
-![Video Room](docs/screenshots/video-consultation.png)
-
-### Admin Dashboard
-![Admin Panel](docs/screenshots/admin-dashboard.png)
-
-### Prescription Management
-![Prescriptions](docs/screenshots/prescriptions.png)
-
----
 
 ## 🧪 Testing
 
