@@ -33,7 +33,7 @@ const Footer = () => {
                       <li><Link to="/about"><i className="fa fa-caret-right" aria-hidden="true"></i>About Me</Link></li>
                       <li><Link to="/services"><i className="fa fa-caret-right" aria-hidden="true"></i>Services</Link></li>
                       
-                      <li><Link to="/other"><i className="fa fa-caret-right" aria-hidden="true"></i>Other Links</Link></li>
+                     
                     </ul>
                   </div>
                   <div className="col-lg-6 col-md-6 col-12">
