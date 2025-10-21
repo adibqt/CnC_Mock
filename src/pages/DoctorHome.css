@@ -9,11 +9,11 @@
 .doctor-header {
   background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
   color: white;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 10px 15px rgba(37, 99, 235, 0.2);
 }
 
 .doctor-header-container {
-  max-width: 1280px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 16px 24px;
 }
@@ -29,7 +29,7 @@
 .doctor-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
 }
 
 .doctor-avatar {
