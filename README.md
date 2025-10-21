@@ -827,7 +827,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ```
 MIT License
 
-Copyright (c) 2025 Click & Care
+
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -844,13 +844,10 @@ in the Software without restriction...
 - [FAQ](docs/FAQ.md)
 
 ### Contact
-- **Email**: support@clickandcare.com
+- **Email**: adibrahman44@gmail.com
 - **Issues**: [GitHub Issues](https://github.com/adibqt/CnC_Mock/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/adibqt/CnC_Mock/discussions)
 
-### Community
-- **Discord**: [Join our server](https://discord.gg/clickcare)
-- **Twitter**: [@ClickAndCare](https://twitter.com/clickandcare)
 
 ---
 
@@ -905,24 +902,14 @@ in the Software without restriction...
 
 **Coming Soon:** [https://clickandcare.demo.com](https://clickandcare.demo.com)
 
-**Test Credentials:**
-```
-Patient: demo@patient.com / Demo123!
-Doctor: demo@doctor.com / Demo123!
-Admin: admin / admin123
-```
+
 
 ---
 
 <div align="center">
 
-### ⭐ Star us on GitHub!
 
-If you find Click & Care helpful, please consider giving us a star. It helps others discover the project!
-
-[![GitHub stars](https://img.shields.io/github/stars/adibqt/CnC_Mock?style=social)](https://github.com/adibqt/CnC_Mock/stargazers)
-
-**Made with ❤️ by the Click & Care Team**
+**Made with ❤️ by Adib Rahman- under Supervision of ADN DIGINET**
 
 [Website](https://clickandcare.com) • [Documentation](docs/) • [Blog](https://blog.clickandcare.com)
 
