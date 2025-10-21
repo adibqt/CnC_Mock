@@ -863,30 +863,7 @@ in the Software without restriction...
 
 ---
 
-## 🗺️ Roadmap
 
-### Version 2.0 (Q2 2025)
-- [ ] Mobile apps (iOS & Android)
-- [ ] Payment gateway integration
-- [ ] Insurance claim processing
-- [ ] Multi-language support
-- [ ] Advanced AI diagnostics
-- [ ] Wearable device integration
-
-### Version 2.1 (Q3 2025)
-- [ ] Blockchain for medical records
-- [ ] Telemedicine marketplace
-- [ ] Mental health support
-- [ ] Medication reminders
-- [ ] Health tracking dashboard
-
-### Version 3.0 (Q4 2025)
-- [ ] AI-powered drug discovery
-- [ ] Clinical trial matching
-- [ ] Genomic data integration
-- [ ] Global expansion features
-
----
 
 ## 📊 Statistics
 
