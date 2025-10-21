@@ -26,6 +26,7 @@ import PharmacyLogin from './pages/PharmacyLogin';
 import PharmacyDashboard from './pages/PharmacyDashboard';
 import ClinicLogin from './pages/ClinicLogin';
 import ClinicDashboard from './pages/ClinicDashboard';
+import AboutMe from './pages/AboutMe';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -89,6 +90,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<AboutMe />} />
               <Route path="/login" element={<Login />} />
               <Route path="/doctor-login" element={<DoctorLogin />} />
               <Route path="*" element={<NotFound />} />
