@@ -191,7 +191,7 @@ const DoctorDetails = () => {
               </p>
               {doctor?.is_verified && (
                 <span className="verified-badge">
-                  <i className="icofont-verification-check"></i> Verified
+                  <i className="icofont-verification-check"></i> 
                 </span>
               )}
             </div>

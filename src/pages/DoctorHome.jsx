@@ -157,7 +157,7 @@ export default function DoctorHome() {
                   {doctor?.is_verified && (
                     <span className="verified-badge">
                       <i className="icofont-verification-check"></i>
-                      Verified
+                      
                     </span>
                   )}
                 </div>
