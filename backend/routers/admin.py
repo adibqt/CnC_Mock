@@ -146,6 +146,65 @@ async def get_dashboard_stats(
         }
     }
 
+@router.get("/dashboard/daily-stats")
+async def get_daily_stats(
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Get daily statistics for the current week"""
+    from datetime import timedelta, date
+    from models import AIConsultation
+    
+    # Get current date and the start of the week (Sunday)
+    today = date.today()
+    current_weekday = today.weekday()  # Monday = 0, Sunday = 6
+    
+    # Calculate Sunday of current week
+    days_since_sunday = (current_weekday + 1) % 7
+    sunday = today - timedelta(days=days_since_sunday)
+    
+    daily_stats = []
+    
+    # Generate stats for each day of the week
+    for i in range(7):
+        current_date = sunday + timedelta(days=i)
+        next_date = current_date + timedelta(days=1)
+        
+        # Only include past days and today
+        if current_date > today:
+            daily_stats.append({
+                "date": current_date.isoformat(),
+                "day_name": current_date.strftime("%a"),
+                "day_number": current_date.day,
+                "appointments": 0,
+                "consultations": 0
+            })
+            continue
+        
+        # Count appointments created on this day
+        appointments_count = db.query(Appointment).filter(
+            func.date(Appointment.created_at) == current_date
+        ).count()
+        
+        # Count AI consultations on this day
+        consultations_count = db.query(AIConsultation).filter(
+            func.date(AIConsultation.created_at) == current_date
+        ).count()
+        
+        daily_stats.append({
+            "date": current_date.isoformat(),
+            "day_name": current_date.strftime("%a"),  # Mon, Tue, etc.
+            "day_number": current_date.day,
+            "appointments": appointments_count,
+            "consultations": consultations_count
+        })
+    
+    return {
+        "week_start": sunday.isoformat(),
+        "week_end": (sunday + timedelta(days=6)).isoformat(),
+        "daily_data": daily_stats
+    }
+
 # ============== Patient Management ==============
 
 @router.get("/patients")
