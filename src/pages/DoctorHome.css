@@ -15,7 +15,7 @@
 .doctor-header-container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 16px 24px 8px 24px;
 }
 
 .header-content {

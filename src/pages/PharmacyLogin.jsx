@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../components/Login.css';
+import { authUtils } from '../services/api';
 
 const PharmacyLogin = () => {
   const navigate = useNavigate();
@@ -21,6 +22,13 @@ const PharmacyLogin = () => {
     alternatePhone: ''
   });
   const [errors, setErrors] = useState({});
+
+  // Check if pharmacy is already logged in
+  useEffect(() => {
+    if (authUtils.isAuthenticated('pharmacy')) {
+      navigate('/pharmacy-home');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

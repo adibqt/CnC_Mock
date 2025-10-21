@@ -1,8 +1,15 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './Header.css';
 
 const Header = () => {
+  const location = useLocation();
+  
+  // Function to check if current path matches the link
+  const isActive = (path) => {
+    return location.pathname === path ? 'active' : '';
+  };
+
   return (
     <header className="header">
       {/* Topbar */}
@@ -56,11 +63,11 @@ const Header = () => {
                 <div className="main-menu">
                   <nav className="navigation">
                     <ul className="nav menu">
-                      <li className="active"><Link to="/">Home</Link></li>
-                      <li><Link to="/doctors">Doctors</Link></li>
-                      <li><Link to="/services">Services</Link></li>
+                      <li className={isActive('/')}><Link to="/">Home</Link></li>
+                      <li className={isActive('/doctors')}><Link to="/doctors">Doctors</Link></li>
+                      <li className={isActive('/services')}><Link to="/services">Services</Link></li>
                       
-                      <li><Link to="/contact">Contact Us</Link></li>
+                      <li className={isActive('/contact')}><Link to="/contact">Contact Us</Link></li>
                     </ul>
                   </nav>
                 </div>
