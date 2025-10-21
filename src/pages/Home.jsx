@@ -16,8 +16,8 @@ const Home = () => {
                     <h1>We Provide <span>Medical</span> Services That You Can <span>Trust!</span></h1>
                     <p>Access compassionate and reliable care from our team of board-certified professionals. Your health and well-being are our top priority.</p>
                     <div className="button">
-                      <Link to="/appointment" className="btn">Get Appointment</Link>
-                      <Link to="/about" className="btn primary">Learn More</Link>
+                      <Link to="/login" className="btn">Get Appointment</Link>
+                      <Link to="/services" className="btn primary">Learn More</Link>
                     </div>
                   </div>
                 </div>
@@ -45,7 +45,7 @@ const Home = () => {
                       <span>Urgent Care Services</span>
                       <h4>Emergency Cases</h4>
                       <p>We provide 24/7 immediate care for urgent medical situations. Our dedicated team is always ready to help when you need it most.</p>
-                      <a href="#">LEARN MORE<i className="fa fa-long-arrow-right"></i></a>
+                      <a href="/services">LEARN MORE<i className="fa fa-long-arrow-right"></i></a>
                     </div>
                   </div>
                 </div>
