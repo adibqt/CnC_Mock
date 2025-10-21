@@ -14,7 +14,7 @@ const Home = () => {
                 <div className="col-lg-7">
                   <div className="text">
                     <h1>We Provide <span>Medical</span> Services That You Can <span>Trust!</span></h1>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris sed nisl pellentesque, faucibus libero eu, gravida quam.</p>
+                    <p>Access compassionate and reliable care from our team of board-certified professionals. Your health and well-being are our top priority.</p>
                     <div className="button">
                       <Link to="/appointment" className="btn">Get Appointment</Link>
                       <Link to="/about" className="btn primary">Learn More</Link>
@@ -42,9 +42,9 @@ const Home = () => {
                       <i className="fa fa-ambulance"></i>
                     </div>
                     <div className="single-content">
-                      <span>Lorem Amet</span>
+                      <span>Urgent Care Services</span>
                       <h4>Emergency Cases</h4>
-                      <p>Lorem ipsum sit amet consectetur adipiscing elit. Vivamus et erat in lacus convallis sodales.</p>
+                      <p>We provide 24/7 immediate care for urgent medical situations. Our dedicated team is always ready to help when you need it most.</p>
                       <a href="#">LEARN MORE<i className="fa fa-long-arrow-right"></i></a>
                     </div>
                   </div>
@@ -58,9 +58,9 @@ const Home = () => {
                       <i className="icofont-prescription"></i>
                     </div>
                     <div className="single-content">
-                      <span>Fusce Porttitor</span>
+                      <span>Find Your Doctor</span>
                       <h4>Doctors Timetable</h4>
-                      <p>Lorem ipsum sit amet consectetur adipiscing elit. Vivamus et erat in lacus convallis sodales.</p>
+                      <p>Browse profiles of our expert specialists, check their availability, and book an appointment at a time that works for you.</p>
                       <a href="#">LEARN MORE<i className="fa fa-long-arrow-right"></i></a>
                     </div>
                   </div>
@@ -74,12 +74,13 @@ const Home = () => {
                       <i className="icofont-ui-clock"></i>
                     </div>
                     <div className="single-content">
-                      <span>Donec luctus</span>
+                      <span>Clinic Hours</span>
                       <h4>Opening Hours</h4>
                       <ul className="time-sidual">
                         <li className="day">Monday - Friday <span>8.00-20.00</span></li>
                         <li className="day">Saturday <span>9.00-18.30</span></li>
                         <li className="day">Sunday <span>9.00-15.00</span></li>
+                        <li className="day">Government Holiday <span>9.00-15.00</span></li>
                       </ul>
                       <a href="#">LEARN MORE<i className="fa fa-long-arrow-right"></i></a>
                     </div>
@@ -100,7 +101,7 @@ const Home = () => {
               <div className="section-title">
                 <h2>We Are Always Ready to Help You & Your Family</h2>
                 <img src="/img/section-img.png" alt="#" />
-                <p>Lorem ipsum dolor sit amet consectetur adipiscing elit praesent aliquet. pretiumts</p>
+                <p>Our mission is to provide comprehensive and compassionate healthcare for patients of all ages. Your family's well-being is our top priority.</p>
               </div>
             </div>
           </div>
@@ -111,8 +112,8 @@ const Home = () => {
                 <div className="signle-icon">
                   <i className="icofont icofont-ambulance-cross"></i>
                 </div>
-                <h3>Emergency Help</h3>
-                <p>Lorem ipsum sit amet, consectetur adipiscing lit. Etiam maximus nulla a nibh tempor.</p>
+                <h3>Modern Labs</h3>
+                <p>Our state-of-the-art laboratories are equipped with the latest technology to provide accurate and timely test results.</p>
               </div>
               {/* End Single Feature */}
             </div>
@@ -123,7 +124,7 @@ const Home = () => {
                   <i className="icofont icofont-medical-sign-alt"></i>
                 </div>
                 <h3>Enriched Pharmacy</h3>
-                <p>Lorem ipsum sit amet, consectetur adipiscing lit. Etiam maximus nulla a nibh tempor.</p>
+                <p>Our pharmacy offers a wide range of medications and health products, ensuring you have access to everything you need for your well-being.</p>
               </div>
               {/* End Single Feature */}
             </div>
@@ -134,7 +135,7 @@ const Home = () => {
                   <i className="icofont icofont-stethoscope"></i>
                 </div>
                 <h3>Medical Treatment</h3>
-                <p>Lorem ipsum sit amet, consectetur adipiscing lit. Etiam maximus nulla a nibh tempor.</p>
+                <p>Our experienced medical team provides a full range of treatments, ensuring you receive the best care possible.</p>
               </div>
               {/* End Single Feature */}
             </div>

@@ -28,10 +28,15 @@ export default function AdminSidebar({ stats, collapsed, onToggle, onTabChange, 
 
   const handleNavigation = (path, tab = null) => {
     if (path === '/admin/dashboard' && tab) {
-      // For dashboard tabs, navigate to dashboard and change tab
-      navigate('/admin/dashboard');
-      if (onTabChange) {
-        onTabChange(tab);
+      // For dashboard tabs, navigate to dashboard with state
+      if (location.pathname === '/admin/dashboard') {
+        // Already on dashboard, just change tab
+        if (onTabChange) {
+          onTabChange(tab);
+        }
+      } else {
+        // Coming from another page, navigate with state
+        navigate('/admin/dashboard', { state: { tab } });
       }
     } else {
       // For separate pages, just navigate
@@ -99,6 +104,18 @@ export default function AdminSidebar({ stats, collapsed, onToggle, onTabChange, 
           </button>
           
           <button
+            className={`admin-nav-item ${isActive('/admin/dashboard') && location.hash === '#clinics' ? 'active' : ''}`}
+            onClick={() => handleNavigation('/admin/dashboard', 'clinics')}
+            title="Clinics"
+          >
+            <i className="icofont-laboratory"></i>
+            <span>Clinics</span>
+            {stats?.pending?.pending_clinic_verification > 0 && (
+              <span className="badge-count">{stats.pending.pending_clinic_verification}</span>
+            )}
+          </button>
+          
+          <button
             className={`admin-nav-item ${isActive('/admin/dashboard') && location.hash === '#specializations' ? 'active' : ''}`}
             onClick={() => handleNavigation('/admin/dashboard', 'specializations')}
             title="Specializations"
@@ -124,7 +141,6 @@ export default function AdminSidebar({ stats, collapsed, onToggle, onTabChange, 
             </div>
             <div className="admin-user-details">
               <p className="admin-user-name">{adminData?.full_name || 'Admin'}</p>
-              <p className="admin-user-role">{adminData?.role || 'admin'}</p>
             </div>
           </div>
           <button onClick={handleLogout} className="admin-logout-btn" title="Logout">
