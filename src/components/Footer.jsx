@@ -11,7 +11,7 @@ const Footer = () => {
             <div className="col-lg-3 col-md-6 col-12">
               <div className="single-footer">
                 <h2>About Us</h2>
-                <p>Lorem ipsum dolor sit am consectetur adipisicing elit do eiusmod tempor incididunt ut labore dolore magna.</p>
+                <p>Click and Care is an online healthcare platform that connects patients with medical professionals for virtual consultations and services.</p>
                 {/* Social */}
                 <ul className="social">
                   <li><a href="#"><i className="icofont-facebook"></i></a></li>
@@ -30,7 +30,7 @@ const Footer = () => {
                   <div className="col-lg-6 col-md-6 col-12">
                     <ul>
                       <li><Link to="/"><i className="fa fa-caret-right" aria-hidden="true"></i>Home</Link></li>
-                      <li><Link to="/about"><i className="fa fa-caret-right" aria-hidden="true"></i>About Us</Link></li>
+                      <li><Link to="/about"><i className="fa fa-caret-right" aria-hidden="true"></i>About Me</Link></li>
                       <li><Link to="/services"><i className="fa fa-caret-right" aria-hidden="true"></i>Services</Link></li>
                       
                       <li><Link to="/other"><i className="fa fa-caret-right" aria-hidden="true"></i>Other Links</Link></li>
@@ -50,7 +50,7 @@ const Footer = () => {
             <div className="col-lg-3 col-md-6 col-12">
               <div className="single-footer">
                 <h2>Open Hours</h2>
-                <p>Lorem ipsum dolor sit ame consectetur adipisicing elit do eiusmod tempor incididunt.</p>
+                <p>Our clinic is open during the following hours:</p>
                 <ul className="time-sidual">
                   <li className="day">Monday - Friday <span>8.00-20.00</span></li>
                   <li className="day">Saturday <span>9.00-18.30</span></li>

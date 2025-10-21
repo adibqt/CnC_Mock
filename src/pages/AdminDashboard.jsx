@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './AdminDashboard.css';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [adminData, setAdminData] = useState(null);
@@ -23,6 +24,13 @@ export default function AdminDashboard() {
 
     if (userData) {
       setAdminData(JSON.parse(userData));
+    }
+
+    // Check if we're navigating from another page with a tab state
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+      // Clear the state so it doesn't persist on refresh
+      window.history.replaceState({}, document.title);
     }
 
     loadDashboardStats();
@@ -183,7 +191,11 @@ export default function AdminDashboard() {
           <button
             className={`admin-nav-item ${activeTab === 'pharmacies' ? 'active' : ''}`}
             onClick={() => {
-              setActiveTab('pharmacies');
+              if (window.location.pathname !== '/admin/dashboard') {
+                navigate('/admin/dashboard', { state: { tab: 'pharmacies' } });
+              } else {
+                setActiveTab('pharmacies');
+              }
               if (window.innerWidth <= 1024) setMobileOpen(false);
             }}
             title="Pharmacies"
@@ -198,7 +210,11 @@ export default function AdminDashboard() {
           <button
             className={`admin-nav-item ${activeTab === 'clinics' ? 'active' : ''}`}
             onClick={() => {
-              setActiveTab('clinics');
+              if (window.location.pathname !== '/admin/dashboard') {
+                navigate('/admin/dashboard', { state: { tab: 'clinics' } });
+              } else {
+                setActiveTab('clinics');
+              }
               if (window.innerWidth <= 1024) setMobileOpen(false);
             }}
             title="Clinics"
@@ -213,7 +229,11 @@ export default function AdminDashboard() {
           <button
             className={`admin-nav-item ${activeTab === 'specializations' ? 'active' : ''}`}
             onClick={() => {
-              setActiveTab('specializations');
+              if (window.location.pathname !== '/admin/dashboard') {
+                navigate('/admin/dashboard', { state: { tab: 'specializations' } });
+              } else {
+                setActiveTab('specializations');
+              }
               if (window.innerWidth <= 1024) setMobileOpen(false);
             }}
             title="Specializations"
@@ -225,7 +245,11 @@ export default function AdminDashboard() {
           <button
             className={`admin-nav-item ${activeTab === 'symptoms' ? 'active' : ''}`}
             onClick={() => {
-              setActiveTab('symptoms');
+              if (window.location.pathname !== '/admin/dashboard') {
+                navigate('/admin/dashboard', { state: { tab: 'symptoms' } });
+              } else {
+                setActiveTab('symptoms');
+              }
               if (window.innerWidth <= 1024) setMobileOpen(false);
             }}
             title="Symptoms"
@@ -242,7 +266,6 @@ export default function AdminDashboard() {
             </div>
             <div className="admin-user-details">
               <p className="admin-user-name">{adminData?.full_name || 'Admin'}</p>
-              <p className="admin-user-role">{adminData?.role || 'admin'}</p>
             </div>
           </div>
           <button onClick={handleLogout} className="admin-logout-btn" title="Logout">
