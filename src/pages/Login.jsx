@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import '../components/Login.css';
-import { userAPI } from '../services/api';
+import { userAPI, authUtils } from '../services/api';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
   const [formData, setFormData] = useState({
     phone: '',
@@ -11,6 +12,13 @@ const Login = () => {
     confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
+
+  // Check if user is already logged in
+  useEffect(() => {
+    if (authUtils.isAuthenticated('patient')) {
+      navigate('/user-home');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

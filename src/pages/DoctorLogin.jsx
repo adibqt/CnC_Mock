@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../components/Login.css';
-import { doctorAPI } from '../services/api';
+import { doctorAPI, authUtils } from '../services/api';
 
 const DoctorLogin = () => {
+  const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
   const [formData, setFormData] = useState({
     phone: '',
@@ -16,6 +17,13 @@ const DoctorLogin = () => {
   const [errors, setErrors] = useState({});
   const [specializations, setSpecializations] = useState([]);
   const [loadingSpecializations, setLoadingSpecializations] = useState(true);
+
+  // Check if doctor is already logged in
+  useEffect(() => {
+    if (authUtils.isAuthenticated('doctor')) {
+      navigate('/doctor-home');
+    }
+  }, [navigate]);
 
   // Fetch specializations from API
   useEffect(() => {
