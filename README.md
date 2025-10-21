@@ -9,7 +9,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-00C7B7?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18.3+-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![SQLite](https://img.shields.io/badge/SQLite-3.43+-003B57?style=for-the-badge&logo=sqlite)](https://www.sqlite.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 [Features](#-features) • [Demo](#-demo) • [Installation](#-installation) • [Usage](#-usage) • [Documentation](#-documentation) • [Contributing](#-contributing)
@@ -123,7 +123,7 @@ To make quality healthcare accessible, affordable, and efficient through technol
 ### Backend
 - **FastAPI** - High-performance Python API framework
 - **SQLAlchemy** - Powerful ORM for database operations
-- **SQLite** - Lightweight, reliable database
+- **PostgreSQL** - Powerful, enterprise-grade relational database
 - **Pydantic** - Data validation with Python type hints
 - **Python 3.11+** - Modern Python features
 
@@ -177,9 +177,10 @@ To make quality healthcare accessible, affordable, and efficient through technol
     │  Services    │        │  (SQLite)   │
     │              │        │             │
     │ • Gemini AI  │        │ • Users     │
-    │ • LiveKit    │        │ • Doctors   │
+            │  • LiveKit    │        │ • Doctors   │
     │ • Speech API │        │ • Appts     │
     └──────────────┘        │ • Pharma    │
+                            │ (PostgreSQL)│
                             └─────────────┘
 ```
 
@@ -199,6 +200,7 @@ To make quality healthcare accessible, affordable, and efficient through technol
 
 - **Node.js** 18+ and npm
 - **Python** 3.11+
+- **PostgreSQL** 15+ (installed and running)
 - **Git**
 - **FFmpeg** (for audio features)
 
@@ -250,31 +252,49 @@ Backend API will be available at `http://localhost:8000`
 Create `.env` file in the `backend` directory:
 
 ```env
-# Database
-DATABASE_URL=sqlite:///./clickcare.db
+# Database Configuration
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/click_and_care
 
 # Security
-SECRET_KEY=your-secret-key-here-change-in-production
+SECRET_KEY=your-secret-key-min-32-characters-long
 ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+ACCESS_TOKEN_EXPIRE_MINUTES=10080
 
 # API Keys
 GEMINI_API_KEY=your-gemini-api-key-here
+LIVEKIT_URL=wss://your-livekit-server.livekit.cloud
 LIVEKIT_API_KEY=your-livekit-api-key
 LIVEKIT_API_SECRET=your-livekit-api-secret
-LIVEKIT_WS_URL=wss://your-livekit-server.livekit.cloud
 
-# CORS
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+# CORS Origins
+CORS_ORIGINS=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"]
 
 # Environment
 ENVIRONMENT=development
 ```
 
-### 5. Database Initialization
+### 5. PostgreSQL Database Setup
 
+**Install PostgreSQL:**
+- **Windows**: Download from [postgresql.org](https://www.postgresql.org/download/windows/)
+- **macOS**: `brew install postgresql@15`
+- **Linux**: `sudo apt-get install postgresql postgresql-contrib`
+
+**Create Database:**
 ```bash
-# Initialize database with tables
+# Start PostgreSQL service
+# Windows: Services → PostgreSQL
+# macOS: brew services start postgresql@15
+# Linux: sudo service postgresql start
+
+# Create database
+psql -U postgres
+CREATE DATABASE click_and_care;
+\q
+```
+
+**Initialize Tables:**
+```bash
 cd backend
 python scripts/init_db.py
 
