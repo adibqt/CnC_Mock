@@ -1,25 +1,16 @@
 # Files to ignore during Vercel deployment
-node_modules
-backend/__pycache__
-backend/routers/__pycache__
-backend/services/__pycache__
-backend/.env
-backend/backend/
-backend/migrations/
-backend/scripts/
-backend/*.bat
-backend/*.sh
-backend/test_*.py
-backend/check_*.py
-backend/activate_*.py
-backend/migrate_*.py
-.git
+# Backend is deployed separately on Render
+backend/
+api/
+node_modules/
+.env
+.git/
 .gitignore
 docker-compose.yml
 Dockerfile
-backend/Dockerfile
 *.md
 blog-single.html
 portfolio-details.html
 404.html
 prescription.html
+requirements.txt
