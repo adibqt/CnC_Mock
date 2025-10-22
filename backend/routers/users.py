@@ -138,6 +138,7 @@ async def upload_profile_picture(
     db: Session = Depends(get_db)
 ):
     """Upload and update user profile picture"""
+    from services.blob_service import blob_service
     
     # Validate file type
     allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
@@ -155,30 +156,30 @@ async def upload_profile_picture(
             detail="File size too large. Maximum size is 5MB."
         )
     
-    # Create uploads directory if it doesn't exist
-    upload_dir = Path("uploads/profile_pictures")
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Generate unique filename
-    file_extension = file.filename.split(".")[-1]
-    unique_filename = f"{uuid.uuid4()}.{file_extension}"
-    file_path = upload_dir / unique_filename
-    
-    # Save file
-    with open(file_path, "wb") as f:
-        f.write(contents)
-    
-    # Update user profile picture URL
-    profile_picture_url = f"/uploads/profile_pictures/{unique_filename}"
-    current_user.profile_picture_url = profile_picture_url
-    
-    db.commit()
-    db.refresh(current_user)
-    
-    return {
-        "message": "Profile picture uploaded successfully",
-        "profile_picture_url": profile_picture_url
-    }
+    try:
+        # Upload to Vercel Blob Storage
+        profile_picture_url = await blob_service.upload_file(
+            file_content=contents,
+            filename=file.filename,
+            folder="profile_pictures",
+            content_type=file.content_type
+        )
+        
+        # Update user profile picture URL
+        current_user.profile_picture_url = profile_picture_url
+        
+        db.commit()
+        db.refresh(current_user)
+        
+        return {
+            "message": "Profile picture uploaded successfully",
+            "profile_picture_url": profile_picture_url
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload file: {str(e)}"
+        )
 
 # ---------------------- Home Page Data ----------------------
 @router.get("/home")

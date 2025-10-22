@@ -164,6 +164,7 @@ async def upload_profile_picture(
     db: Session = Depends(get_db)
 ):
     """Upload and update doctor profile picture"""
+    from services.blob_service import blob_service
     
     # Validate file type
     allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
@@ -181,30 +182,30 @@ async def upload_profile_picture(
             detail="File size too large. Maximum size is 5MB."
         )
     
-    # Create uploads directory if it doesn't exist
-    upload_dir = Path("uploads/profile_pictures")
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Generate unique filename
-    file_extension = file.filename.split(".")[-1]
-    unique_filename = f"doctor_{current_doctor.id}_{uuid.uuid4()}.{file_extension}"
-    file_path = upload_dir / unique_filename
-    
-    # Save file
-    with open(file_path, "wb") as f:
-        f.write(contents)
-    
-    # Update doctor profile picture URL
-    profile_picture_url = f"/uploads/profile_pictures/{unique_filename}"
-    current_doctor.profile_picture_url = profile_picture_url
-    
-    db.commit()
-    db.refresh(current_doctor)
-    
-    return {
-        "message": "Profile picture uploaded successfully",
-        "profile_picture_url": profile_picture_url
-    }
+    try:
+        # Upload to Vercel Blob Storage
+        profile_picture_url = await blob_service.upload_file(
+            file_content=contents,
+            filename=file.filename,
+            folder="profile_pictures",
+            content_type=file.content_type
+        )
+        
+        # Update doctor profile picture URL
+        current_doctor.profile_picture_url = profile_picture_url
+        
+        db.commit()
+        db.refresh(current_doctor)
+        
+        return {
+            "message": "Profile picture uploaded successfully",
+            "profile_picture_url": profile_picture_url
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload file: {str(e)}"
+        )
 
 @router.post("/upload-certificate")
 async def upload_certificate(
@@ -214,6 +215,7 @@ async def upload_certificate(
     db: Session = Depends(get_db)
 ):
     """Upload and update doctor certificates (MBBS or FCPS)"""
+    from services.blob_service import blob_service
     
     # Validate certificate type
     if certificate_type not in ["mbbs", "fcps"]:
@@ -238,33 +240,33 @@ async def upload_certificate(
             detail="File size too large. Maximum size is 10MB."
         )
     
-    # Create uploads directory if it doesn't exist
-    upload_dir = Path(f"uploads/certificates/{certificate_type}")
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Generate unique filename
-    file_extension = file.filename.split(".")[-1]
-    unique_filename = f"{uuid.uuid4()}.{file_extension}"
-    file_path = upload_dir / unique_filename
-    
-    # Save file
-    with open(file_path, "wb") as f:
-        f.write(contents)
-    
-    # Update doctor certificate URL
-    certificate_url = f"/uploads/certificates/{certificate_type}/{unique_filename}"
-    
-    if certificate_type == "mbbs":
-        current_doctor.mbbs_certificate_url = certificate_url
-    else:  # fcps
-        current_doctor.fcps_certificate_url = certificate_url
-    
-    db.commit()
-    db.refresh(current_doctor)
-    
-    return {
-        "message": f"{certificate_type.upper()} certificate uploaded successfully",
-        "certificate_url": certificate_url
+    try:
+        # Upload to Vercel Blob Storage
+        certificate_url = await blob_service.upload_file(
+            file_content=contents,
+            filename=file.filename,
+            folder=f"certificates/{certificate_type}",
+            content_type=file.content_type
+        )
+        
+        # Update doctor certificate URL
+        if certificate_type == "mbbs":
+            current_doctor.mbbs_certificate_url = certificate_url
+        else:  # fcps
+            current_doctor.fcps_certificate_url = certificate_url
+        
+        db.commit()
+        db.refresh(current_doctor)
+        
+        return {
+            "message": f"{certificate_type.upper()} certificate uploaded successfully",
+            "certificate_url": certificate_url
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload certificate: {str(e)}"
+        )
     }
 
 @router.get("/home")

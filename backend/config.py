@@ -30,12 +30,27 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
     
+    # Vercel-specific settings
+    VERCEL_URL: str = ""  # Will be auto-populated by Vercel
+    
     class Config:
         # Explicitly set the .env file path relative to this config file
         env_file = str(BASE_DIR / ".env")
         env_file_encoding = 'utf-8'
         case_sensitive = True
         extra = 'ignore'  # Ignore extra fields in .env
+        
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Auto-detect Vercel environment
+        if os.getenv('VERCEL'):
+            self.ENVIRONMENT = 'production'
+            # Update CORS to include Vercel URL
+            vercel_url = os.getenv('VERCEL_URL', '')
+            if vercel_url and vercel_url not in self.CORS_ORIGINS:
+                origins = json.loads(self.CORS_ORIGINS)
+                origins.extend([f"https://{vercel_url}", f"https://www.{vercel_url}"])
+                self.CORS_ORIGINS = json.dumps(origins)
     
     @property
     def cors_origins_list(self) -> List[str]:
