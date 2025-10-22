@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AdminLogin.css';
 
+// Use environment variable for API URL (works with Vercel deployment)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function AdminLogin() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -25,7 +28,7 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/admin/login', {
+      const response = await fetch(`${API_URL}/api/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
