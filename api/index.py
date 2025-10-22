@@ -1,4 +1,4 @@
-# Vercel Serverless Function Entry Point
+# Vercel Serverless Function Entry Point for FastAPI
 import sys
 import os
 from pathlib import Path
@@ -16,6 +16,6 @@ os.chdir(backend_dir)
 # Import FastAPI app
 from main import app
 
-# Vercel serverless function handler
-def handler(request, context):
-    return app(request, context)
+# Export for Vercel
+# Vercel automatically detects this and creates a serverless function
+app = app
