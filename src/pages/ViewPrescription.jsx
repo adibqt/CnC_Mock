@@ -6,6 +6,15 @@ import './ViewPrescription.css';
 // Use environment variable for API URL (works with Vercel deployment)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Helper function to handle file URLs (works with both absolute URLs from Vercel Blob and relative paths)
+const getFileUrl = (url) => {
+  if (!url) return '';
+  // If URL already starts with http:// or https://, return as-is (Vercel Blob URLs)
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  // Otherwise prepend API_URL (relative paths)
+  return `${API_URL}${url}`;
+};
+
 export default function ViewPrescription() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -1095,7 +1104,7 @@ export default function ViewPrescription() {
                         <div className="report-files-grid">
                           {selectedReport.report_file_url && (
                             <a 
-                              href={`${API_URL}${selectedReport.report_file_url}`} 
+                              href={getFileUrl(selectedReport.report_file_url)} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="report-file-link pdf-link"
@@ -1108,7 +1117,7 @@ export default function ViewPrescription() {
                           {selectedReport.report_images?.map((url, idx) => (
                             <a 
                               key={idx}
-                              href={`${API_URL}${url}`} 
+                              href={getFileUrl(url)} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="report-file-link image-link"
