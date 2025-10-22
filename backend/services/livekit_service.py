@@ -6,7 +6,8 @@ from datetime import timedelta
 import logging
 
 # Import LiveKit Server SDK components
-from livekit.api import AccessToken, VideoGrants, RoomServiceClient
+from livekit.api import AccessToken, VideoGrants
+from livekit import api as livekit_api
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class LiveKitService:
         
         # Initialize RoomServiceClient for room management
         try:
-            self.room_service = RoomServiceClient(
+            self.room_service = livekit_api.RoomServiceClient(
                 self.livekit_url,
                 self.api_key,
                 self.api_secret
