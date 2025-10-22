@@ -73,19 +73,24 @@ class VercelBlobService:
         path: str, 
         content_type: str
     ) -> str:
-        """Upload file to Vercel Blob Storage"""
+        """Upload file to Vercel Blob Storage with public access"""
         url = f"{self.base_url}/{path}"
         
         headers = {
             "Authorization": f"Bearer {self.blob_token}",
             "Content-Type": content_type,
-            "x-vercel-blob-add": "true"
+            "x-vercel-blob-add": "true",
+            "x-vercel-blob-cache-control-max-age": "31536000"  # Cache for 1 year
         }
         
+        # Add public access parameter to URL
+        public_url = f"{url}?access=public"
+        
         async with aiohttp.ClientSession() as session:
-            async with session.put(url, data=file_content, headers=headers) as response:
+            async with session.put(public_url, data=file_content, headers=headers) as response:
                 if response.status == 200:
                     result = await response.json()
+                    # Return the public URL from response
                     return result.get('url', url)
                 else:
                     error_text = await response.text()
