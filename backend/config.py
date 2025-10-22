@@ -33,9 +33,6 @@ class Settings(BaseSettings):
     # Vercel-specific settings
     VERCEL_URL: str = ""  # Will be auto-populated by Vercel
     
-    # Railway-specific settings
-    PORT: int = 8000  # Railway will set this via environment variable
-    
     class Config:
         # Explicitly set the .env file path relative to this config file
         env_file = str(BASE_DIR / ".env")
@@ -49,10 +46,6 @@ class Settings(BaseSettings):
         # Ensure CORS_ORIGINS is valid JSON
         if not self.CORS_ORIGINS or self.CORS_ORIGINS.strip() == '':
             self.CORS_ORIGINS = '["*"]'  # Default to allow all if empty
-        
-        # Auto-detect Railway environment
-        if os.getenv('RAILWAY_ENVIRONMENT'):
-            self.ENVIRONMENT = 'production'
         
         # Auto-detect Vercel environment
         if os.getenv('VERCEL'):
