@@ -163,7 +163,7 @@ After deployment, update your environment variable:
 ```env
 CORS_ORIGINS=["https://your-actual-domain.vercel.app","https://www.your-actual-domain.vercel.app"]
 ```
-
+Do 
 ### Step 2: Update Frontend API URL
 In Vercel **Environment Variables**, update:
 ```env

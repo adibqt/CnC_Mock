@@ -21,7 +21,7 @@ $(document).ready(function(){
 
 	var image = 'img/map-marker.png';
 	map.addMarker({
-		lat: 23.77964833159946,,
+		lat: 23.77964833159946,
 		lng: 90.4134814542451,
 		icon: image,
 		animation: google.maps.Animation.DROP,
