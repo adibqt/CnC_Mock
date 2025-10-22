@@ -142,13 +142,13 @@ async def create_lab_report(
     report_file_url = None
     if report_file:
         validate_file(report_file)
-        report_file_url = save_upload_file(report_file, prefix=f"report_{report_id}")
+        report_file_url = await save_upload_file(report_file, prefix=f"report_{report_id}")
     
     report_images_urls = []
     if report_images:
         for idx, image in enumerate(report_images):
             validate_file(image)
-            image_url = save_upload_file(image, prefix=f"report_{report_id}_img{idx}")
+            image_url = await save_upload_file(image, prefix=f"report_{report_id}_img{idx}")
             report_images_urls.append(image_url)
     
     # Parse test date if provided
