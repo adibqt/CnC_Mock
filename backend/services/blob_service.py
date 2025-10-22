@@ -14,12 +14,18 @@ class VercelBlobService:
         self.blob_token = os.getenv('BLOB_READ_WRITE_TOKEN', '')
         self.base_url = "https://blob.vercel-storage.com"
         
-        # Check if running on Vercel
-        self.is_vercel = os.getenv('VERCEL', '') == '1'
+        # Use Vercel Blob if token is available (works on any platform)
+        self.use_blob_storage = bool(self.blob_token)
+        
+        # Log configuration
+        if self.use_blob_storage:
+            print("✅ Vercel Blob Storage enabled - files will be stored in cloud")
+        else:
+            print("⚠️  Vercel Blob Storage disabled - using local storage (files will be lost on redeployment)")
         
         # Fallback to local storage for development
         self.local_upload_dir = Path("uploads")
-        if not self.is_vercel:
+        if not self.use_blob_storage:
             self.local_upload_dir.mkdir(exist_ok=True)
     
     async def upload_file(
@@ -50,7 +56,7 @@ class VercelBlobService:
         else:
             blob_path = unique_filename
         
-        if self.is_vercel and self.blob_token:
+        if self.use_blob_storage:
             # Upload to Vercel Blob
             return await self._upload_to_vercel_blob(
                 file_content, 
@@ -105,7 +111,7 @@ class VercelBlobService:
         Returns:
             True if successful, False otherwise
         """
-        if not self.is_vercel or not self.blob_token:
+        if not self.use_blob_storage:
             # For local files, just return True
             # You could implement local file deletion here
             return True
