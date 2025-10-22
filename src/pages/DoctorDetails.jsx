@@ -6,6 +6,15 @@ import './DoctorDetails.css';
 // Use environment variable for API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Helper function to handle image URLs (works with both absolute URLs from Vercel Blob and relative paths)
+const getImageUrl = (url) => {
+  if (!url) return '';
+  // If URL already starts with http:// or https://, return as-is (Vercel Blob URLs)
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  // Otherwise prepend API_URL (relative paths)
+  return `${API_URL}${url}`;
+};
+
 
 const DoctorDetails = () => {
   const { doctorId } = useParams();
@@ -176,7 +185,7 @@ const DoctorDetails = () => {
             <div className="doctor-avatar">
               {doctor?.profile_picture_url ? (
                 <img 
-                  src={`${API_URL}${doctor.profile_picture_url}`}
+                  src={getImageUrl(doctor.profile_picture_url)}
                   alt={doctor.full_name}
                 />
               ) : (
