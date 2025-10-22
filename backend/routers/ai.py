@@ -11,10 +11,19 @@ from auth import get_current_user
 from models import User, Doctor, AIConsultation
 from schemas import AIConsultationRequest, AIConsultationResponse, ConsultationHistoryResponse
 from services.gemini_service import GeminiService
-import speech_recognition as sr
 from io import BytesIO
 import os
 from datetime import datetime
+
+# Optional audio processing - only available in local development
+AUDIO_PROCESSING_AVAILABLE = False
+try:
+    import speech_recognition as sr
+    from pydub import AudioSegment
+    AUDIO_PROCESSING_AVAILABLE = True
+except ImportError:
+    # Audio processing not available (e.g., on Vercel)
+    pass
 
 router = APIRouter(prefix="/api/ai", tags=["AI Consultation"])
 
@@ -118,7 +127,18 @@ async def analyze_audio(
     - Transcribes speech to text using Google Speech Recognition
     - Analyzes transcribed text for symptoms
     - Returns recommendations
+    
+    NOTE: Audio processing is only available in local development.
+    On Vercel, this endpoint will return an error with instructions
+    to use text-based consultation instead.
     """
+    
+    # Check if audio processing is available
+    if not AUDIO_PROCESSING_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Audio processing is not available on this deployment. Please use the text-based consultation endpoint (/api/ai/analyze) instead, or run the application locally for audio support."
+        )
     
     try:
         # Validate audio file
