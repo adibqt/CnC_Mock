@@ -42,22 +42,42 @@ class Settings(BaseSettings):
         
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        
+        # Ensure CORS_ORIGINS is valid JSON
+        if not self.CORS_ORIGINS or self.CORS_ORIGINS.strip() == '':
+            self.CORS_ORIGINS = '["*"]'  # Default to allow all if empty
+        
         # Auto-detect Vercel environment
         if os.getenv('VERCEL'):
             self.ENVIRONMENT = 'production'
             # Update CORS to include Vercel URL
             vercel_url = os.getenv('VERCEL_URL', '')
-            if vercel_url and vercel_url not in self.CORS_ORIGINS:
-                origins = json.loads(self.CORS_ORIGINS)
-                origins.extend([f"https://{vercel_url}", f"https://www.{vercel_url}"])
-                self.CORS_ORIGINS = json.dumps(origins)
+            if vercel_url:
+                try:
+                    origins = json.loads(self.CORS_ORIGINS)
+                    # Add Vercel URL if not already present
+                    vercel_https = f"https://{vercel_url}"
+                    if vercel_https not in origins and "*" not in origins:
+                        origins.append(vercel_https)
+                    self.CORS_ORIGINS = json.dumps(origins)
+                except (json.JSONDecodeError, TypeError):
+                    # If parsing fails, set to allow Vercel URL
+                    self.CORS_ORIGINS = f'["https://{vercel_url}"]'
     
     @property
     def cors_origins_list(self) -> List[str]:
         """Parse CORS_ORIGINS from JSON string to list"""
         try:
+            if not self.CORS_ORIGINS or self.CORS_ORIGINS.strip() == '':
+                return ["*"]
+            
+            # Handle both JSON array and single wildcard
+            if self.CORS_ORIGINS.strip() == '*':
+                return ["*"]
+            
             return json.loads(self.CORS_ORIGINS)
-        except:
-            return ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"]
+        except (json.JSONDecodeError, TypeError, ValueError):
+            # Fallback to allow all if parsing fails
+            return ["*"]
 
 settings = Settings()
