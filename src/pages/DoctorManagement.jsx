@@ -6,6 +6,15 @@ import './DoctorManagement.css';
 // Use environment variable for API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Helper function to handle image URLs (works with both absolute URLs from Vercel Blob and relative paths)
+const getImageUrl = (url) => {
+  if (!url) return '';
+  // If URL already starts with http:// or https://, return as-is (Vercel Blob URLs)
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  // Otherwise prepend API_URL (relative paths)
+  return `${API_URL}${url}`;
+};
+
 export default function DoctorManagement() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -313,9 +322,9 @@ export default function DoctorManagement() {
                         <div className="dm-doctor-info">
                           {doctor.profile_picture_url ? (
                             <img 
-                              src={`${API_URL}${doctor.profile_picture_url}`} 
+                              src={getImageUrl(doctor.profile_picture_url)} 
                               alt={doctor.name || 'Doctor'}
-                              className="dm-doctor-avatar"
+                              className="dm-avatar"
                             />
                           ) : (
                             <div className="dm-doctor-avatar-placeholder">
@@ -506,9 +515,9 @@ function DoctorDetailsModal({ doctor, onClose, onVerify, actionLoading }) {
             <div className="dm-doctor-header">
               {doctor.doctor.profile_picture_url ? (
                 <img 
-                  src={`${API_URL}${doctor.doctor.profile_picture_url}`} 
+                  src={getImageUrl(doctor.doctor.profile_picture_url)} 
                   alt={doctor.doctor.name}
-                  className="dm-detail-avatar"
+                  className="dm-profile-pic"
                 />
               ) : (
                 <div className="dm-detail-avatar-placeholder">
@@ -766,7 +775,7 @@ function DocumentCard({ document, onClick }) {
 
 // Document Viewer Modal Component
 function DocumentViewerModal({ document, onClose }) {
-  const documentUrl = `${API_URL}${document.url}`;
+  const documentUrl = getImageUrl(document.url);
   const isImage = document.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
 
   return (
