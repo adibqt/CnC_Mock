@@ -10,7 +10,7 @@ import CallNotification from '../components/CallNotification';
 import { useCallNotification } from '../hooks/useCallNotification';
 
 // Use environment variable for API URL (works with Vercel deployment)
-const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Lightweight icon components using Icofont classes already included globally
 const Icon = ({ name, className = '' }) => (
@@ -121,7 +121,7 @@ export default function UserHome() {
         
         // Load public symptoms (concerns)
         try {
-          const res = await fetch('${API_URL}/api/public/symptoms');
+          const res = await fetch(`${API_URL}/api/public/symptoms`);
           if (res.ok) {
             const data = await res.json();
             setSymptomMeta(data || []);
@@ -136,7 +136,7 @@ export default function UserHome() {
 
         // Load active specializations map for suggestion logic
         try {
-          const resSpecs = await fetch('${API_URL}/api/doctors/specializations');
+          const resSpecs = await fetch(`${API_URL}/api/doctors/specializations`);
           if (resSpecs.ok) {
             const specs = await resSpecs.json();
             const map = {};

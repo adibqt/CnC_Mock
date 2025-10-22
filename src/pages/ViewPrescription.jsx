@@ -4,7 +4,7 @@ import { prescriptionAPI } from '../services/api';
 import './ViewPrescription.css';
 
 // Use environment variable for API URL (works with Vercel deployment)
-const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function ViewPrescription() {
   const navigate = useNavigate();
@@ -98,7 +98,7 @@ export default function ViewPrescription() {
       if (!token) return;
 
       // Get quotation requests for this prescription
-      const requestsResponse = await fetch('${API_URL}/api/quotations/my-requests', {
+      const requestsResponse = await fetch(`${API_URL}/api/quotations/my-requests`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -136,7 +136,7 @@ export default function ViewPrescription() {
     
     // Load verified pharmacies
     try {
-      const response = await fetch('${API_URL}/api/quotations/pharmacies');
+      const response = await fetch(`${API_URL}/api/quotations/pharmacies`);
       if (response.ok) {
         const data = await response.json();
         setPharmacies(data);
@@ -181,7 +181,7 @@ export default function ViewPrescription() {
       
       console.log('🔍 Token being sent:', token.substring(0, 20) + '...');
       
-      const response = await fetch('${API_URL}/api/quotations/request', {
+      const response = await fetch(`${API_URL}/api/quotations/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -241,7 +241,7 @@ export default function ViewPrescription() {
       if (!token) return;
 
       // Get lab quotation requests for this prescription
-      const requestsResponse = await fetch('${API_URL}/api/lab-quotations/my-requests', {
+      const requestsResponse = await fetch(`${API_URL}/api/lab-quotations/my-requests`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -274,7 +274,7 @@ export default function ViewPrescription() {
       const token = localStorage.getItem('patient_accessToken');
       if (!token) return;
 
-      const response = await fetch('${API_URL}/api/lab-reports/my-reports', {
+      const response = await fetch(`${API_URL}/api/lab-reports/my-reports`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -305,7 +305,7 @@ export default function ViewPrescription() {
         return;
       }
       
-      const response = await fetch('${API_URL}/api/lab-quotations/verified-clinics', {
+      const response = await fetch(`${API_URL}/api/lab-quotations/verified-clinics`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -357,7 +357,7 @@ export default function ViewPrescription() {
         return;
       }
       
-      const response = await fetch('${API_URL}/api/lab-quotations/request', {
+      const response = await fetch(`${API_URL}/api/lab-quotations/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

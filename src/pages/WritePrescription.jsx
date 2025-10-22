@@ -4,7 +4,7 @@ import { prescriptionAPI } from '../services/api';
 import './WritePrescription.css';
 
 // Use environment variable for API URL (works with Vercel deployment)
-const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function WritePrescription() {
   const navigate = useNavigate();
