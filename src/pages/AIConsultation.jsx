@@ -5,6 +5,15 @@ import './AIConsultation.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Helper function to handle image URLs (works with both absolute URLs from Vercel Blob and relative paths)
+const getImageUrl = (url) => {
+  if (!url) return '';
+  // If URL already starts with http:// or https://, return as-is (Vercel Blob URLs)
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  // Otherwise prepend API_URL (relative paths)
+  return `${API_URL}${url}`;
+};
+
 export default function AIConsultation() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
@@ -501,14 +510,14 @@ export default function AIConsultation() {
                       <div className="doctor-avatar">
                         {doctor.profile_picture_url ? (
                           <img 
-                            src={`${API_URL}${doctor.profile_picture_url}`} 
+                            src={getImageUrl(doctor.profile_picture_url)} 
                             alt={doctor.name}
                             onError={(e) => {
                               e.target.style.display = 'none';
                               e.target.nextSibling.style.display = 'flex';
                             }}
                           />
-                        ) : null}
+                        ) : (
                         <div className="avatar-placeholder" style={{ display: doctor.profile_picture_url ? 'none' : 'flex' }}>
                           <i className="icofont-doctor-alt"></i>
                         </div>
