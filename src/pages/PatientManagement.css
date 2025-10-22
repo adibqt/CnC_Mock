@@ -229,6 +229,14 @@
   gap: 0.75rem;
 }
 
+.pm-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+}
+
 .pm-patient-avatar {
   width: 40px;
   height: 40px;
@@ -514,6 +522,15 @@
   margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 2px solid #e2e8f0;
+}
+
+.pm-profile-pic {
+  width: 100px;
+  height: 100px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .pm-detail-avatar {
