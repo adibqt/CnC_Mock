@@ -163,7 +163,7 @@ export default function AdminLogin() {
               <i className="icofont-shield"></i>
             </div>
             <h3>Secure Admin Access</h3>
-            <p style={{ color: '#3b82f6' }}>Manage users, verify doctors, and oversee the entire Click & Care platform from this secure admin portal.</p>
+           
             
             <div className="info-features">
               <div className="feature-item">
