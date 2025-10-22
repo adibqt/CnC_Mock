@@ -518,9 +518,10 @@ export default function AIConsultation() {
                             }}
                           />
                         ) : (
-                        <div className="avatar-placeholder" style={{ display: doctor.profile_picture_url ? 'none' : 'flex' }}>
-                          <i className="icofont-doctor-alt"></i>
-                        </div>
+                          <div className="avatar-placeholder" style={{ display: doctor.profile_picture_url ? 'none' : 'flex' }}>
+                            <i className="icofont-doctor-alt"></i>
+                          </div>
+                        )}
                       </div>
                       <div className="doctor-info">
                         <h4>Dr. {doctor.name || 'Not Available'}</h4>

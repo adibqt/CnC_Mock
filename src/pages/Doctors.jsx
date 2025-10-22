@@ -275,9 +275,10 @@ export default function Doctors() {
                               }}
                             />
                           ) : (
-                          <div className="doctor-placeholder" style={{ display: doctor.profile_picture_url ? 'none' : 'flex' }}>
-                            <i className="icofont-doctor-alt"></i>
-                          </div>
+                            <div className="doctor-placeholder" style={{ display: doctor.profile_picture_url ? 'none' : 'flex' }}>
+                              <i className="icofont-doctor-alt"></i>
+                            </div>
+                          )}
                           <div className="verified-badge">
                             <i className="icofont-verification-check"></i>
                           </div>
