@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { doctorAPI } from '../services/api';
 import './DoctorProfileUpdate.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+
 export default function DoctorProfileUpdate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -288,7 +292,7 @@ export default function DoctorProfileUpdate() {
               <div className="profile-picture-section">
                 <div className="profile-picture-preview">
                   {profilePicturePreview ? (
-                    <img src={profilePicturePreview.startsWith('http') ? profilePicturePreview : `http://localhost:8000${profilePicturePreview}`} alt="Profile" className="profile-pic-img" />
+                    <img src={profilePicturePreview.startsWith('http') ? profilePicturePreview : `${API_URL}${profilePicturePreview}`} alt="Profile" className="profile-pic-img" />
                   ) : (
                     <div className="profile-pic-placeholder">
                       <i className="icofont-doctor-alt"></i>

@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { userAPI } from '../services/api';
 import './ProfileUpdate.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+
 const ProfileUpdate = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -41,7 +45,7 @@ const ProfileUpdate = () => {
           city: profile.city || '',
         });
         if (profile.profile_picture_url) {
-          setPreviewImage(`http://localhost:8000${profile.profile_picture_url}`);
+          setPreviewImage(`${API_URL}${profile.profile_picture_url}`);
         }
       }
     };

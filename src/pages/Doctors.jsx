@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Doctors.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+
 export default function Doctors() {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
@@ -254,7 +258,7 @@ export default function Doctors() {
                         <div className="doctor-image">
                           {doctor.profile_picture_url ? (
                             <img 
-                              src={`http://localhost:8000${doctor.profile_picture_url}`} 
+                              src={`${API_URL}${doctor.profile_picture_url}`} 
                               alt={doctor.full_name}
                               onError={(e) => {
                                 e.target.style.display = 'none';

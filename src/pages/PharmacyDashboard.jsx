@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './PharmacyDashboard.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const PharmacyDashboard = () => {
   const navigate = useNavigate();
   const [pharmacy, setPharmacy] = useState(null);
@@ -45,7 +48,7 @@ const PharmacyDashboard = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/pharmacy/profile', {
+      const response = await fetch(`${API_URL}/api/pharmacy/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -70,7 +73,7 @@ const PharmacyDashboard = () => {
   const loadQuotationRequests = async () => {
     try {
       const token = localStorage.getItem('pharmacy_accessToken');
-      const response = await fetch('http://localhost:8000/api/quotations/pending', {
+      const response = await fetch(`${API_URL}/api/quotations/pending`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -86,7 +89,7 @@ const PharmacyDashboard = () => {
   const loadMyQuotations = async () => {
     try {
       const token = localStorage.getItem('pharmacy_accessToken');
-      const response = await fetch('http://localhost:8000/api/quotations/my-quotations', {
+      const response = await fetch(`${API_URL}/api/quotations/my-quotations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -181,7 +184,7 @@ const PharmacyDashboard = () => {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('pharmacy_accessToken');
-      const response = await fetch('http://localhost:8000/api/quotations/respond', {
+      const response = await fetch(`${API_URL}/api/quotations/respond`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

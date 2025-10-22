@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import '../components/Login.css';
 import { authUtils } from '../services/api';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const PharmacyLogin = () => {
   const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
@@ -120,7 +123,7 @@ const PharmacyLogin = () => {
     if (isSignup) {
       // Signup logic
       try {
-        const response = await fetch('http://localhost:8000/api/pharmacy/signup', {
+        const response = await fetch(`${API_URL}/api/pharmacy/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -172,7 +175,7 @@ const PharmacyLogin = () => {
     } else {
       // Login logic
       try {
-        const response = await fetch('http://localhost:8000/api/pharmacy/login', {
+        const response = await fetch(`${API_URL}/api/pharmacy/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
