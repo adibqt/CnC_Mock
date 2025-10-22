@@ -12,6 +12,17 @@ import { useCallNotification } from '../hooks/useCallNotification';
 // Use environment variable for API URL (works with Vercel deployment)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Helper function to get the correct image URL
+const getImageUrl = (url) => {
+  if (!url) return null;
+  // If URL already starts with http:// or https://, use it as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  // Otherwise, prepend API_URL for relative paths
+  return `${API_URL}${url}`;
+};
+
 // Lightweight icon components using Icofont classes already included globally
 const Icon = ({ name, className = '' }) => (
   <i className={`icofont-${name} ${className}`}></i>
@@ -447,7 +458,7 @@ export default function UserHome() {
           <div className="uh-suggestion">
             <div className="uh-doc-avatar">
               <img 
-                src={suggestion.photo_url ? `${API_URL}${suggestion.photo_url}` : '/img/doctor-detail.jpg'} 
+                src={suggestion.photo_url ? getImageUrl(suggestion.photo_url) : '/img/doctor-detail.jpg'} 
                 alt="Doctor" 
               />
             </div>
@@ -478,7 +489,7 @@ export default function UserHome() {
             <div className="uh-appointment-doc">
               {todayAppointment.doctor?.profile_picture_url ? (
                 <img 
-                  src={`${API_URL}${todayAppointment.doctor.profile_picture_url}`}
+                  src={getImageUrl(todayAppointment.doctor.profile_picture_url)}
                   alt={todayAppointment.doctor.name}
                   style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
                 />
@@ -572,7 +583,7 @@ export default function UserHome() {
                       <div className="uh-doctor-avatar">
                         {doctor.profile_picture_url ? (
                           <img 
-                            src={`${API_URL}${doctor.profile_picture_url}`}
+                            src={getImageUrl(doctor.profile_picture_url)}
                             alt={doctor.full_name}
                           />
                         ) : (
@@ -685,7 +696,7 @@ export default function UserHome() {
                           <div className="doctor-avatar-small">
                             {appointment.doctor?.profile_picture_url ? (
                               <img 
-                                src={`${API_URL}${appointment.doctor.profile_picture_url}`}
+                                src={getImageUrl(appointment.doctor.profile_picture_url)}
                                 alt={appointment.doctor.name}
                               />
                             ) : (
