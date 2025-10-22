@@ -48,29 +48,31 @@ def validate_file(file: UploadFile) -> bool:
     return True
 
 
-def save_upload_file(file: UploadFile, prefix: str = "") -> str:
-    """Save uploaded file and return relative path"""
-    # Generate unique filename
-    file_ext = os.path.splitext(file.filename)[1]
-    unique_filename = f"{prefix}_{uuid.uuid4().hex}{file_ext}"
-    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+async def save_upload_file(file: UploadFile, prefix: str = "") -> str:
+    """Save uploaded file to Vercel Blob and return URL"""
+    from services.blob_service import blob_service
     
-    # Save file
-    with open(file_path, "wb") as buffer:
-        content = file.file.read()
-        if len(content) > MAX_FILE_SIZE:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File size exceeds 10MB limit"
-            )
-        buffer.write(content)
+    # Read file content
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size exceeds 10MB limit"
+        )
     
-    # Return relative path for storage
-    return f"/uploads/lab_reports/{unique_filename}"
+    # Upload to Vercel Blob Storage
+    file_url = await blob_service.upload_file(
+        file_content=content,
+        filename=file.filename,
+        folder="lab_reports",
+        content_type=file.content_type
+    )
+    
+    return file_url
 
 
 @router.post("/create", response_model=dict)
-def create_lab_report(
+async def create_lab_report(
     quotation_response_id: int = Form(...),
     report_title: str = Form(...),
     test_results: str = Form(...),  # JSON string
