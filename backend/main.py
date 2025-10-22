@@ -28,6 +28,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Configure CORS - MUST be before other middleware and routes
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Health check endpoint for Docker
 @app.get("/health")
 async def health_check():
@@ -44,15 +53,6 @@ uploads_dir.mkdir(exist_ok=True)
 
 # Mount static files for uploaded images
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Include routers
 app.include_router(users_router)
