@@ -6,6 +6,15 @@ import './ProfileUpdate.css';
 // Use environment variable for API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Helper function to handle image URLs (works with both absolute URLs from Vercel Blob and relative paths)
+const getImageUrl = (url) => {
+  if (!url) return '';
+  // If URL already starts with http:// or https://, return as-is (Vercel Blob URLs)
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  // Otherwise prepend API_URL (relative paths)
+  return `${API_URL}${url}`;
+};
+
 
 const ProfileUpdate = () => {
   const navigate = useNavigate();
@@ -45,7 +54,7 @@ const ProfileUpdate = () => {
           city: profile.city || '',
         });
         if (profile.profile_picture_url) {
-          setPreviewImage(`${API_URL}${profile.profile_picture_url}`);
+          setPreviewImage(getImageUrl(profile.profile_picture_url));
         }
       }
     };
