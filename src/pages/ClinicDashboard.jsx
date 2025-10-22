@@ -65,7 +65,7 @@ const ClinicDashboard = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/clinic/profile', {
+      const response = await fetch(`${API_URL}/api/clinic/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -90,7 +90,7 @@ const ClinicDashboard = () => {
   const loadQuotationRequests = async () => {
     try {
       const token = localStorage.getItem('clinic_accessToken');
-      const response = await fetch('http://localhost:8000/api/lab-quotations/pending', {
+      const response = await fetch(`${API_URL}/api/lab-quotations/pending`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -106,7 +106,7 @@ const ClinicDashboard = () => {
   const loadMyQuotations = async () => {
     try {
       const token = localStorage.getItem('clinic_accessToken');
-      const response = await fetch('http://localhost:8000/api/lab-quotations/my-responses', {
+      const response = await fetch(`${API_URL}/api/lab-quotations/my-responses`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -122,7 +122,7 @@ const ClinicDashboard = () => {
   const loadAcceptedQuotations = async () => {
     try {
       const token = localStorage.getItem('clinic_accessToken');
-      const response = await fetch('http://localhost:8000/api/lab-reports/accepted-quotations/pending-reports', {
+      const response = await fetch(`${API_URL}/api/lab-reports/accepted-quotations/pending-reports`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -138,7 +138,7 @@ const ClinicDashboard = () => {
   const loadMyReports = async () => {
     try {
       const token = localStorage.getItem('clinic_accessToken');
-      const response = await fetch('http://localhost:8000/api/lab-reports/clinic/reports', {
+      const response = await fetch(`${API_URL}/api/lab-reports/clinic/reports`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -218,7 +218,7 @@ const ClinicDashboard = () => {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('clinic_accessToken');
-      const response = await fetch('http://localhost:8000/api/lab-quotations/respond', {
+      const response = await fetch(`${API_URL}/api/lab-quotations/respond`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -382,7 +382,7 @@ const ClinicDashboard = () => {
         formData.append('report_images', image);
       });
 
-      const response = await fetch('http://localhost:8000/api/lab-reports/create', {
+      const response = await fetch(`${API_URL}/api/lab-reports/create`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

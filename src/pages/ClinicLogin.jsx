@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import '../components/Login.css';
 import { authUtils } from '../services/api';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const ClinicLogin = () => {
   const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
@@ -125,7 +127,7 @@ const ClinicLogin = () => {
     if (isSignup) {
       // Signup logic
       try {
-        const response = await fetch('http://localhost:8000/api/clinic/signup', {
+        const response = await fetch(`${API_URL}/api/clinic/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -175,7 +177,7 @@ const ClinicLogin = () => {
     } else {
       // Login logic
       try {
-        const response = await fetch('http://localhost:8000/api/clinic/login', {
+        const response = await fetch(`${API_URL}/api/clinic/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

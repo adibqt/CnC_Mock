@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { aiAPI, authUtils } from '../services/api';
 import './AIConsultation.css';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function AIConsultation() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
@@ -499,7 +501,7 @@ export default function AIConsultation() {
                       <div className="doctor-avatar">
                         {doctor.profile_picture_url ? (
                           <img 
-                            src={`http://localhost:8000${doctor.profile_picture_url}`} 
+                            src={`${API_URL}${doctor.profile_picture_url}`} 
                             alt={doctor.name}
                             onError={(e) => {
                               e.target.style.display = 'none';

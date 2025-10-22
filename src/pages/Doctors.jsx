@@ -30,7 +30,7 @@ export default function Doctors() {
 
   const fetchDoctors = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/doctors/all');
+      const response = await fetch(`${API_URL}/api/doctors/all`);
       if (response.ok) {
         const data = await response.json();
         // Filter only verified doctors on frontend
@@ -48,7 +48,7 @@ export default function Doctors() {
 
   const fetchSpecializations = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/doctors/specializations');
+      const response = await fetch(`${API_URL}/api/doctors/specializations`);
       if (response.ok) {
         const data = await response.json();
         setSpecializations(data);
