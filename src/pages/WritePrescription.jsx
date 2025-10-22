@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { prescriptionAPI } from '../services/api';
 import './WritePrescription.css';
 
+// Use environment variable for API URL (works with Vercel deployment)
+const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+
 export default function WritePrescription() {
   const navigate = useNavigate();
   
@@ -231,7 +234,7 @@ export default function WritePrescription() {
                   <div className="appointment-patient">
                     {appointment.patient.profile_picture_url ? (
                       <img 
-                        src={`http://localhost:8000${appointment.patient.profile_picture_url}`}
+                        src={`${API_URL}${appointment.patient.profile_picture_url}`}
                         alt={appointment.patient.name}
                         className="patient-avatar"
                       />

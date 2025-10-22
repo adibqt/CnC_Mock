@@ -3,6 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { prescriptionAPI } from '../services/api';
 import './ViewPrescription.css';
 
+// Use environment variable for API URL (works with Vercel deployment)
+const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+
 export default function ViewPrescription() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -95,7 +98,7 @@ export default function ViewPrescription() {
       if (!token) return;
 
       // Get quotation requests for this prescription
-      const requestsResponse = await fetch('http://localhost:8000/api/quotations/my-requests', {
+      const requestsResponse = await fetch('${API_URL}/api/quotations/my-requests', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -109,7 +112,7 @@ export default function ViewPrescription() {
         // Load responses for each request
         if (prescriptionRequests.length > 0) {
           const responsesPromises = prescriptionRequests.map(req =>
-            fetch(`http://localhost:8000/api/quotations/request/${req.id}/responses`, {
+            fetch(`${API_URL}/api/quotations/request/${req.id}/responses`, {
               headers: { 'Authorization': `Bearer ${token}` }
             }).then(res => res.ok ? res.json() : [])
           );
@@ -133,7 +136,7 @@ export default function ViewPrescription() {
     
     // Load verified pharmacies
     try {
-      const response = await fetch('http://localhost:8000/api/quotations/pharmacies');
+      const response = await fetch('${API_URL}/api/quotations/pharmacies');
       if (response.ok) {
         const data = await response.json();
         setPharmacies(data);
@@ -178,7 +181,7 @@ export default function ViewPrescription() {
       
       console.log('🔍 Token being sent:', token.substring(0, 20) + '...');
       
-      const response = await fetch('http://localhost:8000/api/quotations/request', {
+      const response = await fetch('${API_URL}/api/quotations/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -212,7 +215,7 @@ export default function ViewPrescription() {
 
     try {
   const token = localStorage.getItem('patient_accessToken');
-      const response = await fetch(`http://localhost:8000/api/quotations/${quotationId}/accept`, {
+      const response = await fetch(`${API_URL}/api/quotations/${quotationId}/accept`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -238,7 +241,7 @@ export default function ViewPrescription() {
       if (!token) return;
 
       // Get lab quotation requests for this prescription
-      const requestsResponse = await fetch('http://localhost:8000/api/lab-quotations/my-requests', {
+      const requestsResponse = await fetch('${API_URL}/api/lab-quotations/my-requests', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -250,7 +253,7 @@ export default function ViewPrescription() {
         // Load responses for each request
         if (prescriptionRequests.length > 0) {
           const responsesPromises = prescriptionRequests.map(req =>
-            fetch(`http://localhost:8000/api/lab-quotations/responses/${req.id}`, {
+            fetch(`${API_URL}/api/lab-quotations/responses/${req.id}`, {
               headers: { 'Authorization': `Bearer ${token}` }
             }).then(res => res.ok ? res.json() : [])
           );
@@ -271,7 +274,7 @@ export default function ViewPrescription() {
       const token = localStorage.getItem('patient_accessToken');
       if (!token) return;
 
-      const response = await fetch('http://localhost:8000/api/lab-reports/my-reports', {
+      const response = await fetch('${API_URL}/api/lab-reports/my-reports', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -302,7 +305,7 @@ export default function ViewPrescription() {
         return;
       }
       
-      const response = await fetch('http://localhost:8000/api/lab-quotations/verified-clinics', {
+      const response = await fetch('${API_URL}/api/lab-quotations/verified-clinics', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -354,7 +357,7 @@ export default function ViewPrescription() {
         return;
       }
       
-      const response = await fetch('http://localhost:8000/api/lab-quotations/request', {
+      const response = await fetch('${API_URL}/api/lab-quotations/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -388,7 +391,7 @@ export default function ViewPrescription() {
 
     try {
       const token = localStorage.getItem('patient_accessToken');
-      const response = await fetch(`http://localhost:8000/api/lab-quotations/accept/${quotationId}`, {
+      const response = await fetch(`${API_URL}/api/lab-quotations/accept/${quotationId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -1092,7 +1095,7 @@ export default function ViewPrescription() {
                         <div className="report-files-grid">
                           {selectedReport.report_file_url && (
                             <a 
-                              href={`http://localhost:8000${selectedReport.report_file_url}`} 
+                              href={`${API_URL}${selectedReport.report_file_url}`} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="report-file-link pdf-link"
@@ -1105,7 +1108,7 @@ export default function ViewPrescription() {
                           {selectedReport.report_images?.map((url, idx) => (
                             <a 
                               key={idx}
-                              href={`http://localhost:8000${url}`} 
+                              href={`${API_URL}${url}`} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="report-file-link image-link"
