@@ -48,8 +48,8 @@ class GeminiService:
         # Configure genai with API key explicitly
         genai.configure(api_key=api_key)
         
-        # Use the 'gemini-pro-latest' model
-        model_id = 'gemini-pro-latest'
+        # Use the stable 'gemini-2.5-flash' model (fast and reliable)
+        model_id = 'gemini-2.5-flash'
         self.model = genai.GenerativeModel(model_id)
         print(f"✅ Using Gemini model: {model_id}\n")
         
