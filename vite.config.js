@@ -7,9 +7,8 @@ export default defineConfig({
   define: {
     // Make API URL configurable for Vercel
     'process.env.VITE_API_URL': JSON.stringify(
-      process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}/api`
-        : process.env.VITE_API_URL || 'http://localhost:8000'
+      process.env.VITE_API_URL || 
+      (process.env.VERCEL ? '/api' : 'http://localhost:8000')
     )
   }
 })
