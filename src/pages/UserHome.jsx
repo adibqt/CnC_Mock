@@ -9,6 +9,9 @@ import VideoCall, { useVideoCall } from '../components/VideoCall';
 import CallNotification from '../components/CallNotification';
 import { useCallNotification } from '../hooks/useCallNotification';
 
+// Use environment variable for API URL (works with Vercel deployment)
+const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+
 // Lightweight icon components using Icofont classes already included globally
 const Icon = ({ name, className = '' }) => (
   <i className={`icofont-${name} ${className}`}></i>
@@ -118,7 +121,7 @@ export default function UserHome() {
         
         // Load public symptoms (concerns)
         try {
-          const res = await fetch('http://localhost:8000/api/public/symptoms');
+          const res = await fetch('${API_URL}/api/public/symptoms');
           if (res.ok) {
             const data = await res.json();
             setSymptomMeta(data || []);
@@ -133,7 +136,7 @@ export default function UserHome() {
 
         // Load active specializations map for suggestion logic
         try {
-          const resSpecs = await fetch('http://localhost:8000/api/doctors/specializations');
+          const resSpecs = await fetch('${API_URL}/api/doctors/specializations');
           if (resSpecs.ok) {
             const specs = await resSpecs.json();
             const map = {};
@@ -444,7 +447,7 @@ export default function UserHome() {
           <div className="uh-suggestion">
             <div className="uh-doc-avatar">
               <img 
-                src={suggestion.photo_url ? `http://localhost:8000${suggestion.photo_url}` : '/img/doctor-detail.jpg'} 
+                src={suggestion.photo_url ? `${API_URL}${suggestion.photo_url}` : '/img/doctor-detail.jpg'} 
                 alt="Doctor" 
               />
             </div>
@@ -475,7 +478,7 @@ export default function UserHome() {
             <div className="uh-appointment-doc">
               {todayAppointment.doctor?.profile_picture_url ? (
                 <img 
-                  src={`http://localhost:8000${todayAppointment.doctor.profile_picture_url}`}
+                  src={`${API_URL}${todayAppointment.doctor.profile_picture_url}`}
                   alt={todayAppointment.doctor.name}
                   style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
                 />
@@ -569,7 +572,7 @@ export default function UserHome() {
                       <div className="uh-doctor-avatar">
                         {doctor.profile_picture_url ? (
                           <img 
-                            src={`http://localhost:8000${doctor.profile_picture_url}`}
+                            src={`${API_URL}${doctor.profile_picture_url}`}
                             alt={doctor.full_name}
                           />
                         ) : (
@@ -682,7 +685,7 @@ export default function UserHome() {
                           <div className="doctor-avatar-small">
                             {appointment.doctor?.profile_picture_url ? (
                               <img 
-                                src={`http://localhost:8000${appointment.doctor.profile_picture_url}`}
+                                src={`${API_URL}${appointment.doctor.profile_picture_url}`}
                                 alt={appointment.doctor.name}
                               />
                             ) : (

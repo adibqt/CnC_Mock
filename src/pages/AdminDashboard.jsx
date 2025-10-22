@@ -6,6 +6,9 @@ import {
 } from 'recharts';
 import './AdminDashboard.css';
 
+// Use environment variable for API URL (works with Vercel deployment)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -65,7 +68,7 @@ export default function AdminDashboard() {
   const loadDashboardStats = async () => {
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch('http://localhost:8000/api/admin/dashboard/stats', {
+      const response = await fetch(`${API_URL}/api/admin/dashboard/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -310,7 +313,7 @@ function OverviewTab({ stats }) {
   const loadDailyStats = async () => {
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch('http://localhost:8000/api/admin/dashboard/daily-stats', {
+      const response = await fetch('${API_URL}/api/admin/dashboard/daily-stats', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -705,7 +708,7 @@ function SpecializationsTab() {
     setLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch('http://localhost:8000/api/admin/specializations', {
+      const response = await fetch('${API_URL}/api/admin/specializations', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -730,7 +733,7 @@ function SpecializationsTab() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch('http://localhost:8000/api/admin/specializations', {
+      const response = await fetch('${API_URL}/api/admin/specializations', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -766,7 +769,7 @@ function SpecializationsTab() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/specializations/${selectedSpec.id}`, {
+      const response = await fetch(`${API_URL}/api/admin/specializations/${selectedSpec.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -803,7 +806,7 @@ function SpecializationsTab() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/specializations/${spec.id}`, {
+      const response = await fetch(`${API_URL}/api/admin/specializations/${spec.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -830,7 +833,7 @@ function SpecializationsTab() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/specializations/${spec.id}`, {
+      const response = await fetch(`${API_URL}/api/admin/specializations/${spec.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1090,7 +1093,7 @@ function SymptomsTab() {
   const loadSymptoms = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/admin/symptoms', {
+      const response = await fetch('${API_URL}/api/admin/symptoms', {
         headers: { 'Authorization': `Bearer ${token()}` }
       });
       if (response.ok) {
@@ -1106,7 +1109,7 @@ function SymptomsTab() {
 
   const loadSpecs = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/admin/specializations', { headers: { 'Authorization': `Bearer ${token()}` } });
+      const res = await fetch('${API_URL}/api/admin/specializations', { headers: { 'Authorization': `Bearer ${token()}` } });
       if (res.ok) {
         const data = await res.json();
         setSpecOptions(data.filter(s => s.is_active));
@@ -1130,7 +1133,7 @@ function SymptomsTab() {
     if (!formData.name.trim()) { alert('Symptom name is required'); return; }
     setActionLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/admin/symptoms', {
+      const response = await fetch('${API_URL}/api/admin/symptoms', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -1155,7 +1158,7 @@ function SymptomsTab() {
     if (!formData.name.trim()) { alert('Symptom name is required'); return; }
     setActionLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/symptoms/${selectedSymptom.id}`, {
+      const response = await fetch(`${API_URL}/api/admin/symptoms/${selectedSymptom.id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -1175,7 +1178,7 @@ function SymptomsTab() {
 
   const handleToggleStatus = async (sym) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/symptoms/${sym.id}`, {
+      const response = await fetch(`${API_URL}/api/admin/symptoms/${sym.id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_active: !sym.is_active })
@@ -1189,7 +1192,7 @@ function SymptomsTab() {
   const handleDelete = async (sym) => {
     if (!window.confirm(`Delete symptom "${sym.name}"? This cannot be undone.`)) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/symptoms/${sym.id}`, {
+      const response = await fetch(`${API_URL}/api/admin/symptoms/${sym.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token()}` }
       });
@@ -1428,7 +1431,7 @@ function PharmaciesTab() {
   const loadStats = async () => {
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch('http://localhost:8000/api/admin/pharmacies/stats/summary', {
+      const response = await fetch('${API_URL}/api/admin/pharmacies/stats/summary', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1450,7 +1453,7 @@ function PharmaciesTab() {
     setLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      let url = 'http://localhost:8000/api/admin/pharmacies?limit=100';
+      let url = '${API_URL}/api/admin/pharmacies?limit=100';
       
       // Apply filters
       if (filterStatus === 'pending') {
@@ -1487,7 +1490,7 @@ function PharmaciesTab() {
   const viewDetails = async (pharmacyId) => {
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/pharmacies/${pharmacyId}`, {
+      const response = await fetch(`${API_URL}/api/admin/pharmacies/${pharmacyId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1510,7 +1513,7 @@ function PharmaciesTab() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/pharmacies/${pharmacyId}/verify`, {
+      const response = await fetch(`${API_URL}/api/admin/pharmacies/${pharmacyId}/verify`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1547,7 +1550,7 @@ function PharmaciesTab() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/pharmacies/${pharmacyId}/verify`, {
+      const response = await fetch(`${API_URL}/api/admin/pharmacies/${pharmacyId}/verify`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -2055,7 +2058,7 @@ function ClinicsTab() {
   const loadStats = async () => {
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch('http://localhost:8000/api/admin/clinics/stats/summary', {
+      const response = await fetch('${API_URL}/api/admin/clinics/stats/summary', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -2077,7 +2080,7 @@ function ClinicsTab() {
     setLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      let url = 'http://localhost:8000/api/admin/clinics?limit=100';
+      let url = '${API_URL}/api/admin/clinics?limit=100';
       
       // Apply filters
       if (filterStatus === 'pending') {
@@ -2114,7 +2117,7 @@ function ClinicsTab() {
   const viewDetails = async (clinicId) => {
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/clinics/${clinicId}`, {
+      const response = await fetch(`${API_URL}/api/admin/clinics/${clinicId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -2137,7 +2140,7 @@ function ClinicsTab() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/clinics/${clinicId}/verify`, {
+      const response = await fetch(`${API_URL}/api/admin/clinics/${clinicId}/verify`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -2174,7 +2177,7 @@ function ClinicsTab() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/clinics/${clinicId}/verify`, {
+      const response = await fetch(`${API_URL}/api/admin/clinics/${clinicId}/verify`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
