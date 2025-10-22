@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import './PatientManagement.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function PatientManagement() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -88,7 +91,7 @@ export default function PatientManagement() {
       const token = localStorage.getItem('admin_accessToken');
       
       // Build query parameters
-      let url = `http://localhost:8000/api/admin/patients?skip=${currentPage * patientsPerPage}&limit=${patientsPerPage}`;
+      let url = `${API_URL}/api/admin/patients?skip=${currentPage * patientsPerPage}&limit=${patientsPerPage}`;
       
       if (searchQuery) {
         url += `&search=${encodeURIComponent(searchQuery)}`;
@@ -122,7 +125,7 @@ export default function PatientManagement() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/patients/${patientId}`, {
+      const response = await fetch(`${API_URL}/api/admin/patients/${patientId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -151,7 +154,7 @@ export default function PatientManagement() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/patients/${patientId}`, {
+      const response = await fetch(`${API_URL}/api/admin/patients/${patientId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -308,7 +311,7 @@ export default function PatientManagement() {
                         <div className="pm-patient-info">
                           {patient.profile_picture_url ? (
                             <img 
-                              src={`http://localhost:8000${patient.profile_picture_url}`} 
+                              src={`${API_URL}${patient.profile_picture_url}`} 
                               alt={patient.name || 'Patient'}
                               className="pm-patient-avatar"
                             />
@@ -451,7 +454,7 @@ function PatientDetailsModal({ patient, onClose, onToggleStatus, actionLoading }
             <div className="pm-patient-header">
               {patient.patient.profile_picture_url ? (
                 <img 
-                  src={`http://localhost:8000${patient.patient.profile_picture_url}`} 
+                  src={`${API_URL}${patient.patient.profile_picture_url}`} 
                   alt={patient.patient.name}
                   className="pm-detail-avatar"
                 />
@@ -646,7 +649,7 @@ function PrescriptionList({ patientId }) {
   const loadPrescriptions = async () => {
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/patients/${patientId}/prescriptions`, {
+      const response = await fetch(`${API_URL}/api/admin/patients/${patientId}/prescriptions`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
