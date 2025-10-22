@@ -279,15 +279,15 @@ const Login = () => {
                   <div className="login-features">
                     <div className="feature-item">
                       <i className="icofont-check-circled"></i>
-                      <span>Book appointments easily</span>
+                      <span style={{ color: '#3b82f6' }}>Book appointments easily</span>
                     </div>
                     <div className="feature-item">
                       <i className="icofont-check-circled"></i>
-                      <span>Access medical records</span>
+                      <span style={{ color: '#3b82f6' }}>Access medical records</span>
                     </div>
                     <div className="feature-item">
                       <i className="icofont-check-circled"></i>
-                      <span>Get health tips & updates</span>
+                      <span style={{ color: '#3b82f6' }}>Get health tips & updates</span>
                     </div>
                   </div>
                 )}

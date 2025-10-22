@@ -215,6 +215,7 @@ const ProfileUpdate = () => {
                 className="form-control"
                 value={formData.date_of_birth}
                 onChange={handleChange}
+                max={new Date().toISOString().split('T')[0]}
                 required
               />
             </div>
