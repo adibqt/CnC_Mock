@@ -6,6 +6,10 @@ import CallNotification from '../components/CallNotification';
 import { useCallNotification } from '../hooks/useCallNotification';
 import './DoctorHome.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+
 export default function DoctorHome() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -141,7 +145,7 @@ export default function DoctorHome() {
               <div className="doctor-avatar">
                 {doctor?.profile_picture_url ? (
                   <img 
-                    src={`http://localhost:8000${doctor.profile_picture_url}`}
+                    src={`${API_URL}${doctor.profile_picture_url}`}
                     alt={doctor.name}
                     className="doctor-avatar-img"
                   />
@@ -258,7 +262,7 @@ export default function DoctorHome() {
                           <div className="patient-avatar">
                             {appointment.patient?.profile_picture_url ? (
                               <img 
-                                src={`http://localhost:8000${appointment.patient.profile_picture_url}`}
+                                src={`${API_URL}${appointment.patient.profile_picture_url}`}
                                 alt={appointment.patient.name}
                               />
                             ) : (

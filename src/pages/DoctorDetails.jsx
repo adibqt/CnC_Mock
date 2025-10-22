@@ -3,6 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { appointmentAPI, authUtils } from '../services/api';
 import './DoctorDetails.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+
 const DoctorDetails = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
@@ -172,7 +176,7 @@ const DoctorDetails = () => {
             <div className="doctor-avatar">
               {doctor?.profile_picture_url ? (
                 <img 
-                  src={`http://localhost:8000${doctor.profile_picture_url}`}
+                  src={`${API_URL}${doctor.profile_picture_url}`}
                   alt={doctor.full_name}
                 />
               ) : (

@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ClinicDashboard.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+
 const ClinicDashboard = () => {
   const navigate = useNavigate();
   const [clinic, setClinic] = useState(null);
@@ -896,7 +900,7 @@ const ClinicDashboard = () => {
                         <div className="files-list">
                           {report.report_file_url && (
                             <a 
-                              href={`http://localhost:8000${report.report_file_url}`} 
+                              href={`${API_URL}${report.report_file_url}`} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="file-link"
@@ -907,7 +911,7 @@ const ClinicDashboard = () => {
                           {report.report_images?.map((url, idx) => (
                             <a 
                               key={idx}
-                              href={`http://localhost:8000${url}`} 
+                              href={`${API_URL}${url}`} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="file-link"

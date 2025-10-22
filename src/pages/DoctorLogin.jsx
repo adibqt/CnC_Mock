@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import '../components/Login.css';
 import { doctorAPI, authUtils } from '../services/api';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const DoctorLogin = () => {
   const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
@@ -29,7 +32,7 @@ const DoctorLogin = () => {
   useEffect(() => {
     const fetchSpecializations = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/doctors/specializations');
+        const response = await fetch(`${API_URL}/api/doctors/specializations`);
         const data = await response.json();
         setSpecializations(data);
       } catch (error) {
