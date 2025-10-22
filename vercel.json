@@ -15,11 +15,11 @@
       "destination": "/index.html"
     }
   ],
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.9",
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
     }
-  },
+  ],
   "regions": ["iad1"]
 }

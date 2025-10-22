@@ -267,7 +267,6 @@ async def upload_certificate(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to upload certificate: {str(e)}"
         )
-    }
 
 @router.get("/home")
 def get_home_data(current_doctor: Doctor = Depends(get_current_doctor), db: Session = Depends(get_db)):
