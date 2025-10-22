@@ -76,7 +76,7 @@ function App() {
         {/* Clinic Routes (no Header/Footer) */}
         <Route path="/clinic" element={<ClinicLogin />} />
         <Route path="/clinic-login" element={<ClinicLogin />} />
-        <Route path="/clinic-home" element={<ClinicDashboard />} />
+        <Route path="/clinic-home" element={<ClinicLogin/>} />
         <Route path="/clinic-dashboard" element={<ClinicDashboard />} />
         
         {/* Routes without Header/Footer */}
