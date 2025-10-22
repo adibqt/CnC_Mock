@@ -6,6 +6,15 @@ import './PatientDashboard.css';
 // Use environment variable for API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Helper function to handle image URLs (works with both absolute URLs from Vercel Blob and relative paths)
+const getImageUrl = (url) => {
+  if (!url) return '';
+  // If URL already starts with http:// or https://, return as-is (Vercel Blob URLs)
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  // Otherwise prepend API_URL (relative paths)
+  return `${API_URL}${url}`;
+};
+
 const PatientDashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -109,7 +118,7 @@ const PatientDashboard = () => {
               <div className="profile-avatar">
                 {profile?.profile_picture_url ? (
                   <img 
-                    src={`${API_URL}${profile.profile_picture_url}`} 
+                    src={getImageUrl(profile.profile_picture_url)} 
                     alt={profile.name || 'Profile'} 
                   />
                 ) : (
@@ -299,7 +308,7 @@ const PatientDashboard = () => {
                             <div className="doctor-avatar-small">
                               {appointment.doctor?.profile_picture_url ? (
                                 <img 
-                                  src={`${API_URL}${appointment.doctor.profile_picture_url}`}
+                                  src={getImageUrl(appointment.doctor.profile_picture_url)}
                                   alt={appointment.doctor.name}
                                 />
                               ) : (
