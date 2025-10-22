@@ -70,7 +70,7 @@ export default function DoctorManagement() {
   const loadStats = async () => {
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch('http://localhost:8000/api/admin/dashboard/stats', {
+      const response = await fetch(`${API_URL}/api/admin/dashboard/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

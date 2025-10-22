@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { userAPI, authUtils, appointmentAPI } from '../services/api';
 import './PatientDashboard.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const PatientDashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -106,7 +109,7 @@ const PatientDashboard = () => {
               <div className="profile-avatar">
                 {profile?.profile_picture_url ? (
                   <img 
-                    src={`http://localhost:8000${profile.profile_picture_url}`} 
+                    src={`${API_URL}${profile.profile_picture_url}`} 
                     alt={profile.name || 'Profile'} 
                   />
                 ) : (
@@ -296,7 +299,7 @@ const PatientDashboard = () => {
                             <div className="doctor-avatar-small">
                               {appointment.doctor?.profile_picture_url ? (
                                 <img 
-                                  src={`http://localhost:8000${appointment.doctor.profile_picture_url}`}
+                                  src={`${API_URL}${appointment.doctor.profile_picture_url}`}
                                   alt={appointment.doctor.name}
                                 />
                               ) : (
