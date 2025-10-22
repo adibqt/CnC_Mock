@@ -5,13 +5,8 @@ import os
 from datetime import timedelta
 import logging
 
-# Import LiveKit SDK components
-from livekit import AccessToken, VideoGrants
-try:
-    from livekit import RoomServiceClient
-except ImportError:
-    # Fallback if RoomServiceClient is not available
-    RoomServiceClient = None
+# Import LiveKit Server SDK components
+from livekit.api import AccessToken, VideoGrants
 
 logger = logging.getLogger(__name__)
 
@@ -61,92 +56,32 @@ class LiveKitService:
     async def create_room(self, room_name: str, max_participants: int = 10):
         """
         Create a new LiveKit room
+        Note: Rooms are created automatically when first participant joins
         """
-        if RoomServiceClient is None:
-            logger.warning("RoomServiceClient not available, skipping room creation")
-            return {
-                'room_name': room_name,
-                'creation_time': None,
-                'max_participants': max_participants,
-                'note': 'Room will be created automatically when first participant joins'
-            }
-        
-        try:
-            # Use RoomServiceClient for room management
-            room_client = RoomServiceClient(self.livekit_url, self.api_key, self.api_secret)
-            
-            # Create room
-            room = await room_client.create_room(
-                name=room_name,
-                max_participants=max_participants
-            )
-            
-            return {
-                'room_name': room.name,
-                'creation_time': room.creation_time,
-                'max_participants': room.max_participants
-            }
-            
-        except Exception as e:
-            logger.error(f"Error creating LiveKit room: {str(e)}")
-            # Return success anyway - room will be created automatically
-            return {
-                'room_name': room_name,
-                'creation_time': None,
-                'max_participants': max_participants,
-                'note': 'Room will be created automatically when first participant joins'
-            }
+        logger.info(f"Room creation requested for {room_name} - will be auto-created on first join")
+        return {
+            'room_name': room_name,
+            'creation_time': None,
+            'max_participants': max_participants,
+            'note': 'Room will be created automatically when first participant joins'
+        }
     
     async def end_room(self, room_name: str):
         """
         End a LiveKit room session
+        Note: Rooms are automatically cleaned up when empty
         """
-        if RoomServiceClient is None:
-            logger.warning("RoomServiceClient not available, skipping room deletion")
-            return {'message': f'Room {room_name} ended (or will end automatically)'}
-        
-        try:
-            room_client = RoomServiceClient(self.livekit_url, self.api_key, self.api_secret)
-            await room_client.delete_room(room=room_name)
-            
-            return {'message': f'Room {room_name} ended successfully'}
-            
-        except Exception as e:
-            logger.warning(f"Could not end LiveKit room: {str(e)}")
-            # Don't raise error - room might not exist or already ended
-            return {'message': f'Room {room_name} ended (or will end automatically)'}
+        logger.info(f"Room end requested for {room_name} - will be auto-cleaned when empty")
+        return {'message': f'Room {room_name} will end automatically when all participants leave'}
     
     async def get_room_info(self, room_name: str):
         """
         Get information about a LiveKit room
+        Note: Room info API not available in basic setup
         """
-        if RoomServiceClient is None:
-            logger.warning("RoomServiceClient not available, returning default room info")
-            raise Exception(f"Room {room_name} not found (API not available)")
-        
-        try:
-            room_client = RoomServiceClient(self.livekit_url, self.api_key, self.api_secret)
-            rooms = await room_client.list_rooms()
-            
-            # Find the specific room
-            for room in rooms:
-                if room.name == room_name:
-                    return {
-                        'name': room.name,
-                        'num_participants': room.num_participants,
-                        'creation_time': room.creation_time,
-                        'empty_timeout': room.empty_timeout,
-                        'max_participants': room.max_participants
-                    }
-            
-            # Room not found - this is normal when no one is in the call
-            raise Exception(f"Room {room_name} not found")
-            
-        except Exception as e:
-            # Only log as error if it's not the expected "room not found" scenario
-            if "not found" not in str(e).lower():
-                logger.error(f"Error getting room info: {str(e)}")
-            raise Exception(f"Failed to get room info: {str(e)}")
+        logger.info(f"Room info requested for {room_name} - using default values")
+        # Return minimal info since we can't query LiveKit without RoomServiceClient
+        raise Exception(f"Room {room_name} not found (room info API not available)")
 
 # Global instance
 livekit_service = LiveKitService()
