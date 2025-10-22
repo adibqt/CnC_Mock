@@ -1,29 +1,19 @@
 #!/bin/bash
-# Startup script for Docker container
+# Startup script for Render deployment
 # This script runs migrations and starts the server
 
 set -e
 
-echo "🚀 Starting Click & Care Backend..."
+echo "🚀 Starting Click & Care Backend on Render..."
 
-# Wait for database to be ready
-echo "⏳ Waiting for database..."
-while ! nc -z postgres 5432; do
-  sleep 0.1
-done
-echo "✅ Database is ready!"
+# Use Render's PORT environment variable, default to 8000 for local dev
+PORT=${PORT:-8000}
 
-# Run migrations
-echo "🔄 Running database migrations..."
-python migrations/migrate_admin.py
-python migrations/migrate_profile.py
-python migrations/migrate_doctor_profile.py
-python migrations/migrate_schedule.py
-python migrations/migrate_appointments.py
-python migrations/migrate_ai_consultations.py
-python migrations/migrate_prescriptions.py
-echo "✅ Migrations completed!"
+echo "📡 Port: $PORT"
+
+# Note: Database migrations should be run manually or via Render's deploy hook
+# Not running migrations automatically to avoid conflicts with multiple instances
 
 # Start the server
-echo "🌐 Starting FastAPI server..."
-exec uvicorn main:app --host 0.0.0.0 --port 8000 $@
+echo "🌐 Starting FastAPI server on port $PORT..."
+exec uvicorn main:app --host 0.0.0.0 --port "$PORT" $@

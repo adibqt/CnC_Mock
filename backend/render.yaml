@@ -1,15 +1,15 @@
 # Render deployment configuration for Click & Care Backend
-# Updated: 2025-10-22 - Fixed LiveKit imports
+# Updated: 2025-10-22 - Using Docker for FFmpeg support
 services:
   - type: web
     name: cnc-backend
-    runtime: python
+    runtime: docker
     region: oregon
     plan: free
     branch: main
     rootDir: backend
-    buildCommand: pip install --no-cache-dir -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
