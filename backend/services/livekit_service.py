@@ -6,7 +6,7 @@ from datetime import timedelta
 import logging
 
 # Import LiveKit Server SDK components
-from livekit.api import AccessToken, VideoGrants
+from livekit.api import AccessToken, VideoGrants, RoomServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,17 @@ class LiveKitService:
         self.api_key = settings.LIVEKIT_API_KEY
         self.api_secret = settings.LIVEKIT_API_SECRET
         self.livekit_url = settings.LIVEKIT_URL
+        
+        # Initialize RoomServiceClient for room management
+        try:
+            self.room_service = RoomServiceClient(
+                self.livekit_url,
+                self.api_key,
+                self.api_secret
+            )
+        except Exception as e:
+            logger.warning(f"Could not initialize RoomServiceClient: {e}")
+            self.room_service = None
         
     def generate_access_token(self, room_name: str, participant_identity: str, participant_name: str = None):
         """
@@ -77,11 +88,46 @@ class LiveKitService:
     async def get_room_info(self, room_name: str):
         """
         Get information about a LiveKit room
-        Note: Room info API not available in basic setup
         """
-        logger.info(f"Room info requested for {room_name} - using default values")
-        # Return minimal info since we can't query LiveKit without RoomServiceClient
-        raise Exception(f"Room {room_name} not found (room info API not available)")
+        if not self.room_service:
+            logger.warning("RoomServiceClient not available, returning default inactive status")
+            return {
+                'name': room_name,
+                'num_participants': 0,
+                'is_active': False
+            }
+        
+        try:
+            # List rooms and find the specified room
+            rooms = await self.room_service.list_rooms()
+            
+            for room in rooms:
+                if room.name == room_name:
+                    logger.info(f"Room {room_name} found with {room.num_participants} participants")
+                    return {
+                        'name': room.name,
+                        'num_participants': room.num_participants,
+                        'is_active': True,
+                        'creation_time': room.creation_time,
+                        'max_participants': room.max_participants
+                    }
+            
+            # Room not found means it's not active
+            logger.info(f"Room {room_name} not found (inactive)")
+            return {
+                'name': room_name,
+                'num_participants': 0,
+                'is_active': False
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting room info for {room_name}: {str(e)}")
+            # Return inactive status on error
+            return {
+                'name': room_name,
+                'num_participants': 0,
+                'is_active': False
+            }
 
 # Global instance
 livekit_service = LiveKitService()
