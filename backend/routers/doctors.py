@@ -271,72 +271,81 @@ async def upload_certificate(
 @router.get("/home")
 def get_home_data(current_doctor: Doctor = Depends(get_current_doctor), db: Session = Depends(get_db)):
     """Get doctor home page data with appointments and schedule"""
-    from datetime import date
-    from models import Appointment, AppointmentStatus, Prescription
+    try:
+        from datetime import date
+        from models import Appointment, AppointmentStatus, Prescription
+        
+        # Get today's date
+        today = date.today()
+        
+        # Calculate actual statistics
+        # 1. Total appointments remaining (confirmed and pending/unconfirmed)
+        remaining_appointments = db.query(Appointment).filter(
+            Appointment.doctor_id == current_doctor.id,
+            Appointment.status.in_([AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED]),
+            Appointment.appointment_date >= today
+        ).count()
+        
+        # 2. Today's appointments count
+        today_appointments_count = db.query(Appointment).filter(
+            Appointment.doctor_id == current_doctor.id,
+            Appointment.appointment_date == today
+        ).count()
+        
+        # 3. Prescriptions remaining to write (completed appointments without prescriptions)
+        completed_appointments = db.query(Appointment).filter(
+            Appointment.doctor_id == current_doctor.id,
+            Appointment.status == AppointmentStatus.COMPLETED
+        ).all()
+        
+        prescriptions_remaining = 0
+        for apt in completed_appointments:
+            prescription_exists = db.query(Prescription).filter(
+                Prescription.appointment_id == apt.id
+            ).first()
+            if not prescription_exists:
+                prescriptions_remaining += 1
+        
+        # Get today's appointments for display (keeping placeholder structure for now)
+        today_appointments = []
     
-    # Get today's date
-    today = date.today()
-    
-    # Calculate actual statistics
-    # 1. Total appointments remaining (confirmed and pending/unconfirmed)
-    remaining_appointments = db.query(Appointment).filter(
-        Appointment.doctor_id == current_doctor.id,
-        Appointment.status.in_([AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED]),
-        Appointment.appointment_date >= today
-    ).count()
-    
-    # 2. Today's appointments count
-    today_appointments_count = db.query(Appointment).filter(
-        Appointment.doctor_id == current_doctor.id,
-        Appointment.appointment_date == today
-    ).count()
-    
-    # 3. Prescriptions remaining to write (completed appointments without prescriptions)
-    completed_appointments = db.query(Appointment).filter(
-        Appointment.doctor_id == current_doctor.id,
-        Appointment.status == AppointmentStatus.COMPLETED
-    ).all()
-    
-    prescriptions_remaining = 0
-    for apt in completed_appointments:
-        prescription_exists = db.query(Prescription).filter(
-            Prescription.appointment_id == apt.id
-        ).first()
-        if not prescription_exists:
-            prescriptions_remaining += 1
-    
-    # Get today's appointments for display (keeping placeholder structure for now)
-    today_appointments = []
-    
-    return {
-        "doctor": {
-            "id": current_doctor.id,
-            "name": current_doctor.name or current_doctor.full_name,
-            "specialization": current_doctor.specialization,
-            "is_verified": current_doctor.is_verified,
-            "bmdc_number": current_doctor.bmdc_number,
-            "mbbs_certificate_url": current_doctor.mbbs_certificate_url,
-            "fcps_certificate_url": current_doctor.fcps_certificate_url,
-            "degrees": current_doctor.degrees or [],
-            "profile_picture_url": current_doctor.profile_picture_url
-        },
-        "todayAppointments": today_appointments,
-        "stats": {
-            "total_patients": remaining_appointments,  # Appointments remaining
-            "today_appointments": today_appointments_count,  # Appointments today
-            "pending_reports": prescriptions_remaining,  # Prescriptions to write
-            "rating": 4.8  # Keep as is for now
-        },
-        "schedule": current_doctor.schedule or {
-            "monday": [],
-            "tuesday": [],
-            "wednesday": [],
-            "thursday": [],
-            "friday": [],
-            "saturday": [],
-            "sunday": []
+        return {
+            "doctor": {
+                "id": current_doctor.id,
+                "name": current_doctor.name or current_doctor.full_name,
+                "specialization": current_doctor.specialization,
+                "is_verified": current_doctor.is_verified,
+                "bmdc_number": current_doctor.bmdc_number,
+                "mbbs_certificate_url": current_doctor.mbbs_certificate_url,
+                "fcps_certificate_url": current_doctor.fcps_certificate_url,
+                "degrees": current_doctor.degrees or [],
+                "profile_picture_url": current_doctor.profile_picture_url
+            },
+            "todayAppointments": today_appointments,
+            "stats": {
+                "total_patients": remaining_appointments,  # Appointments remaining
+                "today_appointments": today_appointments_count,  # Appointments today
+                "pending_reports": prescriptions_remaining,  # Prescriptions to write
+                "rating": 4.8  # Keep as is for now
+            },
+            "schedule": current_doctor.schedule or {
+                "monday": [],
+                "tuesday": [],
+                "wednesday": [],
+                "thursday": [],
+                "friday": [],
+                "saturday": [],
+                "sunday": []
+            }
         }
-    }
+    except Exception as e:
+        print(f"❌ Error in /api/doctors/home: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load doctor home data: {str(e)}"
+        )
 
 @router.get("/schedule")
 async def get_schedule(current_doctor: Doctor = Depends(get_current_doctor)):
