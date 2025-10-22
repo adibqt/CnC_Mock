@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
     
+    # Server settings (Render/Railway will set PORT via environment variable)
+    PORT: int = 8000
+    
     # Vercel-specific settings
     VERCEL_URL: str = ""  # Will be auto-populated by Vercel
     
@@ -46,6 +49,14 @@ class Settings(BaseSettings):
         # Ensure CORS_ORIGINS is valid JSON
         if not self.CORS_ORIGINS or self.CORS_ORIGINS.strip() == '':
             self.CORS_ORIGINS = '["*"]'  # Default to allow all if empty
+        
+        # Auto-detect Render environment
+        if os.getenv('RENDER'):
+            self.ENVIRONMENT = 'production'
+        
+        # Auto-detect Railway environment
+        if os.getenv('RAILWAY_ENVIRONMENT'):
+            self.ENVIRONMENT = 'production'
         
         # Auto-detect Vercel environment
         if os.getenv('VERCEL'):
