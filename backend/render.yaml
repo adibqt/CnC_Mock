@@ -1,3 +1,5 @@
+# Render deployment configuration for Click & Care Backend
+# Updated: 2025-10-22 - Fixed LiveKit imports
 services:
   - type: web
     name: cnc-backend
