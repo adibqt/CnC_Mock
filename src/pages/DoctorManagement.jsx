@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import './DoctorManagement.css';
 
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function DoctorManagement() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -88,7 +91,7 @@ export default function DoctorManagement() {
       const token = localStorage.getItem('admin_accessToken');
       
       // Build query parameters
-      let url = `http://localhost:8000/api/admin/doctors?skip=${currentPage * doctorsPerPage}&limit=${doctorsPerPage}`;
+      let url = `${API_URL}/api/admin/doctors?skip=${currentPage * doctorsPerPage}&limit=${doctorsPerPage}`;
       
       if (searchQuery) {
         url += `&search=${encodeURIComponent(searchQuery)}`;
@@ -122,7 +125,7 @@ export default function DoctorManagement() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/doctors/${doctorId}`, {
+      const response = await fetch(`${API_URL}/api/admin/doctors/${doctorId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -151,7 +154,7 @@ export default function DoctorManagement() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('admin_accessToken');
-      const response = await fetch(`http://localhost:8000/api/admin/doctors/${doctorId}/verify`, {
+      const response = await fetch(`${API_URL}/api/admin/doctors/${doctorId}/verify`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -310,7 +313,7 @@ export default function DoctorManagement() {
                         <div className="dm-doctor-info">
                           {doctor.profile_picture_url ? (
                             <img 
-                              src={`http://localhost:8000${doctor.profile_picture_url}`} 
+                              src={`${API_URL}${doctor.profile_picture_url}`} 
                               alt={doctor.name || 'Doctor'}
                               className="dm-doctor-avatar"
                             />
@@ -503,7 +506,7 @@ function DoctorDetailsModal({ doctor, onClose, onVerify, actionLoading }) {
             <div className="dm-doctor-header">
               {doctor.doctor.profile_picture_url ? (
                 <img 
-                  src={`http://localhost:8000${doctor.doctor.profile_picture_url}`} 
+                  src={`${API_URL}${doctor.doctor.profile_picture_url}`} 
                   alt={doctor.doctor.name}
                   className="dm-detail-avatar"
                 />
@@ -763,7 +766,7 @@ function DocumentCard({ document, onClick }) {
 
 // Document Viewer Modal Component
 function DocumentViewerModal({ document, onClose }) {
-  const documentUrl = `http://localhost:8000${document.url}`;
+  const documentUrl = `${API_URL}${document.url}`;
   const isImage = document.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
 
   return (
