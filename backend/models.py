@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, JSON, ForeignKey, Numeric, Float, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, JSON, ForeignKey, Numeric, Float, UniqueConstraint, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -86,7 +86,7 @@ class Appointment(Base):
     doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
     
     # Appointment details
-    appointment_date = Column(String, nullable=False)  # Format: YYYY-MM-DD
+    appointment_date = Column(Date, nullable=False)  # Changed from String to Date
     time_slot = Column(String, nullable=False)  # Format: "09:00 AM - 10:00 AM"
     status = Column(Enum(AppointmentStatus, values_callable=lambda x: [e.value for e in x]), default=AppointmentStatus.PENDING, nullable=False)
     
