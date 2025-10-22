@@ -31,6 +31,7 @@ import Services from './pages/Services';
 import FAQ from './pages/FAQ';
 import Doctors from './pages/Doctors';
 
+// App component with all routes configured
 function App() {
   const [loading, setLoading] = useState(true);
   const [isReady, setIsReady] = useState(false);
