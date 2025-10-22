@@ -60,7 +60,7 @@ def create_ai_consultations_table():
         cursor.close()
         conn.close()
         
-        print("\n✅ Migration completed successfully!")
+        print("\n Migration completed successfully!")
         print("The ai_consultations table is now ready to use.")
         
     except Exception as e:
