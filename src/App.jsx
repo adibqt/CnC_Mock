@@ -70,11 +70,13 @@ function App() {
         {/* Pharmacy Routes (no Header/Footer) */}
         <Route path="/pharmacy" element={<PharmacyLogin />} />
         <Route path="/pharmacy-login" element={<PharmacyLogin />} />
+        <Route path="/pharmacy-home" element={<PharmacyDashboard />} />
         <Route path="/pharmacy-dashboard" element={<PharmacyDashboard />} />
         
         {/* Clinic Routes (no Header/Footer) */}
         <Route path="/clinic" element={<ClinicLogin />} />
         <Route path="/clinic-login" element={<ClinicLogin />} />
+        <Route path="/clinic-home" element={<ClinicDashboard />} />
         <Route path="/clinic-dashboard" element={<ClinicDashboard />} />
         
         {/* Routes without Header/Footer */}
