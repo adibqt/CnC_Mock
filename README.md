@@ -888,6 +888,6 @@ in the Software without restriction...
 
 **Made with ❤️ by Adib Rahman- under Supervision of ADN DIGINET**
 
-[Website](https://clickandcare.com) • [Documentation](docs/) • [Blog](https://blog.clickandcare.com)
+
 
 </div>
