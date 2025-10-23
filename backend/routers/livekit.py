@@ -167,9 +167,11 @@ async def get_room_status(
     """
     Check if a video room is active and how many participants are in it
     """
+    logger.info(f"🎯 ROOM STATUS CHECK STARTED for appointment {appointment_id}")
     try:
         # Verify appointment exists and user has access
         appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+        logger.info(f"   Appointment found: {appointment is not None}")
         
         if not appointment:
             # Return inactive instead of raising exception for polling
@@ -198,17 +200,26 @@ async def get_room_status(
         db.close()
         
         try:
+            print(f"\n🔍 CHECKING LIVEKIT ROOM: {room_name}")
+            logger.info(f"🔍 Checking room status for: {room_name}")
             room_info = await livekit_service.get_room_info(room_name)
-            logger.info(f"Room {room_name} is active with {room_info.get('num_participants', 0)} participants")
+            print(f"✅ ROOM INFO: {room_info}")
+            logger.info(f"✅ Room info received: {room_info}")
+            
+            is_active = room_info.get('is_active', False)
+            participant_count = room_info.get('num_participants', 0)
+            
+            print(f"📊 RESULT - Active: {is_active}, Participants: {participant_count}")
+            logger.info(f"📊 Room {room_name} - Active: {is_active}, Participants: {participant_count}")
             
             return {
-                "is_active": True,
-                "participant_count": room_info.get('num_participants', 0),
+                "is_active": is_active,
+                "participant_count": participant_count,
                 "room_name": room_name
             }
         except Exception as check_error:
             # Room doesn't exist or is empty - this is normal when no one is in the room
-            # Don't log as error since this is the expected state most of the time
+            logger.warning(f"⚠️ Room check failed for {room_name}: {str(check_error)}")
             return {
                 "is_active": False,
                 "participant_count": 0,
