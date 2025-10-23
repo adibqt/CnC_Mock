@@ -4,10 +4,12 @@ LiveKit service for generating access tokens and managing video rooms
 import os
 from datetime import timedelta
 import logging
+import aiohttp
+import time
+from jose import jwt
 
 # Import LiveKit Server SDK components
 from livekit.api import AccessToken, VideoGrants
-from livekit import api as livekit_api
 
 logger = logging.getLogger(__name__)
 
@@ -19,16 +21,9 @@ class LiveKitService:
         self.api_secret = settings.LIVEKIT_API_SECRET
         self.livekit_url = settings.LIVEKIT_URL
         
-        # Initialize RoomServiceClient for room management
-        try:
-            self.room_service = livekit_api.RoomServiceClient(
-                self.livekit_url,
-                self.api_key,
-                self.api_secret
-            )
-        except Exception as e:
-            logger.warning(f"Could not initialize RoomServiceClient: {e}")
-            self.room_service = None
+        # We'll use HTTP API directly for room management instead of RoomServiceClient
+        logger.info(f"LiveKit Service initialized with URL: {self.livekit_url}")
+        self.room_service = None  # Not needed, we'll use HTTP API directly
         
     def generate_access_token(self, room_name: str, participant_identity: str, participant_name: str = None):
         """
@@ -88,42 +83,80 @@ class LiveKitService:
     
     async def get_room_info(self, room_name: str):
         """
-        Get information about a LiveKit room
+        Get information about a LiveKit room using HTTP API
         """
-        if not self.room_service:
-            logger.warning("RoomServiceClient not available, returning default inactive status")
-            return {
-                'name': room_name,
-                'num_participants': 0,
-                'is_active': False
-            }
-        
+        print(f"\n🔍 GET_ROOM_INFO CALLED for: {room_name}")
         try:
-            # List rooms and find the specified room
-            rooms = await self.room_service.list_rooms()
+            # Prepare API request
+            api_url = self.livekit_url.replace('wss://', 'https://').replace('ws://', 'http://')
+            print(f"   API URL: {api_url}")
             
-            for room in rooms:
-                if room.name == room_name:
-                    logger.info(f"Room {room_name} found with {room.num_participants} participants")
-                    return {
-                        'name': room.name,
-                        'num_participants': room.num_participants,
-                        'is_active': True,
-                        'creation_time': room.creation_time,
-                        'max_participants': room.max_participants
-                    }
-            
-            # Room not found means it's not active
-            logger.info(f"Room {room_name} not found (inactive)")
-            return {
-                'name': room_name,
-                'num_participants': 0,
-                'is_active': False
+            # Create JWT token for API authorization
+            now = int(time.time())
+            payload = {
+                'iss': self.api_key,
+                'sub': self.api_key,
+                'iat': now,
+                'exp': now + 3600,
+                'video': {'roomList': True}
             }
             
+            token = jwt.encode(payload, self.api_secret, algorithm='HS256')
+            print(f"   Token created: {token[:50]}...")
+            
+            # Make HTTP request to list rooms (LiveKit API uses POST, not GET)
+            logger.info(f"🔗 Calling LiveKit API for room: {room_name}")
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f'{api_url}/twirp/livekit.RoomService/ListRooms',
+                    headers={
+                        'Authorization': f'Bearer {token}',
+                        'Content-Type': 'application/json'
+                    },
+                    json={},  # Empty body for ListRooms
+                    timeout=aiohttp.ClientTimeout(total=5.0)
+                ) as response:
+                    logger.info(f"📡 LiveKit API response status: {response.status}")
+                    if response.status == 200:
+                        data = await response.json()
+                        logger.info(f"📦 LiveKit API data: {data}")
+                        rooms = data.get('rooms', [])
+                        logger.info(f"🏠 Found {len(rooms)} rooms total")
+                        
+                        # Find the specified room
+                        for room in rooms:
+                            if room.get('name') == room_name:
+                                # LiveKit API returns 'num_participants' (snake_case), not 'numParticipants' (camelCase)
+                                num_participants = room.get('num_participants', 0)
+                                num_publishers = room.get('num_publishers', 0)
+                                print(f"\n📦 ROOM FOUND: {room_name}")
+                                print(f"   Participants: {num_participants}, Publishers: {num_publishers}")
+                                logger.info(f"✅ Room {room_name} found with {num_participants} participants ({num_publishers} publishers)")
+                                return {
+                                    'name': room_name,
+                                    'num_participants': num_participants,
+                                    'num_publishers': num_publishers,
+                                    'is_active': True
+                                }
+                        
+                        # Room not found
+                        logger.info(f"Room {room_name} not found (inactive)")
+                        return {
+                            'name': room_name,
+                            'num_participants': 0,
+                            'is_active': False
+                        }
+                    else:
+                        text = await response.text()
+                        logger.error(f"LiveKit API error: {response.status} - {text}")
+                        return {
+                            'name': room_name,
+                            'num_participants': 0,
+                            'is_active': False
+                        }
+                    
         except Exception as e:
             logger.error(f"Error getting room info for {room_name}: {str(e)}")
-            # Return inactive status on error
             return {
                 'name': room_name,
                 'num_participants': 0,
