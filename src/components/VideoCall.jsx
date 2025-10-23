@@ -23,6 +23,7 @@ const VideoCall = ({ appointmentId, onLeave, userType = 'patient' }) => {
   const [participantName, setParticipantName] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState('');
+  const [shouldConnect, setShouldConnect] = useState(false);
 
   // Fetch access token from backend
   const fetchToken = useCallback(async () => {
@@ -49,6 +50,11 @@ const VideoCall = ({ appointmentId, onLeave, userType = 'patient' }) => {
       setWsURL(data.url);
       setRoomName(data.room_name);
       setParticipantName(data.participant_name);
+      
+      // Add a small delay before connecting to ensure token is fully set
+      setTimeout(() => {
+        setShouldConnect(true);
+      }, 100);
 
     } catch (err) {
       console.error('❌ Error fetching LiveKit token:', err);
@@ -71,6 +77,16 @@ const VideoCall = ({ appointmentId, onLeave, userType = 'patient' }) => {
       code: error.code,
       stack: error.stack
     });
+    
+    // Check for specific peer connection errors
+    if (error.message && error.message.includes('peer connection')) {
+      console.error('🔴 PEER CONNECTION ERROR - This usually means:');
+      console.error('   1. Network connectivity issues');
+      console.error('   2. Firewall blocking WebRTC');
+      console.error('   3. TURN server not accessible');
+      console.error('   4. Multiple users trying to connect simultaneously');
+    }
+    
     setError(`Connection error: ${error.message || 'Unknown error'}`);
   }, []);
 
@@ -111,7 +127,7 @@ const VideoCall = ({ appointmentId, onLeave, userType = 'patient' }) => {
     );
   }
 
-  if (!token || !wsURL) {
+  if (!token || !wsURL || !shouldConnect) {
     return (
       <div className="video-call-loading">
         <h3>Preparing video call...</h3>
@@ -128,6 +144,7 @@ const VideoCall = ({ appointmentId, onLeave, userType = 'patient' }) => {
         serverUrl={wsURL}
         data-lk-theme="default"
         style={{ height: '100vh' }}
+        connect={shouldConnect}
         onError={handleError}
         onConnected={() => {
           console.log('✅ Successfully connected to room:', roomName);
@@ -135,8 +152,12 @@ const VideoCall = ({ appointmentId, onLeave, userType = 'patient' }) => {
         }}
         onDisconnected={(reason) => {
           console.log('❌ Disconnected from room. Reason:', reason);
+          if (reason !== 'user-initiated') {
+            console.error('⚠️ Unexpected disconnection:', reason);
+          }
           onLeave?.();
         }}
+        onConnectionQualityChanged={handleConnectionQualityChanged}
       >
         <VideoConference 
           chatMessageFormatter={(message, participant) => (
