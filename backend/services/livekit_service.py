@@ -30,6 +30,11 @@ class LiveKitService:
         Generate access token for a participant to join a room
         """
         try:
+            print(f"\n🎫 GENERATING TOKEN:")
+            print(f"   Room: {room_name}")
+            print(f"   Identity: {participant_identity}")
+            print(f"   Name: {participant_name}")
+            
             # Create access token
             token = AccessToken(self.api_key, self.api_secret)
             
@@ -49,6 +54,8 @@ class LiveKitService:
             
             # Generate JWT token
             jwt_token = token.to_jwt()
+            
+            print(f"   ✅ Token generated successfully")
             
             return {
                 'token': jwt_token,
