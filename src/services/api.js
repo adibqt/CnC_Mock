@@ -198,8 +198,13 @@ export const userAPI = {
 
   // Home page aggregate data
   getHomeData: async () => {
-    const response = await api.get('/api/users/home');
-    return response.data;
+    try {
+      const response = await api.get('/api/users/home');
+      return response.data;
+    } catch (error) {
+      console.error('getHomeData error:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   // Suggest a doctor based on concerns
