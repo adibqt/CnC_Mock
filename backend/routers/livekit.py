@@ -61,12 +61,20 @@ async def join_appointment_call(
         room_name = f"appointment_{appointment.id}_{request.room_type}"
         
         # Determine participant identity and name
+        print(f"\n🔍 PARTICIPANT IDENTITY DEBUG:")
+        print(f"   Current user ID: {current_user.id}")
+        print(f"   Has specialization: {hasattr(current_user, 'specialization')}")
+        print(f"   Appointment patient_id: {appointment.patient_id}")
+        print(f"   Appointment doctor_id: {appointment.doctor_id}")
+        
         if hasattr(current_user, 'specialization'):  # Doctor
             participant_identity = f"doctor_{current_user.id}"
             participant_name = f"Dr. {current_user.full_name}"
+            print(f"   ✅ IDENTIFIED AS DOCTOR: {participant_identity}")
         else:  # Patient
             participant_identity = f"patient_{current_user.id}"
             participant_name = current_user.name or current_user.full_name
+            print(f"   ✅ IDENTIFIED AS PATIENT: {participant_identity}")
         
         # Generate access token
         token_data = livekit_service.generate_access_token(
