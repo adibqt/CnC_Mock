@@ -43,8 +43,11 @@ const VideoCall = ({ appointmentId, onLeave, userType = 'patient' }) => {
       console.log('✅ LiveKit token received:', {
         roomName: data.room_name,
         participantName: data.participant_name,
+        participantIdentity: data.participant_identity,
         url: data.url
       });
+      console.log('🆔 IMPORTANT - Participant Identity:', data.participant_identity);
+      console.log('   This MUST be unique for each user!');
 
       setToken(data.token);
       setWsURL(data.url);
@@ -65,8 +68,11 @@ const VideoCall = ({ appointmentId, onLeave, userType = 'patient' }) => {
   }, [appointmentId, userType]);
 
   useEffect(() => {
-    fetchToken();
-  }, [fetchToken]);
+    // Only fetch token once when component mounts
+    if (!token) {
+      fetchToken();
+    }
+  }, []); // Empty dependency array - only run once
 
   // Handle connection errors
   const handleError = useCallback((error) => {
@@ -149,13 +155,30 @@ const VideoCall = ({ appointmentId, onLeave, userType = 'patient' }) => {
         onConnected={() => {
           console.log('✅ Successfully connected to room:', roomName);
           console.log('👤 Participant:', participantName);
+          console.log('🔗 Connection established, peer connection is open');
         }}
         onDisconnected={(reason) => {
           console.log('❌ Disconnected from room. Reason:', reason);
           if (reason !== 'user-initiated') {
             console.error('⚠️ Unexpected disconnection:', reason);
+            console.error('   This may be due to:');
+            console.error('   - Network connectivity issues');
+            console.error('   - Another device joining with same identity');
+            console.error('   - WebRTC peer connection failure');
+            
+            // Don't automatically leave on unexpected disconnection
+            // Give user option to retry
+            setError(`Connection lost: ${reason}. Click retry to reconnect.`);
+            setShouldConnect(false);
+          } else {
+            onLeave?.();
           }
-          onLeave?.();
+        }}
+        onReconnecting={() => {
+          console.log('🔄 Reconnecting to room...');
+        }}
+        onReconnected={() => {
+          console.log('✅ Reconnected to room successfully');
         }}
         onConnectionQualityChanged={handleConnectionQualityChanged}
       >
