@@ -76,10 +76,22 @@ const Header = () => {
               <div className="col-lg-4 col-12">
                 <div className="get-quote">
                   <div className="login-buttons">
-                    <Link to="/login" className="btn btn-user">Patient</Link>
-                    <Link to="/doctor-login" className="btn btn-doctor">Doctor</Link>
-                    <Link to="/pharmacy-login" className="btn btn-pharmacy">Pharmacy</Link>
-                    <Link to="/clinic-login" className="btn btn-clinic">Clinic</Link>
+                    <Link to="/login" className="btn btn-user">
+                      <i className="icofont-user-alt-4"></i>
+                      <span className="btn-text">Patient</span>
+                    </Link>
+                    <Link to="/doctor-login" className="btn btn-doctor">
+                      <i className="icofont-doctor"></i>
+                      <span className="btn-text">Doctor</span>
+                    </Link>
+                    <Link to="/pharmacy-login" className="btn btn-pharmacy">
+                      <i className="icofont-pills"></i>
+                      <span className="btn-text">Pharmacy</span>
+                    </Link>
+                    <Link to="/clinic-login" className="btn btn-clinic">
+                      <i className="icofont-hospital"></i>
+                      <span className="btn-text">Clinic</span>
+                    </Link>
                   </div>
                 </div>
               </div>

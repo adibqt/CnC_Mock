@@ -115,14 +115,48 @@
   }
 }
 
+/* Hide icons on desktop, show text */
+.get-quote .login-buttons .btn i {
+  display: none;
+}
+
+.get-quote .login-buttons .btn .btn-text {
+  display: inline;
+}
+
 @media only screen and (max-width: 991px) {
+  .get-quote {
+    display: block !important;
+    margin-top: 15px !important;
+  }
+  
   .get-quote .login-buttons {
-    gap: 8px;
-    flex-direction: column;
+    gap: 10px;
+    flex-direction: row;
+    justify-content: center;
+    display: flex !important;
   }
   
   .get-quote .login-buttons .btn {
-    padding: 10px 15px;
-    font-size: 12px;
+    padding: 12px !important;
+    font-size: 22px !important;
+    width: 50px;
+    height: 50px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: relative;
+    margin: 0 !important;
+    min-width: 50px;
+  }
+  
+  /* Show icons on mobile, hide text */
+  .get-quote .login-buttons .btn i {
+    display: block;
+  }
+  
+  .get-quote .login-buttons .btn .btn-text {
+    display: none;
   }
 }
