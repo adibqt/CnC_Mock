@@ -149,43 +149,42 @@ export default function DoctorHome() {
       {/* Header */}
       <header className="doctor-header">
         <div className="doctor-header-container">
-          <div className="header-content">
-            <div className="doctor-info">
-              <div className="doctor-avatar">
-                {doctor?.profile_picture_url ? (
-                  <img 
-                    src={getImageUrl(doctor.profile_picture_url)}
-                    alt={doctor.name}
-                    className="doctor-avatar-img"
-                  />
-                ) : (
-                  <i className="icofont-doctor"></i>
+          <div className="doctor-info">
+            <div className="doctor-avatar">
+              {doctor?.profile_picture_url ? (
+                <img 
+                  src={getImageUrl(doctor.profile_picture_url)}
+                  alt={doctor.name}
+                  className="doctor-avatar-img"
+                />
+              ) : (
+                <i className="icofont-doctor"></i>
+              )}
+            </div>
+            <div className="doctor-details">
+              <h1 className="doctor-name-header">
+                Dr. {doctor?.name}
+                {doctor?.is_verified && (
+                  <span className="verified-badge">
+                    <i className="icofont-verification-check"></i>
+                  </span>
                 )}
-              </div>
-              <div className="doctor-details">
-                <h1>Dr. {doctor?.name}</h1>
-                <div className="doctor-meta">
-                  <i className="icofont-stethoscope-alt"></i>
-                  <span>{doctor?.specialization}</span>
-                  {doctor?.is_verified && (
-                    <span className="verified-badge">
-                      <i className="icofont-verification-check"></i>
-                      
-                    </span>
-                  )}
-                </div>
+              </h1>
+              <div className="doctor-meta">
+                <i className="icofont-stethoscope-alt"></i>
+                <span>{doctor?.specialization}</span>
               </div>
             </div>
-            <div className="header-actions">
-              <button onClick={() => navigate('/doctor-profile-update')} className="header-btn">
-                <i className="icofont-ui-edit"></i>
-                <span className="header-btn-text">Edit Profile</span>
-              </button>
-              <button onClick={handleLogout} className="header-btn logout">
-                <i className="icofont-logout"></i>
-                <span className="header-btn-text">Logout</span>
-              </button>
-            </div>
+          </div>
+          <div className="header-actions">
+            <button onClick={() => navigate('/doctor-profile-update')} className="header-btn">
+              <i className="icofont-ui-edit"></i>
+              <span className="header-btn-text">Edit Profile</span>
+            </button>
+            <button onClick={handleLogout} className="header-btn logout">
+              <i className="icofont-logout"></i>
+              <span className="header-btn-text">Logout</span>
+            </button>
           </div>
         </div>
       </header>
