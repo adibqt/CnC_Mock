@@ -1298,13 +1298,42 @@
   font-size: 16px;
 }
 
+/* Rate doctor button styles */
+.rate-doctor-btn {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #333;
+  border: none;
+  border-radius: 25px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.rate-doctor-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5);
+}
+
+.rate-doctor-btn i {
+  font-size: 16px;
+  color: #FF8C00;
+}
+
 /* Mobile responsive for video call button */
 @media (max-width: 768px) {
   .appointment-actions {
     justify-content: center;
+    flex-direction: column;
   }
   
-  .video-call-btn {
+  .video-call-btn,
+  .rate-doctor-btn {
     width: 100%;
     justify-content: center;
   }

@@ -16,6 +16,7 @@ from routers.quotations import router as quotations_router
 from pathlib import Path
 from routers import clinic, lab_quotations
 from routers.lab_reports import router as lab_reports_router
+from routers.ratings import router as ratings_router
 
 
 # Create database tables
@@ -69,6 +70,7 @@ app.include_router(quotations_router)
 app.include_router(clinic.router)
 app.include_router(lab_quotations.router)
 app.include_router(lab_reports_router)
+app.include_router(ratings_router)
 
 
 @app.on_event("startup")

@@ -107,6 +107,25 @@ api.interceptors.request.use(
           config.headers.Authorization = `Bearer ${doctorToken}`;
         }
       }
+    } else if (config.url.includes('/api/ratings/')) {
+      // Rating endpoints - patients can rate, both can view
+      if (config.method === 'post' || config.method === 'put' || config.method === 'delete') {
+        // Create/update/delete - patient only
+        if (patientToken) {
+          config.headers.Authorization = `Bearer ${patientToken}`;
+        }
+      } else if (config.url.includes('/doctor/')) {
+        // Doctor stats/reviews - anyone can view (prefer patient token)
+        const token = patientToken || doctorToken;
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } else {
+        // Get rating by appointment - patient only
+        if (patientToken) {
+          config.headers.Authorization = `Bearer ${patientToken}`;
+        }
+      }
     } else if (config.url.includes('/livekit/')) {
       // LiveKit endpoints - use whichever token is available (doctor first for room management)
       const token = doctorToken || patientToken;
@@ -827,5 +846,92 @@ export const prescriptionAPI = {
   }
 };
 
+// Rating API
+export const ratingAPI = {
+  // Create a rating
+  createRating: async (ratingData) => {
+    try {
+      const response = await api.post('/api/ratings/', ratingData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to submit rating.',
+      };
+    }
+  },
+
+  // Get rating for an appointment
+  getRatingByAppointment: async (appointmentId) => {
+    try {
+      const response = await api.get(`/api/ratings/appointment/${appointmentId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      if (error.response?.status === 404) {
+        return { success: true, data: null }; // No rating found
+      }
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch rating.',
+      };
+    }
+  },
+
+  // Update rating
+  updateRating: async (ratingId, ratingData) => {
+    try {
+      const response = await api.put(`/api/ratings/${ratingId}`, ratingData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to update rating.',
+      };
+    }
+  },
+
+  // Delete rating
+  deleteRating: async (ratingId) => {
+    try {
+      await api.delete(`/api/ratings/${ratingId}`);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to delete rating.',
+      };
+    }
+  },
+
+  // Get doctor rating stats
+  getDoctorRatingStats: async (doctorId) => {
+    try {
+      const response = await api.get(`/api/ratings/doctor/${doctorId}/stats`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch rating statistics.',
+      };
+    }
+  },
+
+  // Get doctor reviews
+  getDoctorReviews: async (doctorId, skip = 0, limit = 10) => {
+    try {
+      const response = await api.get(`/api/ratings/doctor/${doctorId}/reviews`, {
+        params: { skip, limit }
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Failed to fetch reviews.',
+      };
+    }
+  }
+};
+
 export default api;
+
 

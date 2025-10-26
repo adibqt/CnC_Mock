@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doctorAPI, authUtils, appointmentAPI, liveKitAPI } from '../services/api';
+import { doctorAPI, authUtils, appointmentAPI, liveKitAPI, ratingAPI } from '../services/api';
 import VideoCall, { useVideoCall } from '../components/VideoCall';
 import CallNotification from '../components/CallNotification';
 import { useCallNotification } from '../hooks/useCallNotification';
@@ -26,6 +26,7 @@ export default function DoctorHome() {
   const [homeData, setHomeData] = useState(null);
   const [weekAppointments, setWeekAppointments] = useState([]);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [ratingStats, setRatingStats] = useState(null);
   
   // Video call state
   const { 
@@ -46,6 +47,7 @@ export default function DoctorHome() {
   useEffect(() => {
     loadHomeData();
     loadWeeklyAppointments();
+    loadRatingStats();
   }, []);
 
   // Sticky header scroll effect
@@ -76,6 +78,26 @@ export default function DoctorHome() {
     const result = await appointmentAPI.getDoctorAppointments('current');
     if (result.success) {
       setWeekAppointments(result.data || []);
+    }
+  };
+
+  const loadRatingStats = async () => {
+    try {
+      const profile = await doctorAPI.getProfile();
+      if (profile.success && profile.data) {
+        // Use the rating data directly from the profile
+        setRatingStats({
+          average_rating: profile.data.average_rating || 0.0,
+          total_ratings: profile.data.total_ratings || 0,
+          rating_distribution: {} // We can add this later if needed
+        });
+        console.log('📊 Rating stats loaded:', {
+          average: profile.data.average_rating,
+          total: profile.data.total_ratings
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load rating stats:', error);
     }
   };
 
@@ -249,8 +271,11 @@ export default function DoctorHome() {
               <div className="stat-info">
                 <p>Rating</p>
                 <div className="stat-number">
-                  {stats?.rating || 0}
+                  {ratingStats?.average_rating?.toFixed(1) || '0.0'}
                   <i className="icofont-star" style={{fontSize: '24px', color: '#eab308', marginLeft: '8px'}}></i>
+                </div>
+                <div className="stat-subtitle">
+                  {ratingStats?.total_ratings || 0} reviews
                 </div>
               </div>
               <div className="stat-icon purple">

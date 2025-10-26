@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { appointmentAPI, authUtils } from '../services/api';
+import { appointmentAPI, authUtils, ratingAPI } from '../services/api';
 import './DoctorDetails.css';
 
 // Use environment variable for API URL
@@ -34,12 +34,21 @@ const DoctorDetails = () => {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
+  // Rating state
+  const [ratingStats, setRatingStats] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviewsPage, setReviewsPage] = useState(0);
+  const [hasMoreReviews, setHasMoreReviews] = useState(true);
+
   useEffect(() => {
     if (!authUtils.isAuthenticated('patient')) {
       navigate('/login');
       return;
     }
     loadDoctorDetails();
+    loadRatingStats();
+    loadReviews();
   }, [doctorId]);
 
   useEffect(() => {
@@ -86,6 +95,41 @@ const DoctorDetails = () => {
     } finally {
       setLoadingSlots(false);
     }
+  };
+
+  const loadRatingStats = async () => {
+    try {
+      const result = await ratingAPI.getDoctorRatingStats(doctorId);
+      if (result.success) {
+        setRatingStats(result.data);
+      }
+    } catch (err) {
+      console.error('Error loading rating stats:', err);
+    }
+  };
+
+  const loadReviews = async (page = 0) => {
+    setLoadingReviews(true);
+    try {
+      const result = await ratingAPI.getDoctorReviews(doctorId, page * 10, 10);
+      if (result.success) {
+        if (page === 0) {
+          setReviews(result.data);
+        } else {
+          setReviews(prev => [...prev, ...result.data]);
+        }
+        setHasMoreReviews(result.data.length === 10);
+        setReviewsPage(page);
+      }
+    } catch (err) {
+      console.error('Error loading reviews:', err);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  const handleLoadMoreReviews = () => {
+    loadReviews(reviewsPage + 1);
   };
 
   const handleBookAppointment = async (e) => {
@@ -349,6 +393,113 @@ const DoctorDetails = () => {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* Ratings and Reviews Section */}
+        <div className="reviews-section">
+          <h3><i className="icofont-star"></i> Ratings & Reviews</h3>
+          
+          {/* Rating Statistics */}
+          {ratingStats && (
+            <div className="rating-stats">
+              <div className="overall-rating">
+                <div className="rating-number">{ratingStats.average_rating?.toFixed(1) || '0.0'}</div>
+                <div className="rating-stars">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <i 
+                      key={star} 
+                      className={`icofont-star ${star <= Math.round(ratingStats.average_rating) ? 'filled' : ''}`}
+                    ></i>
+                  ))}
+                </div>
+                <div className="rating-count">{ratingStats.total_ratings || 0} reviews</div>
+              </div>
+
+              {/* Rating Distribution */}
+              {ratingStats.rating_distribution && (
+                <div className="rating-distribution">
+                  {[5, 4, 3, 2, 1].map((star) => {
+                    const count = ratingStats.rating_distribution[star] || 0;
+                    const percentage = ratingStats.total_ratings > 0 
+                      ? (count / ratingStats.total_ratings) * 100 
+                      : 0;
+                    return (
+                      <div key={star} className="distribution-row">
+                        <span className="star-label">{star} <i className="icofont-star"></i></span>
+                        <div className="progress-bar">
+                          <div 
+                            className="progress-fill" 
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                        <span className="count-label">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Reviews List */}
+          <div className="reviews-list">
+            {reviews.length > 0 ? (
+              <>
+                {reviews.map((review) => (
+                  <div key={review.id} className="review-card">
+                    <div className="review-header">
+                      <div className="reviewer-info">
+                        <div className="reviewer-avatar">
+                          <i className="icofont-user-alt-7"></i>
+                        </div>
+                        <div>
+                          <div className="reviewer-name">{review.patient_name || 'Anonymous'}</div>
+                          <div className="review-date">
+                            {new Date(review.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="review-rating">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <i 
+                            key={star} 
+                            className={`icofont-star ${star <= review.rating ? 'filled' : ''}`}
+                          ></i>
+                        ))}
+                      </div>
+                    </div>
+                    {review.review && (
+                      <div className="review-text">{review.review}</div>
+                    )}
+                  </div>
+                ))}
+
+                {hasMoreReviews && !loadingReviews && (
+                  <button 
+                    className="btn-load-more" 
+                    onClick={handleLoadMoreReviews}
+                  >
+                    <i className="icofont-refresh"></i> Load More Reviews
+                  </button>
+                )}
+
+                {loadingReviews && (
+                  <div className="loading-reviews">
+                    <i className="icofont-spinner-alt-2 icofont-spin"></i> Loading reviews...
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="no-reviews">
+                <i className="icofont-comment"></i>
+                <p>No reviews yet. Be the first to review this doctor!</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

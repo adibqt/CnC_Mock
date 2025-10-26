@@ -1,0 +1,244 @@
+/* Rating Modal Styles */
+
+.rating-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.rating-modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.rating-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.3s;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-modal-close:hover {
+  background: #f5f5f5;
+  color: #333;
+  transform: rotate(90deg);
+}
+
+.rating-modal-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.rating-modal-header h2 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.rating-modal-header .doctor-name {
+  font-size: 18px;
+  color: #1A76D1;
+  margin: 0;
+  font-weight: 500;
+}
+
+.rating-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.star-rating {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.star {
+  background: transparent;
+  border: none;
+  font-size: 48px;
+  cursor: pointer;
+  color: #ddd;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.star:hover,
+.star.active {
+  color: #FFD700;
+  transform: scale(1.1);
+}
+
+.star i {
+  display: block;
+}
+
+@keyframes starPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.star.active {
+  animation: starPulse 0.3s ease;
+}
+
+.rating-label {
+  text-align: center;
+  font-size: 20px;
+  color: #555;
+  font-weight: 500;
+  min-height: 30px;
+}
+
+.review-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.review-section label {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.review-section textarea {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s;
+}
+
+.review-section textarea:focus {
+  outline: none;
+  border-color: #1A76D1;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 13px;
+  color: #999;
+}
+
+.rating-modal-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.rating-modal-actions button {
+  flex: 1;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #1A76D1 0%, #1557a0 100%);
+  color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(26, 118, 209, 0.4);
+}
+
+.btn-submit:disabled,
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rating-modal-content {
+    padding: 30px 20px;
+  }
+
+  .rating-modal-header h2 {
+    font-size: 24px;
+  }
+
+  .star {
+    font-size: 40px;
+  }
+
+  .rating-modal-actions {
+    flex-direction: column;
+  }
+
+  .rating-modal-actions button {
+    width: 100%;
+  }
+}
