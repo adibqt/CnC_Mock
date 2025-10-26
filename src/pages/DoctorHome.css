@@ -1,4 +1,3 @@
-/* Doctor Home Styles - Updated Layout */
 
 .doctor-home {
   min-height: 100vh;
@@ -6,14 +5,234 @@
 }
 
 
-.doctor-header {
+.doctor-header-new {
+  background: linear-gradient(135deg, #0a7179 0%, #1c8aca 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.doctor-header-new.scrolled {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.doctor-header-new.scrolled .header-container {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.15);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-circle i {
+  font-size: 28px;
+  color: white;
+}
+
+.doctor-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.doctor-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+  line-height: 1.2;
+}
+
+.doctor-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge-specialization {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 400;
+}
+
+.badge-specialization i {
+  font-size: 14px;
+}
+
+.badge-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 185, 129, 0.9);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge-verified i {
+  font-size: 12px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-edit-profile,
+.btn-logout-new {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-edit-profile {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-edit-profile:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-logout-new {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-logout-new:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-edit-profile i,
+.btn-logout-new i {
+  font-size: 16px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .header-left {
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .avatar-circle {
+    width: 48px;
+    height: 48px;
+  }
+
+  .doctor-title {
+    font-size: 17px;
+  }
+
+  .doctor-badges {
+    gap: 8px;
+  }
+
+  .badge-specialization {
+    font-size: 12px;
+  }
+
+  .header-right {
+    gap: 6px;
+  }
+
+  .btn-edit-profile span,
+  .btn-logout-new span {
+    display: none;
+  }
+
+  .btn-edit-profile,
+  .btn-logout-new {
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .doctor-title {
+    font-size: 15px;
+  }
+
+  .badge-specialization {
+    font-size: 11px;
+  }
+
+  .badge-verified {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+}
+
+/* OLD HEADER STYLES (KEPT FOR BACKWARD COMPATIBILITY) */
+/* These styles are scoped to .doctor-home to avoid conflicts with AI consultation doctor cards */
+.doctor-home .doctor-header {
   background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
   color: white;
   box-shadow: 0 10px 15px rgba(37, 99, 235, 0.2);
 }
 
 
-.doctor-header-container {
+.doctor-home .doctor-header-container {
   max-width: 1200px !important;
   margin: 0 auto !important;
   padding: 12px 20px !important;
@@ -25,7 +244,7 @@
   flex-wrap: nowrap !important;
 }
 
-.doctor-info {
+.doctor-home .doctor-info {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -35,7 +254,7 @@
   color: white !important;
 }
 
-.header-actions {
+.doctor-home .header-actions {
   display: flex !important;
   gap: 20px !important;
   flex-shrink: 0 !important;
@@ -44,7 +263,7 @@
 
 }
 
-.doctor-avatar {
+.doctor-home .doctor-avatar {
   width: 64px;
   height: 64px;
   background: rgba(255, 255, 255, 0.2);
@@ -59,22 +278,22 @@
   margin: 16px 0 0 0;
 }
 
-.doctor-avatar-img {
+.doctor-home .doctor-avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.doctor-avatar i {
+.doctor-home .doctor-avatar i {
   font-size: 30px;
 }
 
-.doctor-details h1 {
+.doctor-home .doctor-details h1 {
   font-size: 22px;
   font-weight: 700;
   margin: 0 0 2px 0;
 }
-.doctor-details .doctor-name-header {
+.doctor-home .doctor-details .doctor-name-header {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -83,7 +302,7 @@
   font-weight: 700;
 }
 
-.doctor-meta {
+.doctor-home .doctor-meta {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -91,11 +310,11 @@
   font-size: 13px;
 }
 
-.doctor-meta i {
+.doctor-home .doctor-meta i {
   font-size: 16px;
 }
 
-.verified-badge {
+.doctor-home .verified-badge {
   margin-left: 6px;
   padding: 2px 8px;
   background: #0bba80;
@@ -106,7 +325,7 @@
   gap: 4px;
 }
 
-.header-btn {
+.doctor-home .header-btn {
   padding: 8px 14px; /* reduced padding */
   background: rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(255,255,255,0.25);
@@ -121,26 +340,26 @@
   backdrop-filter: saturate(1.3) blur(2px);
 }
 
-.header-btn:hover {
+.doctor-home .header-btn:hover {
   background: rgba(255, 255, 255, 0.28);
   transform: translateY(-1px);
 }
 
-.header-btn.logout {
+.doctor-home .header-btn.logout {
   background: #ef4444;
   border-color: transparent;
 }
 
-.header-btn.logout:hover {
+.doctor-home .header-btn.logout:hover {
   background: #dc2626;
 }
 
-.header-btn-text {
+.doctor-home .header-btn-text {
   display: none;
 }
 
 @media (min-width: 640px) {
-  .header-btn-text {
+  .doctor-home .header-btn-text {
     display: inline;
   }
 }
@@ -734,7 +953,7 @@
 
 @media (max-width: 480px) {
   /* KEEP HORIZONTAL LAYOUT EVEN ON MOBILE */
-  .doctor-header-container {
+  .doctor-home .doctor-header-container {
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
@@ -743,7 +962,7 @@
     padding: 10px 16px !important;
   }
 
-  .doctor-info {
+  .doctor-home .doctor-info {
     flex-direction: row !important;
     align-items: center !important;
     text-align: left !important;
@@ -752,29 +971,29 @@
     flex: 1 !important;
   }
   
-  .doctor-avatar {
+  .doctor-home .doctor-avatar {
     width: 48px !important;
     height: 48px !important;
     flex-shrink: 0 !important;
   }
   
-  .doctor-details {
+  .doctor-home .doctor-details {
     min-width: 0 !important;
     flex: 1 !important;
   }
   
-  .doctor-details h1 {
+  .doctor-home .doctor-details h1 {
     font-size: 14px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
   
-  .doctor-meta {
+  .doctor-home .doctor-meta {
     font-size: 11px !important;
   }
 
-  .header-actions {
+  .doctor-home .header-actions {
     display: flex !important;
     flex-direction: row !important;
     gap: 4px !important;
@@ -782,16 +1001,16 @@
     order: 2 !important;
   }
 
-  .header-btn {
+  .doctor-home .header-btn {
     padding: 6px 8px !important;
     font-size: 14px !important;
   }
   
-  .header-btn-text {
+  .doctor-home .header-btn-text {
     display: none !important;
   }
   
-  .header-btn i {
+  .doctor-home .header-btn i {
     margin: 0 !important;
   }
 

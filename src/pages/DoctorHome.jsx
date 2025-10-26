@@ -25,6 +25,7 @@ export default function DoctorHome() {
   const [error, setError] = useState('');
   const [homeData, setHomeData] = useState(null);
   const [weekAppointments, setWeekAppointments] = useState([]);
+  const [isScrolled, setIsScrolled] = useState(false);
   
   // Video call state
   const { 
@@ -45,6 +46,20 @@ export default function DoctorHome() {
   useEffect(() => {
     loadHomeData();
     loadWeeklyAppointments();
+  }, []);
+
+  // Sticky header scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const loadHomeData = async () => {
@@ -146,44 +161,44 @@ export default function DoctorHome() {
 
   return (
     <div className="doctor-home">
-      {/* Header */}
-      <header className="doctor-header">
-        <div className="doctor-header-container">
-          <div className="doctor-info">
-            <div className="doctor-avatar">
+      {/* Header - Redesigned */}
+      <header className={`doctor-header-new ${isScrolled ? 'scrolled' : ''}`}>
+        <div className="header-container">
+          <div className="header-left">
+            <div className="avatar-circle">
               {doctor?.profile_picture_url ? (
                 <img 
                   src={getImageUrl(doctor.profile_picture_url)}
                   alt={doctor.name}
-                  className="doctor-avatar-img"
                 />
               ) : (
                 <i className="icofont-doctor"></i>
               )}
             </div>
-            <div className="doctor-details">
-              <h1 className="doctor-name-header">
-                Dr. {doctor?.name}
+            <div className="doctor-info-text">
+              <h1 className="doctor-title">Dr. {doctor?.name}</h1>
+              <div className="doctor-badges">
+                <span className="badge-specialization">
+                  <i className="icofont-stethoscope-alt"></i>
+                  {doctor?.specialization}
+                </span>
                 {doctor?.is_verified && (
-                  <span className="verified-badge">
+                  <span className="badge-verified">
                     <i className="icofont-verification-check"></i>
+                    Verified
                   </span>
                 )}
-              </h1>
-              <div className="doctor-meta">
-                <i className="icofont-stethoscope-alt"></i>
-                <span>{doctor?.specialization}</span>
               </div>
             </div>
           </div>
-          <div className="header-actions">
-            <button onClick={() => navigate('/doctor-profile-update')} className="header-btn">
+          <div className="header-right">
+            <button onClick={() => navigate('/doctor-profile-update')} className="btn-edit-profile">
               <i className="icofont-ui-edit"></i>
-              <span className="header-btn-text">Edit Profile</span>
+              <span>Edit Profile</span>
             </button>
-            <button onClick={handleLogout} className="header-btn logout">
+            <button onClick={handleLogout} className="btn-logout-new">
               <i className="icofont-logout"></i>
-              <span className="header-btn-text">Logout</span>
+              <span>Logout</span>
             </button>
           </div>
         </div>

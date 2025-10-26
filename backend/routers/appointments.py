@@ -5,7 +5,7 @@ Handles appointment booking and management between patients and doctors
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, or_, func, case
 from typing import List
 from datetime import datetime, timedelta
 from database import get_db
@@ -151,7 +151,19 @@ async def get_patient_appointments(
         if status_filter:
             query = query.filter(Appointment.status == status_filter)
         
-        appointments = query.order_by(Appointment.appointment_date.desc()).all()
+        # Order by status first (CONFIRMED first, then PENDING, then rest), then by date (newest first)
+        status_order = case(
+            (Appointment.status == AppointmentStatus.CONFIRMED, 1),
+            (Appointment.status == AppointmentStatus.PENDING, 2),
+            (Appointment.status == AppointmentStatus.COMPLETED, 3),
+            (Appointment.status == AppointmentStatus.CANCELLED, 4),
+            else_=5
+        )
+        
+        appointments = query.order_by(
+            status_order.asc(),
+            Appointment.appointment_date.desc()
+        ).all()
         
         print(f"Found {len(appointments)} appointments for patient {current_user.id}")
         
@@ -222,30 +234,55 @@ async def get_doctor_appointments(
         # Filter by current week if requested
         if week == "current":
             today = datetime.now().date()
-            # Get start of week (Monday)
-            start_of_week = today - timedelta(days=today.weekday())
-            # Get end of week (Sunday)
+            # Get start of week (Sunday) - weekday() returns 0=Monday, 6=Sunday
+            # To get Sunday as start, we calculate: (weekday() + 1) % 7
+            days_since_sunday = (today.weekday() + 1) % 7
+            start_of_week = today - timedelta(days=days_since_sunday)
+            # Get end of week (Saturday)
             end_of_week = start_of_week + timedelta(days=6)
             
-            print(f"Filtering appointments between {start_of_week} and {end_of_week}")
+            print(f"Filtering appointments between {start_of_week} (Sunday) and {end_of_week} (Saturday)")
+            print(f"Today is: {today}")
             
-            # Since appointment_date is stored as string, we need to compare as strings
-            start_str = start_of_week.strftime('%Y-%m-%d')
-            end_str = end_of_week.strftime('%Y-%m-%d')
-            
+            # appointment_date is a Date column, compare directly with date objects
             query = query.filter(
                 and_(
-                    Appointment.appointment_date >= start_str,
-                    Appointment.appointment_date <= end_str
+                    Appointment.appointment_date >= start_of_week,
+                    Appointment.appointment_date <= end_of_week
                 )
             )
         
+        # Order by status first (PENDING first), then by date and time
+        # Using CASE to prioritize PENDING status
+        status_order = case(
+            (Appointment.status == AppointmentStatus.PENDING, 1),
+            (Appointment.status == AppointmentStatus.CONFIRMED, 2),
+            (Appointment.status == AppointmentStatus.COMPLETED, 3),
+            (Appointment.status == AppointmentStatus.CANCELLED, 4),
+            else_=5
+        )
+        
         appointments = query.order_by(
+            status_order.asc(),
             Appointment.appointment_date.asc(),
             Appointment.time_slot.asc()
         ).all()
         
         print(f"Found {len(appointments)} appointments for doctor {current_doctor.id}")
+        if len(appointments) > 0:
+            print("Appointments details:")
+            for apt in appointments:
+                print(f"  - ID: {apt.id}, Date: {apt.appointment_date}, Time: {apt.time_slot}, Status: {apt.status}")
+        else:
+            # Debug: Check if there are ANY appointments for this doctor
+            all_appointments = db.query(Appointment).filter(
+                Appointment.doctor_id == current_doctor.id
+            ).all()
+            print(f"Total appointments for this doctor (all time): {len(all_appointments)}")
+            if len(all_appointments) > 0:
+                print("All appointments:")
+                for apt in all_appointments:
+                    print(f"  - ID: {apt.id}, Date: {apt.appointment_date}, Time: {apt.time_slot}, Status: {apt.status}")
         
         # Enrich with patient details
         result = []

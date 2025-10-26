@@ -51,7 +51,20 @@ async def join_appointment_call(
         #check for restart
 
         # Check if user is authorized (patient or doctor)
-        if current_user.id != appointment.patient_id and current_user.id != appointment.doctor_id:
+        print(f"\n🔐 AUTHORIZATION CHECK:")
+        print(f"   current_user.id: {current_user.id} (type: {type(current_user).__name__})")
+        print(f"   appointment.patient_id: {appointment.patient_id}")
+        print(f"   appointment.doctor_id: {appointment.doctor_id}")
+        print(f"   Has specialization (is doctor): {hasattr(current_user, 'specialization')}")
+        
+        is_patient = current_user.id == appointment.patient_id
+        is_doctor = current_user.id == appointment.doctor_id
+        
+        print(f"   Is patient match: {is_patient}")
+        print(f"   Is doctor match: {is_doctor}")
+        
+        if not is_patient and not is_doctor:
+            print(f"   ❌ AUTHORIZATION FAILED: User {current_user.id} is neither patient nor doctor")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized to join this appointment"
