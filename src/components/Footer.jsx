@@ -79,7 +79,7 @@ const Footer = () => {
           <div className="row">
             <div className="col-lg-12 col-md-12 col-12">
               <div className="copyright-content">
-                <p>© Copyright 2024 | All Rights Reserved by Click & Care <a href="" target="_blank" rel="noopener noreferrer"></a></p>
+                <p>© Copyright 2024 | All Rights Reserved by Click & Care and ADN DIGINET <a href="" target="_blank" rel="noopener noreferrer"></a></p>
               </div>
             </div>
           </div>
