@@ -160,3 +160,8 @@
     display: none;
   }
 }
+
+/* Add gap between mail icon and email address in topbar */
+.top-link li a .fa-envelope {
+  margin-right: 8px;
+}

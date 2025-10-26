@@ -20,7 +20,7 @@ const Header = () => {
               {/* Contact */}
               <ul className="top-link">
                 <li><a href="#"><i className="fa fa-phone"></i>+880 1234 56789</a></li>
-                <li><a href="#"><i className="fa fa-envelope"></i>support@yourmail.com</a></li>
+                <li><a href="#"><i className="fa fa-envelope"> </i>support@yourmail.com</a></li>
               </ul>
               {/* End Contact */}
             </div>

@@ -26,6 +26,7 @@
   border-radius: 50%;
   margin-bottom: 20px;
   box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+   margin-right: 8px;
 }
 
 .profile-icon-wrapper i {
@@ -68,6 +69,7 @@
 .form-group {
   display: flex;
   flex-direction: column;
+   margin-right: 8px;
 }
 
 .form-group label {
@@ -77,11 +79,13 @@
   margin-bottom: 8px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+   margin-right: 8px;
 }
 
 .form-group label i {
   color: #2563EB;
+   margin-right: 8px;
 }
 
 .required-star {
