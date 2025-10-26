@@ -412,7 +412,9 @@ async def get_all_doctors(db: Session = Depends(get_db)):
                 "phone": doctor.phone,
                 "profile_picture_url": doctor.profile_picture_url,
                 "schedule": doctor.schedule,
-                "is_verified": doctor.is_verified
+                "is_verified": doctor.is_verified,
+                "average_rating": doctor.average_rating or 0.0,
+                "total_ratings": doctor.total_ratings or 0
             })
         
         return doctors_list

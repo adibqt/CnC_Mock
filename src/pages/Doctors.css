@@ -329,6 +329,13 @@
   font-size: 14px;
 }
 
+.doctor-rating .rating-count {
+  font-weight: 400;
+  color: #666;
+  font-size: 12px;
+  margin-left: 2px;
+}
+
 .doctor-info {
   padding: 30px 25px;
   margin-top: -50px;

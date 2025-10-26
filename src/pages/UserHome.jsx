@@ -8,6 +8,8 @@ import { userAPI, authUtils, appointmentAPI, liveKitAPI } from '../services/api'
 import VideoCall, { useVideoCall } from '../components/VideoCall';
 import CallNotification from '../components/CallNotification';
 import { useCallNotification } from '../hooks/useCallNotification';
+import RatingModal from '../components/RatingModal';
+import { ratingAPI } from '../services/api';
 
 // Use environment variable for API URL (works with Vercel deployment)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -56,6 +58,11 @@ export default function UserHome() {
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [showAppointments, setShowAppointments] = useState(false);
+  
+  // Rating state
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [ratingAppointment, setRatingAppointment] = useState(null);
+  const [appointmentRatings, setAppointmentRatings] = useState({});
   
   // Video call state
   const { 
@@ -167,7 +174,10 @@ export default function UserHome() {
         // Load user appointments
         const appointmentsResult = await appointmentAPI.getPatientAppointments();
         if (appointmentsResult.success) {
-          setAppointments(appointmentsResult.data || []);
+          const appointmentData = appointmentsResult.data || [];
+          setAppointments(appointmentData);
+          // Load ratings for completed appointments
+          await loadAppointmentRatings(appointmentData);
         }
         
         setError('');
@@ -216,6 +226,59 @@ export default function UserHome() {
     const isConfirmed = appointment.status?.toLowerCase() === 'confirmed';
     
     return isConfirmed;
+  };
+
+  // Rating functions
+  const loadAppointmentRatings = async (appointmentList) => {
+    const ratings = {};
+    for (const appointment of appointmentList) {
+      if (appointment.status?.toLowerCase() === 'completed') {
+        const result = await ratingAPI.getRatingByAppointment(appointment.id);
+        if (result.success && result.data) {
+          ratings[appointment.id] = result.data;
+        }
+      }
+    }
+    setAppointmentRatings(ratings);
+  };
+
+  const handleRateDoctor = (appointment) => {
+    setRatingAppointment(appointment);
+    setShowRatingModal(true);
+  };
+
+  const handleSubmitRating = async (ratingData) => {
+    try {
+      const existingRating = appointmentRatings[ratingAppointment.id];
+      
+      let result;
+      if (existingRating) {
+        // Update existing rating
+        result = await ratingAPI.updateRating(existingRating.id, ratingData);
+      } else {
+        // Create new rating
+        result = await ratingAPI.createRating({
+          ...ratingData,
+          appointment_id: ratingAppointment.id
+        });
+      }
+
+      if (result.success) {
+        // Update local state
+        setAppointmentRatings(prev => ({
+          ...prev,
+          [ratingAppointment.id]: result.data
+        }));
+        setShowRatingModal(false);
+        setRatingAppointment(null);
+        alert(existingRating ? 'Rating updated successfully!' : 'Thank you for your rating!');
+      } else {
+        alert(result.error || 'Failed to submit rating');
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      alert('Failed to submit rating. Please try again.');
+    }
   };
 
   const onSuggestDoctor = async () => {
@@ -267,7 +330,8 @@ export default function UserHome() {
           specialty: suggestedDoctor.specialization,
           photo_url: suggestedDoctor.profile_picture_url,
           experience_years: 8, // Default value, can be added to doctor model
-          rating: 4.6, // Default value, can be added to doctor model
+          rating: suggestedDoctor.average_rating || 0.0,
+          total_ratings: suggestedDoctor.total_ratings || 0,
           concerns: selected
         });
       } else {
@@ -465,7 +529,11 @@ export default function UserHome() {
             <div className="uh-doc-info">
               <div className="uh-doc-name">{suggestion.name}</div>
               <div className="uh-doc-spec">{suggestion.specialty}</div>
-              <div className="uh-doc-meta">Experience: {suggestion.experience_years} yrs · Rating {suggestion.rating.toFixed(1)}</div>
+              <div className="uh-doc-meta">
+                Experience: {suggestion.experience_years} yrs · 
+                Rating {suggestion.rating.toFixed(1)} ⭐ 
+                ({suggestion.total_ratings || 0} reviews)
+              </div>
               <div className="uh-doc-concerns">
                 <span>For: {suggestion.concerns.join(', ')}</span>
               </div>
@@ -739,6 +807,15 @@ export default function UserHome() {
                               }
                             </button>
                           )}
+                          {appointment.status?.toLowerCase() === 'completed' && (
+                            <button
+                              className="rate-doctor-btn"
+                              onClick={() => handleRateDoctor(appointment)}
+                            >
+                              <Icon name={appointmentRatings[appointment.id] ? 'star' : 'star'} />
+                              {appointmentRatings[appointment.id] ? 'Edit Rating' : 'Rate Doctor'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -785,6 +862,18 @@ export default function UserHome() {
           onDismiss={dismissNotification}
         />
       )}
+
+      {/* Rating Modal */}
+      <RatingModal
+        show={showRatingModal}
+        onClose={() => {
+          setShowRatingModal(false);
+          setRatingAppointment(null);
+        }}
+        onSubmit={handleSubmitRating}
+        existingRating={ratingAppointment ? appointmentRatings[ratingAppointment.id] : null}
+        doctorName={ratingAppointment?.doctor?.name}
+      />
     </div>
   );
 }

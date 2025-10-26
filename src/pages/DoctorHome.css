@@ -440,6 +440,13 @@
   margin: 0;
 }
 
+.stat-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
 .stat-icon {
   width: 56px;
   height: 56px;

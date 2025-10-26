@@ -285,7 +285,8 @@ export default function Doctors() {
                         </div>
                         <div className="doctor-rating">
                           <i className="icofont-star"></i>
-                          <span>{doctor.rating || '4.5'}</span>
+                          <span>{doctor.average_rating ? doctor.average_rating.toFixed(1) : '0.0'}</span>
+                          <span className="rating-count">({doctor.total_ratings || 0})</span>
                         </div>
                       </div>
 

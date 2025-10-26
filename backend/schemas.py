@@ -84,6 +84,8 @@ class DoctorResponse(DoctorBase):
     fcps_certificate_url: Optional[str] = None
     degrees: Optional[list] = None
     profile_picture_url: Optional[str] = None
+    average_rating: Optional[float] = 0.0
+    total_ratings: Optional[int] = 0
     
     class Config:
         from_attributes = True
@@ -633,3 +635,35 @@ class LabReportResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+# ============================================
+# Rating Schemas
+# ============================================
+
+class RatingBase(BaseModel):
+    rating: int = Field(..., ge=1, le=5, description="Rating from 1 to 5 stars")
+    review: Optional[str] = Field(None, max_length=500)
+
+class RatingCreate(RatingBase):
+    appointment_id: int
+
+class RatingUpdate(BaseModel):
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    review: Optional[str] = Field(None, max_length=500)
+
+class RatingResponse(RatingBase):
+    id: int
+    doctor_id: int
+    patient_id: int
+    appointment_id: int
+    patient_name: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class DoctorRatingStats(BaseModel):
+    average_rating: float
+    total_ratings: int
+    rating_distribution: dict  # {5: 10, 4: 5, 3: 2, 2: 1, 1: 0}

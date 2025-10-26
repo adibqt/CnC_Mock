@@ -16,6 +16,7 @@ class User(Base):
     phone = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.PATIENT, nullable=False)
+    ratings_given = relationship("DoctorRating", back_populates="patient")
     
     # Profile Information
     name = Column(String, nullable=True)
@@ -41,6 +42,9 @@ class Doctor(Base):
     full_name = Column(String, nullable=False)
     specialization = Column(String, nullable=False)
     license_number = Column(String, unique=True, nullable=False)
+    average_rating = Column(Float, default=0.0)  # New field for average rating
+    total_ratings = Column(Integer, default=0)  # New field for total number of ratings
+    ratings = relationship("DoctorRating", back_populates="doctor")
     
     # Profile Information - New fields
     name = Column(String, nullable=True)  # Doctor's preferred name
@@ -85,6 +89,7 @@ class Appointment(Base):
     patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
     
+    rating = relationship("DoctorRating", back_populates="appointment", uselist=False)
     # Appointment details
     appointment_date = Column(Date, nullable=False)  # Changed from String to Date
     time_slot = Column(String, nullable=False)  # Format: "09:00 AM - 10:00 AM"
@@ -421,4 +426,29 @@ class LabReport(Base):
     quotation_response = relationship("LabTestQuotationResponse", backref="lab_report")
     clinic = relationship("Clinic", backref="lab_reports")
     patient = relationship("User", backref="lab_reports")
+
+
+class DoctorRating(Base):
+    """
+    Doctor Rating Model - Stores patient ratings for doctors after completed appointments
+    """
+    __tablename__ = "doctor_ratings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    doctor_id = Column(Integer, ForeignKey("doctors.id", ondelete="CASCADE"), nullable=False, index=True)
+    patient_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    appointment_id = Column(Integer, ForeignKey("appointments.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    
+    # Rating Details
+    rating = Column(Integer, nullable=False)  # 1-5 stars
+    review = Column(Text, nullable=True)  # Optional text review
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    doctor = relationship("Doctor", back_populates="ratings")
+    patient = relationship("User", back_populates="ratings_given")
+    appointment = relationship("Appointment", back_populates="rating")
 
