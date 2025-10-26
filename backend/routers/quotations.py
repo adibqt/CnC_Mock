@@ -234,11 +234,22 @@ def get_quotation_responses(
         # Format response
         formatted_responses = []
         for resp in responses:
+            # Normalize quoted_items to ensure consistent field names
+            normalized_items = []
+            for item in resp.quoted_items:
+                normalized_item = {
+                    "medicine_name": item.get("medicine") or item.get("medicine_name"),
+                    "quantity": item.get("quantity"),
+                    "unit_price": item.get("unit_price"),
+                    "total_price": item.get("total_price")
+                }
+                normalized_items.append(normalized_item)
+            
             response_dict = {
                 "id": resp.id,
                 "quotation_request_id": resp.quotation_request_id,
                 "pharmacy_id": resp.pharmacy_id,
-                "quoted_items": resp.quoted_items,
+                "quoted_items": normalized_items,
                 "subtotal": float(resp.subtotal),
                 "delivery_charge": float(resp.delivery_charge),
                 "total_amount": float(resp.total_amount),
