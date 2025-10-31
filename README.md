@@ -877,7 +877,7 @@ in the Software without restriction...
 
 ## 🌐 Live Demo
 
--[https://https://cn-c-web.vercel.app](https://cn-c-web.vercel.app/)
+-[https://cn-c-web.vercel.app](https://cn-c-web.vercel.app/)
 
 
 
